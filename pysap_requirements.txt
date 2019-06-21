@@ -1,0 +1,4 @@
+numpy
+cython
+pybind11
+pyqt5
