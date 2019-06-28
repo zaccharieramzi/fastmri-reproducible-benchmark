@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class FFT2:
     def __init__(self, mask):
         self.mask = mask
