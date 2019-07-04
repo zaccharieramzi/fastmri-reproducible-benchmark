@@ -17,7 +17,7 @@ def gen_mask(kspace, accel_factor=8):
     mask = np.zeros((kspace.shape[-1],)).astype(bool)
     n_center = kspace.shape[-1] * accel_factor // 100
     n_non_center = n_samples - n_center
-    center_slice = (len(mask)//2 - n_center, len(mask)//2 + n_center)
+    center_slice = (len(mask)//2 - n_center // 2, len(mask)//2 + n_center // 2)
     mask[slice(*center_slice)] = True
     selected_indices = random.sample(
         [i for i in range(0, kspace.shape[-1]) if i not in range(center_slice[0], center_slice[1])],
