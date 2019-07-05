@@ -36,7 +36,7 @@ class WaveletDecimated(Wavelet2):
                 raise ValueError('Shape not corresponding')
         if not is_square(data):
             data = self.pad_image(data)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         return super(WaveletDecimated, self).op(data)
 
     def adj_op(self, data):
