@@ -40,6 +40,7 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32):
                     i_slice += 1
                     zero_filled_rec = zero_filled(kspace)
                     zero_filled_rec = zero_filled_rec[:, :, None]
+                    image = image[:, :, None]
                     current_batch_zero.append(zero_filled_rec)
                     current_batch.append(image)
                     if i_slice % batch_size == 0:
