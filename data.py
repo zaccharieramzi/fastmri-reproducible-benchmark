@@ -55,7 +55,11 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32, af=None):
                         current_batch_zero = []
                         yield (zero_img_batch, img_batch)
             else:
-                _, kspaces = from_test_file_to_mask_and_kspace(filename)
+                mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+                if af is not None:
+                    mask_af = len(mask) / sum(mask)
+                    if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
+                        continue
                 for kspace in kspaces:
                     i_slice += 1
                     zero_filled_rec = zero_filled(kspace)
