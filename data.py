@@ -37,7 +37,7 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32, af=4):
             if mode in train_modes:
                 images, kspaces = from_train_file_to_image_and_kspace(filename)
                 mask = gen_mask(kspaces[0], accel_factor=af)
-                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspace.shape[0], axis=0)
+                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
                 for image, kspace in zip(images, kspaces):
                     i_slice += 1
                     zero_filled_rec = zero_filled(kspace * fourier_mask)
@@ -78,7 +78,7 @@ def zero_filled_3d_generator(path, mode='training', batch_size=32, af=None):
             if mode in train_modes:
                 images, kspaces = from_train_file_to_image_and_kspace(filename)
                 mask = gen_mask(kspaces[0], accel_factor=af)
-                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspace.shape[0], axis=0)
+                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
                 zero_filled_recs = list()
                 for kspace in kspaces:
                     zero_filled_rec = zero_filled(fourier_mask * kspace)
