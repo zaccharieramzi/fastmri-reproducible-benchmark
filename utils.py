@@ -1,6 +1,9 @@
 import random
 
+from keras import backend as K
 import numpy as np
+import tensorflow as tf
+
 
 def crop_center(img, cropx, cropy=None):
     # taken from https://stackoverflow.com/questions/39382412/crop-center-portion-of-a-numpy-image/39382475
@@ -25,3 +28,12 @@ def gen_mask(kspace, accel_factor=8):
     )
     mask[selected_indices] = True
     return mask
+
+
+def keras_psnr(y_true, y_pred):
+    max_pixel = K.max(y_true)
+    return (10.0 * K.log((max_pixel ** 2) / (K.mean(K.square(y_pred - y_true), axis=-1)))) / 2.303
+
+def keras_ssim(y_true, y_pred):
+    max_pixel = K.max(y_true)
+    return tf.image.ssim(y_true, y_pred, max_pixel)
