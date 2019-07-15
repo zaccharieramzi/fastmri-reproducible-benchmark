@@ -9,6 +9,8 @@ from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
 
+from utils import keras_psnr, keras_ssim
+
 
 def unet_rec(
         inputs,
@@ -118,7 +120,7 @@ def unet(
             model = load_model(model_path)
         finally:
             os.remove(model_path)
-    model.compile(optimizer=Adam(lr=1e-4), loss='mean_squared_error')
+    model.compile(optimizer=Adam(lr=1e-4), loss='mean_squared_error', metrics=[keras_psnr, keras_ssim])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)
