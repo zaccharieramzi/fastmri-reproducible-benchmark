@@ -16,7 +16,8 @@ def from_train_file_to_image_and_kspace(filename):
     with h5py.File(filename) as h5_obj:
         images = h5_obj['reconstruction_esc'][()]
         kspaces = h5_obj['kspace'][()]
-        return images, kspaces
+        mask = h5_obj['mask'][()]
+        return images, kspaces, mask
 
 
 def zero_filled(kspace):
@@ -26,7 +27,7 @@ def zero_filled(kspace):
     return im_cropped
 
 
-def zero_filled_2d_generator(path, mode='training', batch_size=32):
+def zero_filled_2d_generator(path, mode='training', batch_size=32, af=None):
     train_modes = ('training', 'validation')
     filenames = glob.glob(path + '*.h5')
     while True:
@@ -35,7 +36,11 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32):
         i_slice = 0
         for filename in filenames:
             if mode in train_modes:
-                images, kspaces = from_train_file_to_image_and_kspace(filename)
+                images, kspaces, mask = from_train_file_to_image_and_kspace(filename)
+                if af is not None:
+                    mask_af = len(mask) / sum(mask)
+                    if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
+                        continue
                 for image, kspace in zip(images, kspaces):
                     i_slice += 1
                     zero_filled_rec = zero_filled(kspace)
