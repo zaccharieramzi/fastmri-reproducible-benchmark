@@ -37,7 +37,10 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32, af=4):
         i_slice = 0
         for filename in filenames:
             if mode in train_modes:
-                images, kspaces = from_train_file_to_image_and_kspace(filename)
+                try:
+                    images, kspaces = from_train_file_to_image_and_kspace(filename)
+                except OSError:
+                    continue
                 mask = gen_mask(kspaces[0], accel_factor=af)
                 fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
                 for image, kspace in zip(images, kspaces):
@@ -54,7 +57,10 @@ def zero_filled_2d_generator(path, mode='training', batch_size=32, af=4):
                         current_batch_zero = []
                         yield (zero_img_batch, img_batch)
             else:
-                mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+                try:
+                    mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+                except OSError:
+                    continue
                 if af is not None:
                     mask_af = len(mask) / sum(mask)
                     if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
@@ -78,7 +84,10 @@ def zero_filled_3d_generator(path, mode='training', batch_size=32, af=None):
         current_batch = []
         for i_file, filename in enumerate(filenames):
             if mode in train_modes:
-                images, kspaces = from_train_file_to_image_and_kspace(filename)
+                try:
+                    images, kspaces = from_train_file_to_image_and_kspace(filename)
+                except OSError:
+                    continue
                 mask = gen_mask(kspaces[0], accel_factor=af)
                 fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
                 zero_filled_recs = list()
@@ -97,7 +106,10 @@ def zero_filled_3d_generator(path, mode='training', batch_size=32, af=None):
                     current_batch_zero = []
                     yield (zero_img_batch, img_batch)
             else:
-                mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+                try:
+                    mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+                except OSError:
+                    continue
                 if af is not None:
                     mask_af = len(mask) / sum(mask)
                     if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
