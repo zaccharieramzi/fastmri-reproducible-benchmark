@@ -78,6 +78,7 @@ def unet(
         layers_n_non_lins=1,
         non_relu_contract=False,
         pool='max',
+        lr=1e-3,
     ):
     if isinstance(layers_n_channels, int):
         layers_n_channels = [layers_n_channels] * n_layers
@@ -100,7 +101,7 @@ def unet(
     if with_extra_sigmoid:
         new_output = Conv2D(
             input_size[-1],
-            kernel_size,
+            1,
             activation='sigmoid',
             padding='same',
             kernel_initializer='he_normal',
@@ -120,7 +121,7 @@ def unet(
             model = load_model(model_path)
         finally:
             os.remove(model_path)
-    model.compile(optimizer=Adam(lr=1e-4), loss='mean_squared_error', metrics=[keras_psnr, keras_ssim])
+    model.compile(optimizer=Adam(lr=lr), loss='mean_squared_error', metrics=[keras_psnr, keras_ssim])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)
