@@ -29,6 +29,8 @@ def zero_filled(kspace):
 def zero_filled_2d_generator(path, mode='training', batch_size=32, af=4):
     train_modes = ('training', 'validation')
     filenames = glob.glob(path + '*.h5')
+    if not filenames:
+        raise ValueError('No h5 files at path {}'.format(path))
     while True:
         current_batch_zero = []
         current_batch = []
