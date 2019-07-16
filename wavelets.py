@@ -19,6 +19,12 @@ class WaveletDecimated(Wavelet2):
         image = np.pad(image, self.pad_seq, mode='constant')
         return image
 
+    def reset_im_size(self):
+        self.im_shape = None
+        self.big_dim = None
+        self.diff = None
+        self.pad_seq = None
+
     def op(self, data):
         if self.im_shape is None:
             self.im_shape = data.shape
