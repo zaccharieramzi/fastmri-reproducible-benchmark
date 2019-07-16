@@ -32,7 +32,7 @@ def gen_mask(kspace, accel_factor=8):
 # TODO have the same in 3D
 def keras_psnr(y_true, y_pred):
     max_pixel = K.max(y_true)
-    return (10.0 * K.log((max_pixel ** 2) / (K.mean(K.square(y_pred - y_true), axis=-1)))) / 2.303
+    return tf.image.psnr(y_true, y_pred, max_pixel)
 
 def keras_ssim(y_true, y_pred):
     max_pixel = K.max(y_true)
