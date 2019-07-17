@@ -1,4 +1,5 @@
 import glob
+import time
 
 import h5py
 from keras.utils import Sequence
@@ -8,16 +9,25 @@ from fourier import FFT2
 from utils import crop_center, gen_mask
 
 def from_test_file_to_mask_and_kspace(filename):
-    with  h5py.File(filename) as h5_obj:
-        masks = h5_obj['mask'][()]
-        kspaces = h5_obj['kspace'][()]
-        return masks, kspaces
+    try:
+        with  h5py.File(filename) as h5_obj:
+            masks = h5_obj['mask'][()]
+            kspaces = h5_obj['kspace'][()]
+            return masks, kspaces
+    except OSError:
+        time.sleep(0.3)
+        return from_test_file_to_mask_and_kspace(filename)
+
 
 def from_train_file_to_image_and_kspace(filename):
-    with h5py.File(filename) as h5_obj:
-        images = h5_obj['reconstruction_esc'][()]
-        kspaces = h5_obj['kspace'][()]
-        return images, kspaces
+    try:
+        with h5py.File(filename) as h5_obj:
+            images = h5_obj['reconstruction_esc'][()]
+            kspaces = h5_obj['kspace'][()]
+            return images, kspaces
+    except OSError:
+        time.sleep(1)
+        return from_train_file_to_image_and_kspace(filename)
 
 def from_file_to_kspace(filename):
     with h5py.File(filename) as h5_obj:
