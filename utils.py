@@ -16,17 +16,24 @@ def crop_center(img, cropx, cropy=None):
 
 
 def gen_mask(kspace, accel_factor=8):
-    n_samples = kspace.shape[-1] // accel_factor
-    mask = np.zeros((kspace.shape[-1],)).astype(bool)
-    n_center = kspace.shape[-1] * (32 // accel_factor) // 100
-    n_non_center = n_samples - n_center
-    center_slice = (len(mask)//2 - n_center // 2, len(mask)//2 + n_center // 2)
-    mask[slice(*center_slice)] = True
-    selected_indices = random.sample(
-        [i for i in range(0, kspace.shape[-1]) if i not in range(center_slice[0], center_slice[1])],
-        n_non_center,
-    )
-    mask[selected_indices] = True
+    # inspired by https://github.com/facebookresearch/fastMRI/blob/master/common/subsample.py
+    shape = kspace.shape
+    num_cols = shape[-1]
+
+    center_fraction = (32 // accel_factor) / 100
+    acceleration = accel_factor
+
+    # Create the mask
+    num_low_freqs = int(round(num_cols * center_fraction))
+    prob = (num_cols / acceleration - num_low_freqs) / (num_cols - num_low_freqs)
+    mask = np.random.uniform(size=num_cols) < prob
+    pad = (num_cols - num_low_freqs + 1) // 2
+    mask[pad:pad + num_low_freqs] = True
+
+    # Reshape the mask
+    mask_shape = [1 for _ in shape]
+    mask_shape[-1] = num_cols
+    mask = mask.reshape(*mask_shape)
     return mask
 
 # TODO have the same in 3D
