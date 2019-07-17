@@ -4,7 +4,7 @@ import tempfile
 
 from keras import activations
 from keras import backend as K
-from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization
 from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
@@ -169,4 +169,5 @@ def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, acti
             padding='same',
             kernel_initializer='he_normal',
         )(conv)
+        conv = BatchNormalization()(conv)
     return conv
