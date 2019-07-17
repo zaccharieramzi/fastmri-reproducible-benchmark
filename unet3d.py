@@ -4,7 +4,7 @@ import tempfile
 
 from keras import activations
 from keras import backend as K
-from keras.layers import Conv3D, MaxPooling3D, concatenate, Dropout, UpSampling3D, Input, AveragePooling3D
+from keras.layers import Conv3D, MaxPooling3D, concatenate, Dropout, UpSampling3D, Input, AveragePooling3D, BatchNormalization
 from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
@@ -61,7 +61,7 @@ def unet_rec3d(
         merge = concatenate([left_u, UpSampling3D(size=(2, 2))(rec_output)], axis=3)
         output = chained_convolutions3d(
             merge,
-            n_channels=n_channels,
+            n_channels=n_channels//2,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
         )
@@ -138,4 +138,5 @@ def chained_convolutions3d(inputs, n_channels=1, n_non_lins=1, kernel_size=3, ac
             padding='same',
             kernel_initializer='he_normal',
         )(conv)
+        conv = BatchNormalization()(conv)
     return conv
