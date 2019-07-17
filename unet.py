@@ -61,7 +61,7 @@ def unet_rec(
         merge = concatenate([left_u, UpSampling2D(size=(2, 2))(rec_output)], axis=3)
         output = chained_convolutions(
             merge,
-            n_channels=n_channels,
+            n_channels=n_channels//2,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
         )
