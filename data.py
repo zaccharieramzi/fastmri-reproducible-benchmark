@@ -15,7 +15,7 @@ def from_test_file_to_mask_and_kspace(filename):
             kspaces = h5_obj['kspace'][()]
             return masks, kspaces
     except OSError:
-        time.sleep(0.3)
+        time.sleep(0.1)
         return from_test_file_to_mask_and_kspace(filename)
 
 
@@ -26,7 +26,7 @@ def from_train_file_to_image_and_kspace(filename):
             kspaces = h5_obj['kspace'][()]
             return images, kspaces
     except OSError:
-        time.sleep(1)
+        time.sleep(0.1)
         return from_train_file_to_image_and_kspace(filename)
 
 def from_file_to_kspace(filename):
