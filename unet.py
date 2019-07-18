@@ -69,7 +69,6 @@ def unet_rec(
 
 
 def unet(
-        with_extra_sigmoid=False,
         pretrained_weights=None,
         input_size=(256, 256, 1),
         kernel_size=3,
@@ -98,29 +97,14 @@ def unet(
         pool=pool,
         non_relu_contract=non_relu_contract,
     )
-    if with_extra_sigmoid:
-        new_output = Conv2D(
-            input_size[-1],
-            1,
-            activation='sigmoid',
-            padding='same',
-            kernel_initializer='he_normal',
-        )(output)
-        model = Model(inputs=inputs, outputs=new_output)
-    else:
-        # inspired by https://github.com/raghakot/keras-vis/blob/master/vis/utils/utils.py
-        model = Model(input=inputs, outputs=output)
-        model.layers[-1].activation = activations.sigmoid
-        model_path = os.path.join(
-            tempfile.gettempdir(),
-            next(tempfile._get_candidate_names()) + '.h5',
-        )
-        try:
-            model.save(model_path)
-            K.clear_session()
-            model = load_model(model_path)
-        finally:
-            os.remove(model_path)
+    new_output = Conv2D(
+        input_size[-1],
+        1,
+        activation='relu',
+        padding='same',
+        kernel_initializer='he_normal',
+    )(output)
+    model = Model(inputs=inputs, outputs=new_output)
     model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
