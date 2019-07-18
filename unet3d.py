@@ -100,7 +100,7 @@ def unet3d(
     new_output = Conv3D(
         input_size[-1],
         kernel_size,
-        activation='sigmoid',
+        activation='relu',
         padding='same',
         kernel_initializer='he_normal',
     )(output)
