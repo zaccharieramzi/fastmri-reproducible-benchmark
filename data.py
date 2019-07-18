@@ -6,7 +6,7 @@ from keras.utils import Sequence
 import numpy as np
 
 from fourier import FFT2
-from utils import crop_center, gen_mask
+from utils import crop_center, gen_mask, normalize, normalize_instance
 
 def from_test_file_to_mask_and_kspace(filename):
     with  h5py.File(filename) as h5_obj:
@@ -39,10 +39,11 @@ def zero_filled(kspace):
 class ZeroFilled2DSequence(Sequence):
     train_modes = ('training', 'validation')
 
-    def __init__(self, path, mode='training', af=4):
+    def __init__(self, path, mode='training', af=4, norm=False):
         self.path = path
         self.mode = mode
         self.af = af
+        self.norm = norm
 
         self.filenames = glob.glob(path + '*.h5')
         if not self.filenames:
@@ -74,22 +75,37 @@ class ZeroFilled2DSequence(Sequence):
         images, kspaces = from_train_file_to_image_and_kspace(filename)
         mask = gen_mask(kspaces[0], accel_factor=self.af)
         fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
+        img_batch = list()
         zero_img_batch = list()
-        for kspace in kspaces:
+        for kspace, image in zip(kspaces, images):
             zero_filled_rec = zero_filled(kspace * fourier_mask)
+            if self.norm:
+                zero_filled_rec, mean, std = normalize_instance(zero_filled_rec, eps=1e-11)
+                image = normalize(image, mean, std, eps=1e-11)
             zero_filled_rec = zero_filled_rec[:, :, None]
             zero_img_batch.append(zero_filled_rec)
+            image = image[..., None]
+            img_batch.append(image)
         zero_img_batch = np.array(zero_img_batch)
-        images = images[..., None]
-        return (zero_img_batch, images)
+        img_batch = np.array(img_batch)
+        return (zero_img_batch, img_batch)
 
 
     def get_item_test(self, filename):
         _, kspaces = from_test_file_to_mask_and_kspace(filename)
         zero_img_batch = list()
+        means = list()
+        stddevs = list()
         for kspace in kspaces:
             zero_filled_rec = zero_filled(kspace)
+            if self.norm:
+                zero_filled_rec, mean, std = normalize_instance(zero_filled_rec, eps=1e-11)
+                means.append(mean)
+                stddevs.append(std)
             zero_filled_rec = zero_filled_rec[:, :, None]
             zero_img_batch.append(zero_filled_rec)
         zero_img_batch = np.array(zero_img_batch)
-        return zero_img_batch
+        if self.norm:
+            return zero_img_batch, means, stddevs
+        else:
+            return zero_img_batch
