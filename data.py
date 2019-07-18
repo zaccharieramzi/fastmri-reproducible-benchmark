@@ -38,11 +38,6 @@ def zero_filled(kspace):
 
 class ZeroFilled2DSequence(Sequence):
     train_modes = ('training', 'validation')
-    n_volumes_per_mode = {
-        'training': 973,
-        'validation': 199,
-        'testing': 108,
-    }
 
     def __init__(self, path, mode='training', af=4):
         self.path = path
@@ -53,11 +48,19 @@ class ZeroFilled2DSequence(Sequence):
         if not self.filenames:
             raise ValueError('No h5 files at path {}'.format(path))
         self.filenames.sort()
+        if mode == 'testing':
+            af_filenames = list()
+            for filename in self.filenames:
+                mask, _ = from_test_file_to_mask_and_kspace(filename)
+                mask_af = len(mask) / sum(mask)
+                if af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8:
+                    af_filenames.append(filename)
+            self.filenames = af_filenames
 
 
     def __len__(self):
         """From fastMRI paper"""
-        return type(self).n_volumes_per_mode[self.mode]
+        return len(self.filenames)
 
     def __getitem__(self, idx):
         filename = self.filenames[idx]
@@ -90,105 +93,3 @@ class ZeroFilled2DSequence(Sequence):
             zero_img_batch.append(zero_filled_rec)
         zero_img_batch = np.array(zero_img_batch)
         return zero_img_batch
-
-
-
-def zero_filled_2d_generator(path, mode='training', batch_size=32, af=4):
-    train_modes = ('training', 'validation')
-    filenames = glob.glob(path + '*.h5')
-    if not filenames:
-        raise ValueError('No h5 files at path {}'.format(path))
-    while True:
-        current_batch_zero = []
-        current_batch = []
-        i_slice = 0
-        for filename in filenames:
-            if mode in train_modes:
-                try:
-                    images, kspaces = from_train_file_to_image_and_kspace(filename)
-                except OSError:
-                    continue
-                mask = gen_mask(kspaces[0], accel_factor=af)
-                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
-                for image, kspace in zip(images, kspaces):
-                    i_slice += 1
-                    zero_filled_rec = zero_filled(kspace * fourier_mask)
-                    zero_filled_rec = zero_filled_rec[:, :, None]
-                    image = image[:, :, None]
-                    current_batch_zero.append(zero_filled_rec)
-                    current_batch.append(image)
-                    if i_slice % batch_size == 0:
-                        zero_img_batch = np.array(current_batch_zero)
-                        img_batch = np.array(current_batch)
-                        current_batch = []
-                        current_batch_zero = []
-                        yield (zero_img_batch, img_batch)
-            else:
-                try:
-                    mask, kspaces = from_test_file_to_mask_and_kspace(filename)
-                except OSError:
-                    continue
-                if af is not None:
-                    mask_af = len(mask) / sum(mask)
-                    if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
-                        continue
-                for kspace in kspaces:
-                    i_slice += 1
-                    zero_filled_rec = zero_filled(kspace)
-                    zero_filled_rec = zero_filled_rec[:, :, None]
-                    current_batch_zero.append(zero_filled_rec)
-                    if i_slice % batch_size == 0:
-                        zero_img_batch = np.array(current_batch_zero)
-                        current_batch_zero = []
-                        yield zero_img_batch
-
-
-def zero_filled_3d_generator(path, mode='training', batch_size=32, af=None):
-    train_modes = ('training', 'validation')
-    filenames = glob.glob(path + '*.h5')
-    while True:
-        current_batch_zero = []
-        current_batch = []
-        for i_file, filename in enumerate(filenames):
-            if mode in train_modes:
-                try:
-                    images, kspaces = from_train_file_to_image_and_kspace(filename)
-                except OSError:
-                    continue
-                mask = gen_mask(kspaces[0], accel_factor=af)
-                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
-                zero_filled_recs = list()
-                for kspace in kspaces:
-                    zero_filled_rec = zero_filled(fourier_mask * kspace)
-                    zero_filled_recs.append(zero_filled_rec)
-                zero_filled_recs = np.array(zero_filled_recs)
-                zero_filled_recs = zero_filled_recs[..., None]
-                images = images[..., None]
-                current_batch_zero.append(zero_filled_recs)
-                current_batch.append(images)
-                if (i_file + 1) % batch_size == 0:
-                    zero_img_batch = np.array(current_batch_zero)
-                    img_batch = np.array(current_batch)
-                    current_batch = []
-                    current_batch_zero = []
-                    yield (zero_img_batch, img_batch)
-            else:
-                try:
-                    mask, kspaces = from_test_file_to_mask_and_kspace(filename)
-                except OSError:
-                    continue
-                if af is not None:
-                    mask_af = len(mask) / sum(mask)
-                    if not(af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8):
-                        continue
-                zero_filled_recs = list()
-                for kspace in kspaces:
-                    zero_filled_rec = zero_filled(kspace)
-                    zero_filled_recs.append(zero_filled_rec)
-                zero_filled_recs = np.array(zero_filled_recs)
-                zero_filled_recs = zero_filled_recs[..., None]
-                current_batch_zero.append(zero_filled_recs)
-                if (i_file + 1) % batch_size == 0:
-                    zero_img_batch = np.array(current_batch_zero)
-                    current_batch_zero = []
-                    yield zero_img_batch
