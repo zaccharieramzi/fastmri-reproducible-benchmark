@@ -77,6 +77,7 @@ class ZeroFilled2DSequence(Sequence):
             zero_filled_rec = zero_filled_rec[:, :, None]
             zero_img_batch.append(zero_filled_rec)
         zero_img_batch = np.array(zero_img_batch)
+        images = images[..., None]
         return (zero_img_batch, images)
 
 
