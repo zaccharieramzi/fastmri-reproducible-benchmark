@@ -9,25 +9,19 @@ from fourier import FFT2
 from utils import crop_center, gen_mask
 
 def from_test_file_to_mask_and_kspace(filename):
-    try:
-        with  h5py.File(filename) as h5_obj:
-            masks = h5_obj['mask'][()]
-            kspaces = h5_obj['kspace'][()]
-            return masks, kspaces
-    except OSError:
-        time.sleep(0.1)
-        return from_test_file_to_mask_and_kspace(filename)
+    with  h5py.File(filename) as h5_obj:
+        masks = h5_obj['mask'][()]
+        kspaces = h5_obj['kspace'][()]
+        return masks, kspaces
+
 
 
 def from_train_file_to_image_and_kspace(filename):
-    try:
-        with h5py.File(filename) as h5_obj:
-            images = h5_obj['reconstruction_esc'][()]
-            kspaces = h5_obj['kspace'][()]
-            return images, kspaces
-    except OSError:
-        time.sleep(0.1)
-        return from_train_file_to_image_and_kspace(filename)
+    with h5py.File(filename) as h5_obj:
+        images = h5_obj['reconstruction_esc'][()]
+        kspaces = h5_obj['kspace'][()]
+        return images, kspaces
+
 
 def from_file_to_kspace(filename):
     with h5py.File(filename) as h5_obj:
@@ -43,74 +37,57 @@ def zero_filled(kspace):
 
 
 class ZeroFilled2DSequence(Sequence):
-    n_samples_per_mode = {
-        'training': 34742,
-        'validation': 7135,
-        'testing': 3903,
-    }
     train_modes = ('training', 'validation')
+    n_volumes_per_mode = {
+        'training': 973,
+        'validation': 199,
+        'testing': 108,
+    }
 
-    def __init__(self, path, mode='training', batch_size=32, af=4):
+    def __init__(self, path, mode='training', af=4):
         self.path = path
         self.mode = mode
-        self.batch_size = batch_size
         self.af = af
 
-        filenames = glob.glob(path + '*.h5')
-        if not filenames:
+        self.filenames = glob.glob(path + '*.h5')
+        if not self.filenames:
             raise ValueError('No h5 files at path {}'.format(path))
-        filenames.sort()
-        self.idx_to_file = list()
-        for filename in filenames:
-            kspaces = from_file_to_kspace(filename)
-            self.idx_to_file += [(filename, i) for i in range(len(kspaces))]
+        self.filenames.sort()
 
 
     def __len__(self):
         """From fastMRI paper"""
-        return type(self).n_samples_per_mode[self.mode]
+        return type(self).n_volumes_per_mode[self.mode]
 
     def __getitem__(self, idx):
-        filenames_and_positions = self.idx_to_file[idx:idx + self.batch_size]
+        filename = self.filenames[idx]
         if self.mode in type(self).train_modes:
-            return self.get_item_train(filenames_and_positions)
+            return self.get_item_train(filename)
         else:
-            return self.get_item_test(filenames_and_positions)
+            return self.get_item_test(filename)
 
 
-    def get_item_train(self, filenames_and_positions):
-        last_filename = None
-        current_batch = list()
-        current_batch_zero = list()
-        for filename, i_kspace in filenames_and_positions:
-            if last_filename != filename:
-                images, kspaces = from_train_file_to_image_and_kspace(filename)
-                mask = gen_mask(kspaces[0], accel_factor=self.af)
-                fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
-            zero_filled_rec = zero_filled(kspaces[i_kspace] * fourier_mask)
+    def get_item_train(self, filename):
+        images, kspaces = from_train_file_to_image_and_kspace(filename)
+        mask = gen_mask(kspaces[0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
+        zero_img_batch = list()
+        for kspace in kspaces:
+            zero_filled_rec = zero_filled(kspace * fourier_mask)
             zero_filled_rec = zero_filled_rec[:, :, None]
-            image = images[i_kspace][:, :, None]
-            current_batch_zero.append(zero_filled_rec)
-            current_batch.append(image)
-        zero_img_batch = np.array(current_batch_zero)
-        img_batch = np.array(current_batch)
-        return (zero_img_batch, img_batch)
+            zero_img_batch.append(zero_filled_rec)
+        zero_img_batch = np.array(zero_img_batch)
+        return (zero_img_batch, images)
 
 
-    def get_item_test(self, filenames_and_positions):
-        last_filename = None
-        current_batch_zero = list()
-        for filename, i_kspace in filenames_and_positions:
-            if last_filename != filename:
-                mask, kspaces = from_test_file_to_mask_and_kspace(filename)
-                mask_af = len(mask) / sum(mask)
-                if not(self.af == 4 and mask_af < 5.5 or self.af == 8 and mask_af > 8):
-                    # TODO: I think this won't work: I will probably need to check the filenames first
-                    continue
-            zero_filled_rec = zero_filled(kspaces[i_kspace])
+    def get_item_test(self, filename):
+        _, kspaces = from_test_file_to_mask_and_kspace(filename)
+        zero_img_batch = list()
+        for kspace in kspaces:
+            zero_filled_rec = zero_filled(kspace)
             zero_filled_rec = zero_filled_rec[:, :, None]
-            current_batch_zero.append(zero_filled_rec)
-        zero_img_batch = np.array(current_batch_zero)
+            zero_img_batch.append(zero_filled_rec)
+        zero_img_batch = np.array(zero_img_batch)
         return zero_img_batch
 
 
