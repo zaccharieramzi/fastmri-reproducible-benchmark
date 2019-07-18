@@ -121,7 +121,7 @@ def unet(
             model = load_model(model_path)
         finally:
             os.remove(model_path)
-    model.compile(optimizer=Adam(lr=lr), loss='mean_squared_error', metrics=[keras_psnr, keras_ssim])
+    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)

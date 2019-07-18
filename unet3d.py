@@ -120,7 +120,7 @@ def unet3d(
             model = load_model(model_path)
         finally:
             os.remove(model_path)
-    model.compile(optimizer=Adam(lr=1e-4), loss='mean_squared_error')
+    model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error', metrics=['mean_squared_error'])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)
