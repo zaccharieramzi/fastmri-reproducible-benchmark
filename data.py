@@ -70,7 +70,7 @@ class ZeroFilled2DSequence(Sequence):
     def get_item_train(self, filename):
         images, kspaces = from_train_file_to_image_and_kspace(filename)
         mask = gen_mask(kspaces[0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float)[None, :], kspaces[0].shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
         zero_img_batch = list()
         for kspace in kspaces:
             zero_filled_rec = zero_filled(kspace * fourier_mask)
