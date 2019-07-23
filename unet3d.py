@@ -49,7 +49,7 @@ def unet_rec3d(
             pooling = AveragePooling3D
         else:
             pooling = MaxPooling3D
-        rec_input = pooling(pool_size=(2, 2))(left_u)
+        rec_input = pooling(pool_size=(2, 2, 2))(left_u)
         rec_output = unet_rec3d(
             inputs=rec_input,
             kernel_size=kernel_size,
@@ -67,7 +67,7 @@ def unet_rec3d(
                 activation='relu',
                 padding='same',
                 kernel_initializer='he_normal',
-            )(UpSampling3D(size=(2, 2))(rec_output))  # up-conv
+            )(UpSampling3D(size=(2, 2, 2))(rec_output))  # up-conv
         ], axis=3)
         output = chained_convolutions3d(
             merge,
