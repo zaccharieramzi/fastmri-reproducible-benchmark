@@ -87,6 +87,9 @@ class fastMRI2DSequence(Sequence):
         pass
 
 
+
+
+
 class ZeroPadded2DSequence(fastMRI2DSequence):
     pad = 644
     def get_item_train(self, filename):
@@ -177,3 +180,24 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
             return zero_img_batch, means, stddevs
         else:
             return zero_img_batch
+
+
+class ZeroFilled3DSequence(ZeroFilled2DSequence):
+
+    def get_item_train(self, filename):
+        z_kspace_batch, img_batch = super(ZeroFilled3DSequence, self).get_item_train(filename)
+        z_kspace_batch = z_kspace_batch[None, ...]
+        img_batch = img_batch[None, ...]
+        return z_kspace_batch, img_batch
+
+
+    def get_item_test(self, filename):
+        if self.norm:
+            z_kspace_batch, means, stddevs = super(ZeroFilled3DSequence, self).get_item_test(filename)
+        else:
+            z_kspace_batch = super(ZeroFilled3DSequence, self).get_item_test(filename)
+        z_kspace_batch = z_kspace_batch[None, ...]
+        if self.norm:
+            return z_kspace_batch, means, stddevs
+        else:
+            return z_kspace_batch
