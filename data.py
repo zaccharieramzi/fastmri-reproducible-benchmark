@@ -188,10 +188,10 @@ class ZeroFilled3DSequence(ZeroFilled2DSequence):
 
     def get_item_train(self, filename):
         z_kspace_batch, img_batch = super(ZeroFilled3DSequence, self).get_item_train(filename)
-        to_pad = type(self).slice_pad - z_kspace_batch.shape[0]
-        pad_seq = [(to_pad // 2 + to_pad % 2, to_pad // 2), (0, 0), (0, 0), (0, 0)]
-        z_kspace_batch = np.pad(z_kspace_batch, pad_seq, mode='constant')
-        img_batch = np.pad(img_batch, pad_seq, mode='constant')
+        # to_pad = type(self).slice_pad - z_kspace_batch.shape[0]
+        # pad_seq = [(to_pad // 2 + to_pad % 2, to_pad // 2), (0, 0), (0, 0), (0, 0)]
+        # z_kspace_batch = np.pad(z_kspace_batch, pad_seq, mode='constant')
+        # img_batch = np.pad(img_batch, pad_seq, mode='constant')
         z_kspace_batch = z_kspace_batch[None, ...]
         img_batch = img_batch[None, ...]
         return z_kspace_batch, img_batch
