@@ -62,8 +62,8 @@ def unet_rec(
         merge = concatenate([
             left_u,
             Conv2D(
-                n_channels//2,
-                kernel_size,
+                n_channels,
+                kernel_size - 1,
                 activation='relu',
                 padding='same',
                 kernel_initializer='he_normal',
@@ -71,7 +71,7 @@ def unet_rec(
         ], axis=3)
         output = chained_convolutions(
             merge,
-            n_channels=n_channels//2,
+            n_channels=n_channels,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
         )
