@@ -8,6 +8,7 @@ from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2
 from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
+from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
 
 from utils import keras_psnr, keras_ssim
 
@@ -58,7 +59,16 @@ def unet_rec(
             pool=pool,
             non_relu_contract=non_relu_contract,
         )
-        merge = concatenate([left_u, UpSampling2D(size=(2, 2))(rec_output)], axis=3)
+        merge = concatenate([
+            left_u,
+            Conv2D(
+                n_channels//2,
+                kernel_size,
+                activation='relu',
+                padding='same',
+                kernel_initializer='he_normal',
+            )(UpSampling2D(size=(2, 2))(rec_output))  # up-conv
+        ], axis=3)
         output = chained_convolutions(
             merge,
             n_channels=n_channels//2,
@@ -153,5 +163,5 @@ def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, acti
             padding='same',
             kernel_initializer='he_normal',
         )(conv)
-        conv = BatchNormalization()(conv)
+        # conv = InstanceNormalization()(conv)
     return conv
