@@ -8,6 +8,7 @@ from keras.layers import Conv3D, MaxPooling3D, concatenate, Dropout, UpSampling3
 from keras.models import Model
 from keras.models import load_model
 from keras.optimizers import Adam
+from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
 
 from utils import keras_psnr, keras_ssim
 
@@ -58,10 +59,19 @@ def unet_rec3d(
             pool=pool,
             non_relu_contract=non_relu_contract,
         )
-        merge = concatenate([left_u, UpSampling3D(size=(2, 2))(rec_output)], axis=3)
+        merge = concatenate([
+            left_u,
+            Conv3D(
+                n_channels,
+                kernel_size - 1,
+                activation='relu',
+                padding='same',
+                kernel_initializer='he_normal',
+            )(UpSampling3D(size=(2, 2))(rec_output))  # up-conv
+        ], axis=3)
         output = chained_convolutions3d(
             merge,
-            n_channels=n_channels//2,
+            n_channels=n_channels,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
         )
@@ -69,15 +79,15 @@ def unet_rec3d(
 
 
 def unet3d(
-        with_extra_sigmoid=False,
         pretrained_weights=None,
-        input_size=(48, 320, 320, 1),
+        input_size=(256, 256, 256, 1),
         kernel_size=3,
         n_layers=1,
         layers_n_channels=1,
         layers_n_non_lins=1,
         non_relu_contract=False,
         pool='max',
+        lr=1e-3,
     ):
     if isinstance(layers_n_channels, int):
         layers_n_channels = [layers_n_channels] * n_layers
@@ -88,7 +98,7 @@ def unet3d(
     else:
         assert len(layers_n_non_lins) == n_layers
     inputs = Input(input_size)
-    output = unet_rec3d(
+    output = unet_rec(
         inputs,
         kernel_size=kernel_size,
         n_layers=n_layers,
@@ -99,13 +109,13 @@ def unet3d(
     )
     new_output = Conv3D(
         input_size[-1],
-        kernel_size,
+        1,
         activation='relu',
         padding='same',
         kernel_initializer='he_normal',
     )(output)
     model = Model(inputs=inputs, outputs=new_output)
-    model.compile(optimizer=Adam(lr=1e-4), loss='mean_absolute_error', metrics=['mean_squared_error'])
+    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)
@@ -123,5 +133,4 @@ def chained_convolutions3d(inputs, n_channels=1, n_non_lins=1, kernel_size=3, ac
             padding='same',
             kernel_initializer='he_normal',
         )(conv)
-        conv = BatchNormalization()(conv)
     return conv
