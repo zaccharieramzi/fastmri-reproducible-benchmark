@@ -98,7 +98,7 @@ def unet3d(
     else:
         assert len(layers_n_non_lins) == n_layers
     inputs = Input(input_size)
-    output = unet_rec(
+    output = unet_rec3d(
         inputs,
         kernel_size=kernel_size,
         n_layers=n_layers,
