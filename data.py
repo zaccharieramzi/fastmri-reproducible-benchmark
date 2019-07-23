@@ -183,9 +183,15 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
 
 
 class ZeroFilled3DSequence(ZeroFilled2DSequence):
+    slice_pad = 50
+
 
     def get_item_train(self, filename):
         z_kspace_batch, img_batch = super(ZeroFilled3DSequence, self).get_item_train(filename)
+        to_pad = type(self).slice_pad - z_kspace_batch.shape[0]
+        pad_seq = [(to_pad // 2 + to_pad % 2, to_pad // 2), (0, 0), (0, 0), (0, 0)]
+        z_kspace_batch = np.pad(z_kspace_batch, pad_seq, mode='constant')
+        img_batch = np.pad(img_batch, pad_seq, mode='constant')
         z_kspace_batch = z_kspace_batch[None, ...]
         img_batch = img_batch[None, ...]
         return z_kspace_batch, img_batch
@@ -196,8 +202,11 @@ class ZeroFilled3DSequence(ZeroFilled2DSequence):
             z_kspace_batch, means, stddevs = super(ZeroFilled3DSequence, self).get_item_test(filename)
         else:
             z_kspace_batch = super(ZeroFilled3DSequence, self).get_item_test(filename)
+        to_pad = type(self).slice_pad - z_kspace_batch.shape[0]
+        pad_seq = [(to_pad // 2 + to_pad % 2, to_pad // 2), (0, 0), (0, 0), (0, 0)]
+        z_kspace_batch = np.pad(z_kspace_batch, pad_seq, mode='constant')
         z_kspace_batch = z_kspace_batch[None, ...]
         if self.norm:
-            return z_kspace_batch, means, stddevs
+            return z_kspace_batch, means, stddevs, pad_seq
         else:
-            return z_kspace_batch
+            return z_kspace_batch, pad_seq
