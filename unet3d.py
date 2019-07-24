@@ -68,7 +68,7 @@ def unet_rec3d(
                 padding='same',
                 kernel_initializer='he_normal',
             )(UpSampling3D(size=(2, 2, 2))(rec_output))  # up-conv
-        ], axis=3)
+        ], axis=-1)
         output = chained_convolutions3d(
             merge,
             n_channels=n_channels,
