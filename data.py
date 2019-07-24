@@ -87,9 +87,6 @@ class fastMRI2DSequence(Sequence):
         pass
 
 
-
-
-
 class ZeroPadded2DSequence(fastMRI2DSequence):
     pad = 644
     def get_item_train(self, filename):
