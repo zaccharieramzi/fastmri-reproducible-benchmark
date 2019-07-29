@@ -63,7 +63,7 @@ class fastMRI2DSequence(Sequence):
             for filename in self.filenames:
                 mask, _ = from_test_file_to_mask_and_kspace(filename)
                 mask_af = len(mask) / sum(mask)
-                if af == 4 and mask_af < 5.5 or af == 8 and mask_af > 8:
+                if af == 4 and mask_af < 5.5 or af == 8 and mask_af > 5.5:
                     af_filenames.append(filename)
             self.filenames = af_filenames
 
@@ -85,6 +85,18 @@ class fastMRI2DSequence(Sequence):
 
     def get_item_test(self, filename):
         pass
+
+class Untouched2DSequence(fastMRI2DSequence):
+    def get_item_train(self, filename):
+        images, kspaces = from_train_file_to_image_and_kspace(filename)
+        images = images[..., None]
+        kspaces = kspaces[..., None]
+        return images, kspaces
+
+    def get_item_test(self, filename):
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        kspaces = kspaces[..., None]
+        return mask, kspaces
 
 
 class ZeroPadded2DSequence(fastMRI2DSequence):
