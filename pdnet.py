@@ -30,9 +30,10 @@ def conv2d_complex(x, n_filters):
     conv_res = Lambda(to_complex)([conv_real, conv_imag])
     return conv_res
 
-def pdnet(n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
-    kspace_input = Input((640, None, 1), dtype='complex64')
-    mask = Input((640, None), dtype='complex64')
+def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
+    kspace_input = Input(input_size, dtype='complex64')
+    mask_shape = input_size[:-1]
+    mask = Input(mask_shape, dtype='complex64')
 
 
     primal = Lambda(lambda x: tf.concat([tf.zeros_like(x)] * n_primal, axis=-1))(kspace_input)
@@ -40,10 +41,10 @@ def pdnet(n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
 
     for i in range(n_iter):
         # first work in kspace (dual space)
-        primal_sq = Lambda(tf.squeeze, output_shape=(640, None), arguments={'axis': -1})(Lambda(lambda x: x[..., 1:2])(primal))
-        dual_eval_fft = Lambda(fft2d, output_shape=(640, None))(primal_sq)
+        primal_sq = Lambda(tf.squeeze, output_shape=mask_shape, arguments={'axis': -1})(Lambda(lambda x: x[..., 1:2])(primal))
+        dual_eval_fft = Lambda(fft2d, output_shape=mask_shape)(primal_sq)
         dual_eval_masked = Multiply()([dual_eval_fft, mask])
-        dual_eval_exp = Lambda(tf.expand_dims, output_shape=(640, None, 1), arguments={'axis': -1})(dual_eval_masked)
+        dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
 
         update = conv2d_complex(update, n_filters)
@@ -52,10 +53,10 @@ def pdnet(n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
 
 
         # Then work in image space (primal space)
-        dual_sq = Lambda(tf.squeeze, output_shape=(640, None), arguments={'axis': -1})(Lambda(lambda x: x[..., 0:1])(dual))
+        dual_sq = Lambda(tf.squeeze, output_shape=mask_shape, arguments={'axis': -1})(Lambda(lambda x: x[..., 0:1])(dual))
         dual_masked = Multiply()([dual_sq, mask])
-        primal_eval = Lambda(ifft2d, output_shape=(640, None))(dual_masked)
-        primal_exp = Lambda(tf.expand_dims, output_shape=(640, None, 1), arguments={'axis': -1})(primal_eval)
+        primal_eval = Lambda(ifft2d, output_shape=mask_shape)(dual_masked)
+        primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
         update = concatenate([primal, primal_exp], axis=-1)
 
         update = conv2d_complex(update, n_filters)
