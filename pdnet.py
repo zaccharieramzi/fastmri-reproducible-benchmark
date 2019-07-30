@@ -93,7 +93,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
 
         # Then work in image space (primal space)
-        primal_exp = Lambda(tf_ifft_masked, output_shape=input_size, name='ifft_{i}'.format(i=i+1))([dual, mask])
+        primal_exp = Lambda(tf_ifft_masked, output_shape=input_size, name='ifft_masked_{i}'.format(i=i+1))([dual, mask])
         update = concatenate([primal, primal_exp], axis=-1)
 
         update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
