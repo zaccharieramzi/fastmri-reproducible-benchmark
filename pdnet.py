@@ -36,6 +36,13 @@ def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
     conv_res = Lambda(to_complex, output_shape=output_shape)([conv_real, conv_imag])
     return conv_res
 
+def tf_ifft(x):
+    return tf.expand_dims(ifft2d(x[..., 0]), axis=-1)
+
+def tf_fft(x):
+    return tf.expand_dims(fft2d(x[..., 0]), axis=-1)
+
+
 def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
     # shapes
     mask_shape = input_size[:-1]
