@@ -14,17 +14,22 @@ def to_complex(x):
 def conv2d_complex(x, n_filters, activation='relu'):
     x_real = Lambda(tf.math.real)(x)
     x_imag = Lambda(tf.math.imag)(x)
+    if activation == 'prelu':
+        act_real = PReLU()
+        act_comp = PReLU()
+    else:
+        act_real = act_comp = activation
     conv_real = Conv2D(
         n_filters,
         3,
-        activation=activation,
+        activation=act_real,
         padding='same',
         kernel_initializer='he_normal',
     )(x_real)
     conv_imag = Conv2D(
         n_filters,
         3,
-        activation=activation,
+        activation=act_comp,
         padding='same',
         kernel_initializer='he_normal',
     )(x_imag)
@@ -48,7 +53,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
 
-        update = conv2d_complex(update, n_filters, activation=PReLU())
+        update = conv2d_complex(update, n_filters, activation='relu')
         update = conv2d_complex(update, n_dual, activation='linear')
         dual = Add()([dual, update])
 
@@ -60,7 +65,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
         update = concatenate([primal, primal_exp], axis=-1)
 
-        update = conv2d_complex(update, n_filters, activation=PReLU())
+        update = conv2d_complex(update, n_filters, activation='relu')
         update = conv2d_complex(update, n_dual, activation='linear')
         primal = Add()([primal, update])
 
