@@ -132,9 +132,6 @@ class MaskShifted2DSequence(fastMRI2DSequence):
         return [kspace_batch, mask_batch]
 
 
-
-
-
 class Untouched2DSequence(fastMRI2DSequence):
     def get_item_train(self, filename):
         images, kspaces = from_train_file_to_image_and_kspace(filename)
