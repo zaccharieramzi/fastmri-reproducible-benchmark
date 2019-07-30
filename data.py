@@ -2,8 +2,8 @@ import glob
 import time
 
 import h5py
+from keras.utils import Sequence
 import numpy as np
-from tensorflow.keras.utils import Sequence
 
 from fourier import FFT2
 from utils import crop_center, gen_mask, normalize, normalize_instance
