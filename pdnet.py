@@ -1,4 +1,5 @@
 from keras.layers import Input, Lambda, Multiply, Conv2D, concatenate, Add
+from keras.layers.advanced_activations import PReLU
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
@@ -10,20 +11,20 @@ from utils import keras_psnr_complex, keras_ssim_complex
 def to_complex(x):
     return tf.complex(x[0], x[1])
 
-def conv2d_complex(x, n_filters):
+def conv2d_complex(x, n_filters, activation='relu'):
     x_real = Lambda(tf.math.real)(x)
     x_imag = Lambda(tf.math.imag)(x)
     conv_real = Conv2D(
         n_filters,
         3,
-        activation='relu',
+        activation=activation,
         padding='same',
         kernel_initializer='he_normal',
     )(x_real)
     conv_imag = Conv2D(
         n_filters,
         3,
-        activation='relu',
+        activation=activation,
         padding='same',
         kernel_initializer='he_normal',
     )(x_imag)
@@ -47,8 +48,8 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
 
-        update = conv2d_complex(update, n_filters)
-        update = conv2d_complex(update, n_dual)
+        update = conv2d_complex(update, n_filters, activation=PReLU())
+        update = conv2d_complex(update, n_dual, activation='linear')
         dual = Add()([dual, update])
 
 
@@ -59,8 +60,8 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
         update = concatenate([primal, primal_exp], axis=-1)
 
-        update = conv2d_complex(update, n_filters)
-        update = conv2d_complex(update, n_primal)
+        update = conv2d_complex(update, n_filters, activation=PReLU())
+        update = conv2d_complex(update, n_dual, activation='linear')
         primal = Add()([primal, update])
 
     image_res = Lambda(lambda x: x[..., 0:1])(primal)
