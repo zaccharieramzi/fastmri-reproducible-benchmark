@@ -2,8 +2,8 @@ import glob
 import time
 
 import h5py
-from keras.utils import Sequence
 import numpy as np
+from keras.utils import Sequence
 
 from fourier import FFT2
 from utils import crop_center, gen_mask, normalize, normalize_instance
@@ -85,6 +85,18 @@ class fastMRI2DSequence(Sequence):
 
     def get_item_test(self, filename):
         pass
+
+
+class Mask2DSequence(fastMRI2DSequence):
+    def get_item_train(self, filename):
+        kspaces = from_file_to_kspace(filename)
+        mask = gen_mask(kspaces[0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
+        img_batch = list()
+        kspace_batch = list()
+        for kspace in kspaces:
+            print('WIP')
+
 
 class Untouched2DSequence(fastMRI2DSequence):
     def get_item_train(self, filename):
