@@ -1,14 +1,7 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
-import os
-import tempfile
-
-from keras import activations
-from keras import backend as K
-from keras.layers import Conv3D, MaxPooling3D, concatenate, Dropout, UpSampling3D, Input, AveragePooling3D, BatchNormalization
+from keras.layers import Conv3D, MaxPooling3D, concatenate, UpSampling3D, Input, AveragePooling3D, BatchNormalization
 from keras.models import Model
-from keras.models import load_model
 from keras.optimizers import Adam
-from keras_contrib.layers.normalization.instancenormalization import InstanceNormalization
 
 from utils import keras_psnr, keras_ssim
 
@@ -107,14 +100,21 @@ def unet3d(
         pool=pool,
         non_relu_contract=non_relu_contract,
     )
-    new_output = Conv3D(
-        input_size[-1],
+    output = Conv3D(
+        4,
         1,
-        activation='relu',
+        activation='linear',
         padding='same',
         kernel_initializer='he_normal',
     )(output)
-    model = Model(inputs=inputs, outputs=new_output)
+    output = Conv3D(
+        input_size[-1],
+        1,
+        activation='linear',
+        padding='same',
+        kernel_initializer='he_normal',
+    )(output)
+    model = Model(inputs=inputs, outputs=output)
     model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
