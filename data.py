@@ -87,15 +87,52 @@ class fastMRI2DSequence(Sequence):
         pass
 
 
-class Mask2DSequence(fastMRI2DSequence):
+class MaskShifted2DSequence(fastMRI2DSequence):
     def get_item_train(self, filename):
         kspaces = from_file_to_kspace(filename)
+        k_shape = kspaces[0].shape
         mask = gen_mask(kspaces[0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         img_batch = list()
         kspace_batch = list()
+        mask_batch = list()
         for kspace in kspaces:
-            print('WIP')
+            masked_kspace = kspace * fourier_mask
+            masked_kspace *= np.sqrt(np.prod(k_shape))
+            shifted_masked_kspace = np.fft.ifftshift(masked_kspace)
+            shifted_mask = np.fft.ifftshift(fourier_mask)
+            image = ifft(kspace)
+            image_shifted = np.fft.fftshift(image)
+            image_shifted = image_shifted[..., None]
+            shifted_masked_kspace = shifted_masked_kspace[..., None]
+            mask_batch.append(shifted_mask)
+            kspace_batch.append(shifted_masked_kspace)
+            img_batch.append(image_shifted)
+        kspace_batch = np.array(kspace_batch)
+        mask_batch = np.array(mask_batch)
+        img_batch = np.array(img_batch)
+        return ([kspace_batch, mask_batch], img_batch)
+
+
+    def get_item_test(self, filename):
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        k_shape = kspaces[0].shape
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        kspace_batch = list()
+        mask_batch = list()
+        for kspace in kspaces:
+            kspace *= np.sqrt(np.prod(k_shape))
+            shifted_kspace = np.fft.ifftshift(kspace)
+            shifted_mask = np.fft.ifftshift(fourier_mask)
+            shifted_kspace = shifted_kspace[..., None]
+            mask_batch.append(shifted_mask)
+            kspace_batch.append(shifted_kspace)
+        kspace_batch = np.array(kspace_batch)
+        mask_batch = np.array(mask_batch)
+        return [kspace_batch, mask_batch]
+
+
+
 
 
 class Untouched2DSequence(fastMRI2DSequence):
