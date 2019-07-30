@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Lambda, Multiply, Conv2D, concatenate, Add
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.spectral import fft2d, ifft2d
+from tensorflow.signal import fft2d, ifft2d
 
 from utils import keras_psnr, keras_ssim
 
