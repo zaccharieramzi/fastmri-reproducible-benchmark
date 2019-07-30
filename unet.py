@@ -107,14 +107,21 @@ def unet(
         pool=pool,
         non_relu_contract=non_relu_contract,
     )
-    new_output = Conv2D(
+    output = Conv2D(
+        4,
+        1,
+        activation='linear',
+        padding='same',
+        kernel_initializer='he_normal',
+    )(output)
+    output = Conv2D(
         input_size[-1],
         1,
         activation='linear',
         padding='same',
         kernel_initializer='he_normal',
     )(output)
-    model = Model(inputs=inputs, outputs=new_output)
+    model = Model(inputs=inputs, outputs=output)
     model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
