@@ -22,13 +22,13 @@ def nmse(gt, pred):
 
 def psnr(gt, pred):
     """ Compute Peak Signal to Noise Ratio metric (PSNR) """
-    return compare_psnr(gt, pred, data_range=gt.max())
+    return compare_psnr(gt, pred, data_range=gt.max() - gt.min())
 
 
 def ssim(gt, pred):
     """ Compute Structural Similarity Index Metric (SSIM). """
     return compare_ssim(
-        gt.transpose(1, 2, 0), pred.transpose(1, 2, 0), multichannel=True, data_range=gt.max()
+        gt.transpose(1, 2, 0), pred.transpose(1, 2, 0), multichannel=True, data_range=gt.max() - gt.min()
     )
 
 

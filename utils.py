@@ -72,8 +72,10 @@ def normalize_instance(data, eps=0.):
 # TODO have the same in 3D
 def keras_psnr(y_true, y_pred):
     max_pixel = K.max(y_true)
-    return tf.image.psnr(y_true, y_pred, max_pixel)
+    min_pixel = K.min(y_true)
+    return tf.image.psnr(y_true, y_pred, max_pixel - min_pixel)
 
 def keras_ssim(y_true, y_pred):
     max_pixel = K.max(y_true)
-    return tf.image.ssim(y_true, y_pred, max_pixel)
+    min_pixel = K.min(y_true)
+    return tf.image.ssim(y_true, y_pred, max_pixel - min_pixel)
