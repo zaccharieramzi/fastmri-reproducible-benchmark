@@ -110,7 +110,7 @@ def unet(
     new_output = Conv2D(
         input_size[-1],
         1,
-        activation='relu',
+        activation='linear',
         padding='same',
         kernel_initializer='he_normal',
     )(output)
