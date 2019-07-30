@@ -4,7 +4,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.signal import fft2d, ifft2d
 
-from utils import keras_psnr, keras_ssim
+from utils import keras_psnr_complex, keras_ssim_complex
 
 
 def to_complex(x):
@@ -66,6 +66,6 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     image_res = Lambda(lambda x: x[..., 0:1])(primal)
 
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
+    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr_complex, keras_ssim_complex])
 
     return model

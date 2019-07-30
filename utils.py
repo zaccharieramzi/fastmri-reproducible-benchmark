@@ -78,3 +78,12 @@ def keras_ssim(y_true, y_pred):
     max_pixel = tf.math.reduce_max(y_true)
     min_pixel = tf.math.reduce_min(y_true)
     return tf.image.ssim(y_true, y_pred, max_pixel - min_pixel)
+
+
+def keras_psnr_complex(y_true, y_pred):
+    max_pixel = tf.math.reduce_max(y_true)
+    return tf.image.psnr(tf.math.abs(y_true), tf.math.abs(y_pred), max_pixel)
+
+def keras_ssim_complex(y_true, y_pred):
+    max_pixel = tf.math.reduce_max(y_true)
+    return tf.image.ssim(tf.math.abs(y_true), tf.math.abs(y_pred), max_pixel)
