@@ -52,7 +52,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
     for i in range(n_iter):
         # first work in kspace (dual space)
-        primal_sq = Lambda(tf.squeeze, output_shape=mask_shape, arguments={'axis': -1})(Lambda(lambda x: x[..., 1:2])(primal))
+        primal_sq = Lambda(lambda x: x[..., 1])(primal)
         dual_eval_fft = Lambda(fft2d, output_shape=mask_shape)(primal_sq)
         dual_eval_masked = Multiply()([dual_eval_fft, mask])
         dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
@@ -62,9 +62,12 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         update = conv2d_complex(update, n_dual, activation='linear')
         dual = Add()([dual, update])
 
+        # if only primal:
+        # dual = dual_eval_exp - kspace_input
+
 
         # Then work in image space (primal space)
-        dual_sq = Lambda(tf.squeeze, output_shape=mask_shape, arguments={'axis': -1})(Lambda(lambda x: x[..., 0:1])(dual))
+        dual_sq = Lambda(lambda x: x[..., 0])(dual)
         dual_masked = Multiply()([dual_sq, mask])
         primal_eval = Lambda(ifft2d, output_shape=mask_shape)(dual_masked)
         primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
