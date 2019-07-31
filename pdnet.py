@@ -14,15 +14,10 @@ def to_complex(x):
 def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
     x_real = Lambda(tf.math.real)(x)
     x_imag = Lambda(tf.math.imag)(x)
-    if activation == 'prelu':
-        act_real = PReLU()
-        act_comp = PReLU()
-    else:
-        act_real = act_comp = activation
     conv_real = Conv2D(
         n_filters,
         3,
-        activation=act_real,
+        activation=activation,
         padding='same',
         kernel_initializer='he_normal',
         use_bias=False,
@@ -30,7 +25,7 @@ def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
     conv_imag = Conv2D(
         n_filters,
         3,
-        activation=act_comp,
+        activation=activation,
         padding='same',
         kernel_initializer='he_normal',
         use_bias=False,
@@ -105,6 +100,11 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
     image_res = Lambda(tf.math.abs)(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
+    model.compile(
+        optimizer=Adam(lr=lr),
+        loss='mean_absolute_error',
+        metrics=['mean_squared_error', keras_psnr, keras_ssim],
+        # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
+    )
 
     return model
