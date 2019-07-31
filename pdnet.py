@@ -52,8 +52,8 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
     for i in range(n_iter):
         # first work in kspace (dual space)
-        primal_sq = Lambda(lambda x: x[..., 1])(primal)
-        dual_eval_fft = Lambda(fft2d, output_shape=mask_shape)(primal_sq)
+        primal_sq = Lambda(lambda x: x[..., 1], output_shape=mask_shape)(primal)
+        dual_eval_fft = Lambda(fft2d, output_shape=mask_shape, name='fft_{i}'.format(i=i+1))(primal_sq)
         dual_eval_masked = Multiply()([dual_eval_fft, mask])
         dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
@@ -67,9 +67,9 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
 
         # Then work in image space (primal space)
-        dual_sq = Lambda(lambda x: x[..., 0])(dual)
+        dual_sq = Lambda(lambda x: x[..., 0], output_shape=mask_shape)(dual)
         dual_masked = Multiply()([dual_sq, mask])
-        primal_eval = Lambda(ifft2d, output_shape=mask_shape)(dual_masked)
+        primal_eval = Lambda(ifft2d, output_shape=mask_shape, name='ifft_{i}'.format(i=i+1))(dual_masked)
         primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
         update = concatenate([primal, primal_exp], axis=-1)
 
@@ -77,7 +77,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         update = conv2d_complex(update, n_dual, activation='linear')
         primal = Add()([primal, update])
 
-    image_res = Lambda(lambda x: x[..., 0:1])(primal)
+    image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size)(primal)
     image_res = Lambda(tf.math.abs)(image_res)
 
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
