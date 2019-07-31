@@ -1,5 +1,4 @@
 from keras.layers import Input, Lambda, Multiply, Conv2D, concatenate, Add
-from keras.layers.advanced_activations import PReLU
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
