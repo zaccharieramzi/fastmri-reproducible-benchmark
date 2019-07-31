@@ -47,6 +47,27 @@ def tf_fft_masked(y, idx=0):
     return tf.expand_dims(tf.math.multiply(mask, fft2d(x[..., idx])), axis=-1)
 
 
+def invnet(input_size=(640, None, 1), n_filters=32, lr=1e-3):
+    # shapes
+    mask_shape = input_size[:-1]
+    # inputs and buffers
+    kspace_input = Input(input_size, dtype='complex64')
+    mask = Input(mask_shape, dtype='complex64')
+    # # simple inverse
+    image_res = Lambda(tf_ifft, output_shape=input_size, name='ifft')(kspace_input)
+    # image_res = conv2d_complex(image_res, n_filters, activation='relu', output_shape=conv_shape)
+    # image_res = conv2d_complex(image_res, 1, activation='linear', output_shape=input_size)
+    image_res = Lambda(tf.math.abs)(image_res)
+    model = Model(inputs=[kspace_input, mask], outputs=image_res)
+    model.compile(
+        optimizer=Adam(lr=lr),
+        loss='mean_absolute_error',
+        metrics=['mean_squared_error', keras_psnr, keras_ssim],
+        # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
+    )
+
+    return model
+
 def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
     # shapes
     mask_shape = input_size[:-1]
@@ -64,10 +85,6 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     kspace_input = Input(input_size, dtype='complex64')
     mask = Input(mask_shape, dtype='complex64')
 
-    # # simple inverse
-    # image_res = Lambda(tf_ifft, output_shape=input_size, name='ifft')(kspace_input)
-    # image_res = conv2d_complex(image_res, n_filters, activation='relu', output_shape=conv_shape)
-    # image_res = conv2d_complex(image_res, 1, activation='linear', output_shape=input_size)
 
     primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape)(kspace_input)
     dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape)(kspace_input)
