@@ -5,7 +5,7 @@ from keras.optimizers import Adam
 import tensorflow as tf
 from tensorflow.signal import fft2d, ifft2d
 
-from utils import keras_psnr_complex, keras_ssim_complex
+from utils import keras_psnr, keras_ssim
 
 
 def to_complex(x):
@@ -41,9 +41,14 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     mask_shape = input_size[:-1]
     mask = Input(mask_shape, dtype='complex64')
 
-
-    primal = Lambda(lambda x: tf.concat([tf.zeros_like(x)] * n_primal, axis=-1))(kspace_input)
-    dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input)] * n_dual, axis=-1))(kspace_input)
+    primal_shape = list(input_size)
+    primal_shape[-1] = n_primal
+    primal_shape = tuple(primal_shape)
+    dual_shape = list(input_size)
+    dual_shape[-1] = n_dual
+    dual_shape = tuple(dual_shape)
+    primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape)(kspace_input)
+    dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape)(kspace_input)
 
     for i in range(n_iter):
         # first work in kspace (dual space)
@@ -70,8 +75,9 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         primal = Add()([primal, update])
 
     image_res = Lambda(lambda x: x[..., 0:1])(primal)
+    image_res = Lambda(tf.math.abs)(image_res)
 
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr_complex, keras_ssim_complex])
+    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     return model
