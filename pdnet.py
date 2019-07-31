@@ -41,8 +41,16 @@ def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
 def tf_ifft(x):
     return tf.expand_dims(ifft2d(x[..., 0]), axis=-1)
 
+def tf_ifft_masked(y, idx=0):
+    x, mask = y
+    return tf.expand_dims(ifft2d(tf.math.multiply(mask, x[..., idx])), axis=-1)
+
 def tf_fft(x):
     return tf.expand_dims(fft2d(x[..., 0]), axis=-1)
+
+def tf_fft_masked(y, idx=0):
+    x, mask = y
+    return tf.expand_dims(tf.math.multiply(mask, fft2d(x[..., idx])), axis=-1)
 
 
 def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10):
@@ -72,10 +80,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
     for i in range(n_iter):
         # first work in kspace (dual space)
-        primal_sq = Lambda(lambda x: x[..., 1], output_shape=mask_shape)(primal)
-        dual_eval_fft = Lambda(fft2d, output_shape=mask_shape, name='fft_{i}'.format(i=i+1))(primal_sq)
-        dual_eval_masked = Multiply()([dual_eval_fft, mask])
-        dual_eval_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(dual_eval_masked)
+        dual_eval_exp = Lambda(tf_fft_masked, output_shape=input_size, arguments={'idx': 1}, name='fft_masked_{i}'.format(i=i+1))([primal, mask])
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
 
         update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
@@ -88,10 +93,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
 
         # Then work in image space (primal space)
-        dual_sq = Lambda(lambda x: x[..., 0], output_shape=mask_shape)(dual)
-        dual_masked = Multiply()([dual_sq, mask])
-        primal_eval = Lambda(ifft2d, output_shape=mask_shape, name='ifft_{i}'.format(i=i+1))(dual_masked)
-        primal_exp = Lambda(tf.expand_dims, output_shape=input_size, arguments={'axis': -1})(primal_eval)
+        primal_exp = Lambda(tf_ifft_masked, output_shape=input_size, name='ifft_{i}'.format(i=i+1))([dual, mask])
         update = concatenate([primal, primal_exp], axis=-1)
 
         update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
