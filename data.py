@@ -206,11 +206,17 @@ class ZeroPadded2DSequence(fastMRI2DSequence):
         z_kspace_batch = list()
         to_pad = type(self).pad - kspaces.shape[2]
         pad_seq = [(0, 0), (to_pad // 2, to_pad // 2)]
+        if self.norm and self.mode == 'validation':
+            means = list()
+            stddevs = list()
         for kspace, image in zip(kspaces, images):
             zero_filled_rec = ifft(kspace * fourier_mask)
             if self.norm:
                 zero_filled_rec, mean, std = normalize_instance(zero_filled_rec, eps=1e-11)
                 image = normalize(image, mean, std, eps=1e-11)
+                if self.mode == 'validation':
+                    means.append(mean)
+                    stddevs.append(std)
             zero_filled_rec = np.pad(zero_filled_rec, pad_seq, mode='constant')
             z_kspace = fft(zero_filled_rec)
             z_kspace = z_kspace[:, :, None]
@@ -220,7 +226,10 @@ class ZeroPadded2DSequence(fastMRI2DSequence):
             img_batch.append(image)
         z_kspace_batch = np.array(z_kspace_batch)
         img_batch = np.array(img_batch)
-        return (z_kspace_batch, img_batch)
+        if self.norm and self.mode == 'validation':
+            return z_kspace_batch, img_batch, means, stddevs
+        else:
+            return (z_kspace_batch, img_batch)
 
 
     def get_item_test(self, filename):
@@ -254,18 +263,27 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
         fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
         img_batch = list()
         zero_img_batch = list()
+        if self.norm and self.mode == 'validation':
+            means = list()
+            stddevs = list()
         for kspace, image in zip(kspaces, images):
             zero_filled_rec = zero_filled(kspace * fourier_mask)
             if self.norm:
                 zero_filled_rec, mean, std = normalize_instance(zero_filled_rec, eps=1e-11)
                 image = normalize(image, mean, std, eps=1e-11)
+                if self.mode == 'validation':
+                    means.append(mean)
+                    stddevs.append(std)
             zero_filled_rec = zero_filled_rec[:, :, None]
             zero_img_batch.append(zero_filled_rec)
             image = image[..., None]
             img_batch.append(image)
         zero_img_batch = np.array(zero_img_batch)
         img_batch = np.array(img_batch)
-        return (zero_img_batch, img_batch)
+        if self.norm and self.mode == 'validation':
+            return zero_img_batch, img_batch, means, stddevs
+        else:
+            return (zero_img_batch, img_batch)
 
 
     def get_item_test(self, filename):
@@ -293,14 +311,20 @@ class ZeroFilled3DSequence(ZeroFilled2DSequence):
 
 
     def get_item_train(self, filename):
-        z_kspace_batch, img_batch = super(ZeroFilled3DSequence, self).get_item_train(filename)
+        if self.norm and self.mode == 'validation':
+            z_kspace_batch, img_batch, means, stddevs = super(ZeroFilled3DSequence, self).get_item_train(filename)
+        else:
+            z_kspace_batch, img_batch = super(ZeroFilled3DSequence, self).get_item_train(filename)
         # to_pad = type(self).slice_pad - z_kspace_batch.shape[0]
         # pad_seq = [(to_pad // 2 + to_pad % 2, to_pad // 2), (0, 0), (0, 0), (0, 0)]
         # z_kspace_batch = np.pad(z_kspace_batch, pad_seq, mode='constant')
         # img_batch = np.pad(img_batch, pad_seq, mode='constant')
         z_kspace_batch = z_kspace_batch[None, ...]
         img_batch = img_batch[None, ...]
-        return z_kspace_batch, img_batch
+        if self.norm and self.mode == 'validation':
+            return z_kspace_batch, img_batch, means, stddevs
+        else:
+            return z_kspace_batch, img_batch
 
 
     def get_item_test(self, filename):
