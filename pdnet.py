@@ -47,7 +47,7 @@ def tf_fft_masked(y, idx=0):
     return tf.expand_dims(tf.math.multiply(mask, fft2d(x[..., idx])), axis=-1)
 
 
-def invnet(input_size=(640, None, 1), n_filters=32, lr=1e-3):
+def invnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs):
     # shapes
     mask_shape = input_size[:-1]
     # inputs and buffers
