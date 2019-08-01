@@ -51,13 +51,13 @@ def invnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs):
     # shapes
     mask_shape = input_size[:-1]
     # inputs and buffers
-    kspace_input = Input(input_size, dtype='complex64')
-    mask = Input(mask_shape, dtype='complex64')
+    kspace_input = Input(input_size, dtype='complex64', name='kspace_input_simple')
+    mask = Input(mask_shape, dtype='complex64', name='mask_input_simple')
     # # simple inverse
-    image_res = Lambda(tf_ifft, output_shape=input_size, name='ifft')(kspace_input)
+    image_res = Lambda(tf_ifft, output_shape=input_size, name='ifft_simple')(kspace_input)
     # image_res = conv2d_complex(image_res, n_filters, activation='relu', output_shape=conv_shape)
     # image_res = conv2d_complex(image_res, 1, activation='linear', output_shape=input_size)
-    image_res = Lambda(tf.math.abs)(image_res)
+    image_res = Lambda(tf.math.abs, name='image_module_simple')(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     model.compile(
         optimizer=Adam(lr=lr),
@@ -82,8 +82,8 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     conv_shape = tuple(conv_shape)
 
     # inputs and buffers
-    kspace_input = Input(input_size, dtype='complex64')
-    mask = Input(mask_shape, dtype='complex64')
+    kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
+    mask = Input(mask_shape, dtype='complex64', name='mask_input')
 
 
     primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape, name='buffer_primal')(kspace_input)
