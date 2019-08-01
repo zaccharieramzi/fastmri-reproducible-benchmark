@@ -117,7 +117,7 @@ class MaskShiftedSingleImage2DSequence(fastMRI2DSequence):
         masked_kspace = kspace * fourier_mask
         masked_kspace *= np.sqrt(np.prod(k_shape))
         shifted_masked_kspace = np.fft.ifftshift(masked_kspace)
-        shifted_mask = np.fft.ifftshift(fourier_mask)
+        shifted_mask = np.fft.ifftshift(fourier_mask)[None, ...]
         image = np.abs(ifft(kspace))
         image_shifted = np.fft.fftshift(image)
         image_shifted = image_shifted[None, ..., None]
@@ -132,7 +132,7 @@ class MaskShiftedSingleImage2DSequence(fastMRI2DSequence):
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         kspace *= np.sqrt(np.prod(k_shape))
         shifted_kspace = np.fft.ifftshift(kspace)
-        shifted_mask = np.fft.ifftshift(fourier_mask)
+        shifted_mask = np.fft.ifftshift(fourier_mask)[None, ...]
         shifted_kspace = shifted_kspace[None, ..., None]
         return [shifted_kspace, shifted_mask]
 
