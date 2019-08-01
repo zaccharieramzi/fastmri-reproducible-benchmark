@@ -87,6 +87,57 @@ class fastMRI2DSequence(Sequence):
         pass
 
 
+class MaskShiftedSingleImage2DSequence(fastMRI2DSequence):
+    train_modes = ('training', 'validation')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.idx_to_filename_and_position = list()
+        for filename in self.filenames:
+            kspaces = from_file_to_kspace(filename)
+            filename_and_position = [(filename, i) for i in range(kspaces.shape[0])]
+            self.idx_to_filename_and_position += filename_and_position
+
+    def __len__(self):
+        return len(self.idx_to_filename_and_position)
+
+    def __getitem__(self, idx):
+        if self.mode in type(self).train_modes:
+            return self.get_item_train(idx)
+        else:
+            return self.get_item_test(idx)
+
+    def get_item_train(self, idx):
+        filename, position = self.idx_to_filename_and_position[idx]
+        kspaces = from_file_to_kspace(filename)
+        kspace = kspaces[position]
+        k_shape = kspace.shape
+        mask = gen_mask(kspace, accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        masked_kspace = kspace * fourier_mask
+        masked_kspace *= np.sqrt(np.prod(k_shape))
+        shifted_masked_kspace = np.fft.ifftshift(masked_kspace)
+        shifted_mask = np.fft.ifftshift(fourier_mask)
+        image = np.abs(ifft(kspace))
+        image_shifted = np.fft.fftshift(image)
+        image_shifted = image_shifted[None, ..., None]
+        shifted_masked_kspace = shifted_masked_kspace[None, ..., None]
+        return ([shifted_masked_kspace, shifted_mask], image_shifted)
+
+    def get_item_test(self, idx):
+        filename, position = self.idx_to_filename_and_position[idx]
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        kspace = kspaces[position]
+        k_shape = kspace.shape
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        kspace *= np.sqrt(np.prod(k_shape))
+        shifted_kspace = np.fft.ifftshift(kspace)
+        shifted_mask = np.fft.ifftshift(fourier_mask)
+        shifted_kspace = shifted_kspace[None, ..., None]
+        return [shifted_kspace, shifted_mask]
+
+
+
 class MaskShifted2DSequence(fastMRI2DSequence):
     def get_item_train(self, filename):
         kspaces = from_file_to_kspace(filename)
