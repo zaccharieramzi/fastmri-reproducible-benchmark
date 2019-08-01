@@ -10,9 +10,9 @@ from utils import keras_psnr, keras_ssim
 def to_complex(x):
     return tf.complex(x[0], x[1])
 
-def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
-    x_real = Lambda(tf.math.real)(x)
-    x_imag = Lambda(tf.math.imag)(x)
+def conv2d_complex(x, n_filters, activation='relu', output_shape=None, idx=0):
+    x_real = Lambda(tf.math.real, name=f'real_part_{idx}')(x)
+    x_imag = Lambda(tf.math.imag, name=f'imag_part_{idx}')(x)
     conv_real = Conv2D(
         n_filters,
         3,
@@ -29,7 +29,7 @@ def conv2d_complex(x, n_filters, activation='relu', output_shape=None):
         kernel_initializer='he_normal',
         use_bias=False,
     )(x_imag)
-    conv_res = Lambda(to_complex, output_shape=output_shape)([conv_real, conv_imag])
+    conv_res = Lambda(to_complex, output_shape=output_shape, name=f'recomplexification_{idx}')([conv_real, conv_imag])
     return conv_res
 
 def tf_ifft(x):
@@ -86,17 +86,17 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     mask = Input(mask_shape, dtype='complex64')
 
 
-    primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape)(kspace_input)
-    dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape)(kspace_input)
+    primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape, name='buffer_primal')(kspace_input)
+    dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape, name='buffer_dual')(kspace_input)
 
     for i in range(n_iter):
         # first work in kspace (dual space)
         dual_eval_exp = Lambda(tf_fft_masked, output_shape=input_size, arguments={'idx': 1}, name='fft_masked_{i}'.format(i=i+1))([primal, mask])
         update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
 
-        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
-        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
-        update = conv2d_complex(update, n_dual, activation='linear', output_shape=dual_shape)
+        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape, idx=f'{i}_1_primal')
+        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape, idx=f'{i}_2_primal')
+        update = conv2d_complex(update, n_dual, activation='linear', output_shape=dual_shape, idx=f'{i}_linear_primal')
         dual = Add()([dual, update])
 
         # if only primal:
@@ -107,20 +107,20 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         primal_exp = Lambda(tf_ifft_masked, output_shape=input_size, name='ifft_masked_{i}'.format(i=i+1))([dual, mask])
         update = concatenate([primal, primal_exp], axis=-1)
 
-        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
-        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape)
-        update = conv2d_complex(update, n_dual, activation='linear', output_shape=primal_shape)
+        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape, idx=f'{i}_1_dual')
+        update = conv2d_complex(update, n_filters, activation='relu', output_shape=conv_shape, idx=f'{i}_2_dual')
+        update = conv2d_complex(update, n_dual, activation='linear', output_shape=primal_shape, idx=f'{i}_linear_dual')
         primal = Add()([primal, update])
 
-    image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size)(primal)
+    image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size, name='image_getting')(primal)
 
-    image_res = Lambda(tf.math.abs)(image_res)
+    image_res = Lambda(tf.math.abs, name='image_module')(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     model.compile(
         optimizer=Adam(lr=lr),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
-        # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
+        options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
     )
 
     return model
