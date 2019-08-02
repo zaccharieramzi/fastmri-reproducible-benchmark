@@ -195,6 +195,27 @@ class Untouched2DSequence(fastMRI2DSequence):
         kspaces = kspaces[..., None]
         return mask, kspaces
 
+class MaskedUntouched2DSequence(Untouched2DSequence):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_item_train(self, filename):
+        images, kspaces = super(MaskedUntouched2DSequence, self).get_item_train(filename)
+        k_shape = kspaces[0].shape
+        mask = gen_mask(kspaces[0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
+        kspaces *= mask_batch
+        mask_batch = mask_batch[..., 0]
+        return ([kspaces, mask_batch], images)
+
+    def get_item_test(self, filename):
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        k_shape = kspaces[0].shape
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)
+        return [kspaces, mask_batch]
+
 
 class ZeroPadded2DSequence(fastMRI2DSequence):
     pad = 644
