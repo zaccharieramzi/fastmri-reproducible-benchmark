@@ -235,7 +235,7 @@ class PDNet(Model):
 
 class InvShiftCropNet(Model):
     crop = 320
-    def __init__(self, name="invshiftcrop"):
+    def __init__(self, name="invshiftcrop", **dummy_kwargs):
         super(InvShiftCropNet, self).__init__(name=name)
 
     def call(self, inputs, **kwargs):
