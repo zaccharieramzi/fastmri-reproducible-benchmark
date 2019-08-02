@@ -165,6 +165,10 @@ class PDNet(Model):
                 for space in ['dual', 'primal']:
                     self.conv_layers[(space, idx, pos)] = {'real': self.conv_builder(pos, space), 'imag': self.conv_builder(pos, space)}
 
+    def build(self, input_shape):
+        super(PDNet, self).build(input_shape)
+
+
     def conv_builder(self, pos, space):
         if pos == 2:
             activation = 'linear'
@@ -239,6 +243,10 @@ class InvShiftCropNet(Model):
     crop = 320
     def __init__(self, name="invshiftcrop", **dummy_kwargs):
         super(InvShiftCropNet, self).__init__(name=name)
+
+    def build(self, input_shape):
+        super(InvShiftCropNet, self).build(input_shape)
+
 
     def call(self, inputs, **kwargs):
         # inputs and buffers
