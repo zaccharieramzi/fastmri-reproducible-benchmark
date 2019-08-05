@@ -202,7 +202,7 @@ class MaskedUntouched2DSequence(Untouched2DSequence):
     def get_item_train(self, filename):
         images, kspaces = super(MaskedUntouched2DSequence, self).get_item_train(filename)
         k_shape = kspaces[0].shape
-        mask = gen_mask(kspaces[0], accel_factor=self.af)
+        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
         kspaces *= mask_batch
