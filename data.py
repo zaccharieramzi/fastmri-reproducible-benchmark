@@ -87,7 +87,7 @@ class fastMRI2DSequence(Sequence):
         pass
 
 
-class MaskShiftedSingleImage2DSequence(fastMRI2DSequence):
+class SingleSliceSequence(fastMRI2DSequence):
     train_modes = ('training', 'validation')
 
     def __init__(self, *args, **kwargs):
@@ -107,6 +107,8 @@ class MaskShiftedSingleImage2DSequence(fastMRI2DSequence):
         else:
             return self.get_item_test(idx)
 
+
+class MaskShiftedSingleImage2DSequence(SingleSliceSequence):
     def get_item_train(self, idx):
         filename, position = self.idx_to_filename_and_position[idx]
         kspaces = from_file_to_kspace(filename)
@@ -215,6 +217,32 @@ class MaskedUntouched2DSequence(Untouched2DSequence):
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)
         return [kspaces, mask_batch]
+
+
+class MaskedUntouchedSingleSlice2DSequence(SingleSliceSequence):
+    def get_item_train(self, idx):
+        filename, position = self.idx_to_filename_and_position[idx]
+        images, kspaces = from_train_file_to_image_and_kspace(filename)
+        kspace = kspaces[position]
+        k_shape = kspace.shape
+        mask = gen_mask(kspace, accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        masked_kspace = kspace * fourier_mask
+        image = images[position]
+        kspace_batch = masked_kspace[None, ..., None]
+        mask_batch = fourier_mask[None, ...]
+        img_batch = image[None, ...]
+        return ([kspace_batch, mask_batch], img_batch)
+
+    def get_item_test(self, idx):
+        filename, position = self.idx_to_filename_and_position[idx]
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        kspace = kspaces[position]
+        k_shape = kspace.shape
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = fourier_mask[None, ...]
+        kspace_batch = kspace[None, ..., None]
+        return [kspace_batch, mask_batch]
 
 
 class ZeroPadded2DSequence(fastMRI2DSequence):
