@@ -227,7 +227,7 @@ class PDNet(Model):
         # image post-processing: slicing, module and cropping
         image_res = primal[..., 0:1]
         image_res = tf.math.abs(image_res)
-        im_shape = tf.shape(image_res)
+        im_shape = image_res.shape.as_list()
         y, x = im_shape[1:3]
         crop = type(self).crop
         startx = x // 2 - (crop // 2)
