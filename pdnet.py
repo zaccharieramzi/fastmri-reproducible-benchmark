@@ -153,7 +153,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     return model
 
 
-class PDNet(Model):
+class PDNet(tf.keras.models.Model):
     crop = 320
     def __init__(self, n_iter=10, n_dual=5, n_primal=5, n_filters=32, name="pdnet"):
         super(PDNet, self).__init__(name=name)
@@ -240,7 +240,7 @@ class PDNet(Model):
         return tf.TensorShape([input_shape[0][0], type(self).crop, type(self).crop, 1])
 
 
-class InvShiftCropNet(Model):
+class InvShiftCropNet(tf.keras.models.Model):
     crop = 320
     def __init__(self, name="invshiftcrop", **dummy_kwargs):
         super(InvShiftCropNet, self).__init__(name=name)
