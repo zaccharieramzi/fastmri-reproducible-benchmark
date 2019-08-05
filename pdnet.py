@@ -36,13 +36,13 @@ def conv2d_complex(x, n_filters, activation='relu', output_shape=None, idx=0):
 FOURIER_SHIFT_AXES = [1, 2]
 def temptf_fft_shift(x):
     # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
-    shift = [x.shape[ax] // 2 for ax in FOURIER_SHIFT_AXES]
+    shift = [x.shape.as_list()[ax] // 2 for ax in FOURIER_SHIFT_AXES]
     return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
 
 
 def temptf_ifft_shift(x):
     # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
-    shift = [- (x.shape[ax] // 2) for ax in FOURIER_SHIFT_AXES]
+    shift = [-tf.cast(x.shape.as_list()[ax] // 2, tf.int32) for ax in FOURIER_SHIFT_AXES]
     return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
 
 def tf_ifft(x):
