@@ -253,12 +253,11 @@ class InvShiftCropNet(Model):
     def call(self, inputs, **kwargs):
         # inputs and buffers
         kspace, mask = inputs
-
         image_res = tf_adj_op([kspace, mask])
 
         # image post-processing: slicing, module and cropping
         image_res = tf.math.abs(image_res)
-        im_shape = tf.shape(image_res)
+        im_shape = image_res.shape.as_list()
         y, x = im_shape[1:3]
         crop = type(self).crop
         startx = x // 2 - (crop // 2)
@@ -268,5 +267,5 @@ class InvShiftCropNet(Model):
         return image_res
 
     def compute_output_shape(self, input_shape):
-        shape = tf.TensorShape(input_shape).as_list()
-        return tf.TensorShape([shape[0], type(self).crop, type(self).crop, 1])
+        shape = input_shape.shape.as_list()
+        return tf.TensorShape([shape[0][0], type(self).crop, type(self).crop, 1])
