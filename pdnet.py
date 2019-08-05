@@ -237,7 +237,7 @@ class PDNet(Model):
         return image_res
 
     def compute_output_shape(self, input_shape):
-        return tf.TensorShape([input_shape[0], type(self).crop, type(self).crop, 1])
+        return tf.TensorShape([input_shape[0][0], type(self).crop, type(self).crop, 1])
 
 
 class InvShiftCropNet(Model):
