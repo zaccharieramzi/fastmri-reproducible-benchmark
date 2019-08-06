@@ -1,3 +1,4 @@
+from functools import lru_cache
 import glob
 import time
 
@@ -15,7 +16,7 @@ def from_test_file_to_mask_and_kspace(filename):
         return masks, kspaces
 
 
-
+@lru_cache(maxsize=8)
 def from_train_file_to_image_and_kspace(filename):
     with h5py.File(filename) as h5_obj:
         images = h5_obj['reconstruction_esc'][()]
