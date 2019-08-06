@@ -227,8 +227,9 @@ class PDNet(tf.keras.models.Model):
         # image post-processing: slicing, module and cropping
         image_res = primal[..., 0:1]
         image_res = tf.math.abs(image_res)
-        im_shape = image_res.shape.as_list()
-        y, x = im_shape[1:3]
+        im_shape = tf.shape(image_res)
+        y = im_shape[1]
+        x = im_shape[2]
         crop = type(self).crop
         startx = x // 2 - (crop // 2)
         starty = y // 2 - (crop // 2)
@@ -254,8 +255,9 @@ class InvShiftCropNet(tf.keras.models.Model):
 
         # image post-processing: slicing, module and cropping
         image_res = tf.math.abs(image_res)
-        im_shape = image_res.shape.as_list()
-        y, x = im_shape[1:3]
+        im_shape = tf.shape(image_res)
+        y = im_shape[1]
+        x = im_shape[2]
         crop = type(self).crop
         startx = x // 2 - (crop // 2)
         starty = y // 2 - (crop // 2)
