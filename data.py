@@ -231,7 +231,7 @@ class MaskedUntouchedSingleSlice2DSequence(SingleSliceSequence):
         image = images[position]
         kspace_batch = masked_kspace[None, ..., None]
         mask_batch = fourier_mask[None, ...]
-        img_batch = image[None, ...]
+        img_batch = image[None, ..., None]
         return ([kspace_batch, mask_batch], img_batch)
 
     def get_item_test(self, idx):
