@@ -142,6 +142,11 @@ class MaskShiftedSingleImage2DSequence(SingleSliceSequence):
 
 
 class MaskShifted2DSequence(fastMRI2DSequence):
+    def __init__(self, *args, inner_slices=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inner_slices = inner_slices
+
+
     def get_item_train(self, filename):
         kspaces = from_file_to_kspace(filename)
         k_shape = kspaces[0].shape
@@ -165,6 +170,12 @@ class MaskShifted2DSequence(fastMRI2DSequence):
         kspace_batch = np.array(kspace_batch)
         mask_batch = np.array(mask_batch)
         img_batch = np.array(img_batch)
+        if self.inner_slices is not None:
+            n_slices = len(kspaces)
+            slice_start = n_slices // 2 - self.inner_slices // 2
+            kspace_batch = kspace_batch[slice_start:slice_start + self.inner_slices]
+            img_batch = img_batch[slice_start:slice_start + self.inner_slices]
+            mask_batch = mask_batch[slice_start:slice_start + self.inner_slices]
         return ([kspace_batch, mask_batch], img_batch)
 
 
