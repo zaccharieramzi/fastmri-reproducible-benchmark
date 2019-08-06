@@ -229,9 +229,9 @@ class MaskedUntouchedSingleSlice2DSequence(SingleSliceSequence):
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         masked_kspace = kspace * fourier_mask
         image = images[position]
-        kspace_batch = masked_kspace[None, ..., None]
+        kspace_batch = masked_kspace[None, ..., None].astype('complex64')
         mask_batch = fourier_mask[None, ...]
-        img_batch = image[None, ..., None]
+        img_batch = image[None, ..., None].astype('float32')
         return ([kspace_batch, mask_batch], img_batch)
 
     def get_item_test(self, idx):
@@ -241,7 +241,7 @@ class MaskedUntouchedSingleSlice2DSequence(SingleSliceSequence):
         k_shape = kspace.shape
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         mask_batch = fourier_mask[None, ...]
-        kspace_batch = kspace[None, ..., None]
+        kspace_batch = kspace[None, ..., None].astype('complex64')
         return [kspace_batch, mask_batch]
 
 
