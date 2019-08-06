@@ -199,8 +199,9 @@ class Untouched2DSequence(fastMRI2DSequence):
         return mask, kspaces
 
 class MaskedUntouched2DSequence(Untouched2DSequence):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, inner_slices=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.inner_slices = inner_slices
 
     def get_item_train(self, filename):
         images, kspaces = super(MaskedUntouched2DSequence, self).get_item_train(filename)
@@ -210,6 +211,12 @@ class MaskedUntouched2DSequence(Untouched2DSequence):
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
         kspaces *= mask_batch
         mask_batch = mask_batch[..., 0]
+        if self.inner_slices is not None:
+            n_slices = len(kspaces)
+            slice_start = n_slices // 2 - self.inner_slices // 2
+            kspaces = kspaces[slice_start:slice_start + self.inner_slices]
+            images = images[slice_start:slice_start + self.inner_slices]
+            mask_batch = mask_batch[slice_start:slice_start + self.inner_slices]
         return ([kspaces, mask_batch], images)
 
     def get_item_test(self, filename):
