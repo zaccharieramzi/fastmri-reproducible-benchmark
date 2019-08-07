@@ -147,7 +147,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         optimizer=Adam(lr=lr),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
-        options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
+        # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
     )
 
     return model
