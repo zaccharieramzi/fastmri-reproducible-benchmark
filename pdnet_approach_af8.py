@@ -53,17 +53,14 @@ val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
 run_params = {
-#     'n_primal': 5,
-#     'n_dual': 5,
-#     'n_iter': 7,
-#     'n_filters': 32,
-    'n_primal': 2,
-    'n_dual': 2,
-    'n_iter': 2,
+    'n_primal': 5,
+    'n_dual': 5,
+    'n_iter': 5,
     'n_filters': 16,
+    'res_connection': True,
 }
 
-n_epochs = 10
+n_epochs = 20000
 run_id = f'pdnet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
@@ -71,7 +68,7 @@ chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
 
 
-chkpt_cback = ModelCheckpoint(chkpt_path, period=2, save_weights_only=True)
+chkpt_cback = ModelCheckpoint(chkpt_path, period=2000, save_weights_only=True)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
     log_dir=log_dir,
@@ -87,7 +84,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet_crop(lr=1e-3, **run_params)
+model = pdnet_crop(lr=1e-2, **run_params)
 print(model.summary(line_length=150))
 
 
