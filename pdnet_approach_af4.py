@@ -53,14 +53,14 @@ val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
 run_params = {
-    'n_primal': 5,
-    'n_dual': 5,
-    'n_iter': 5,
+    'n_primal': 4,
+    'n_dual': 4,
+    'n_iter': 4,
     'n_filters': 16,
     'res_connection': True,
 }
 
-n_epochs = 20000
+n_epochs = 500
 run_id = f'pdnet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
