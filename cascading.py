@@ -39,7 +39,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
     mask = Input(mask_shape, dtype='complex64', name='mask_input')
 
-    zero_filled = Lambda(tf_adj_op, output_shape=input_size, name='ifft_simple')([kspace_input, mask])
+    zero_filled = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple')(kspace_input)
 
 
     image = zero_filled
