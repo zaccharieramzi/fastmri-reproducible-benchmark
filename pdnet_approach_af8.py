@@ -99,7 +99,7 @@ model.fit_generator(
     validation_steps=n_volumes_val,
     verbose=0,
     callbacks=[tqdm_cb, tboard_cback, chkpt_cback, lr_on_plat_cback],
-    max_queue_size=100,
+    max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
 )
