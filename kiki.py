@@ -75,7 +75,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
             kernel_initializer='he_normal',
             use_bias=False,
         )(res_k_data)
-        res_image = complex_from_half(res_k_data, 1, input_size)
+        res_k_data = complex_from_half(res_k_data, 1, input_size)
         data_consistency_fourier = Add(name='res_connex_{i}'.format(i=i+1))([data_consistency_fourier, res_k_data])
 
         image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(data_consistency_fourier)
