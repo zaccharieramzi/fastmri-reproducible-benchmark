@@ -168,7 +168,7 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
         dual = Add()(to_add)
 
         # if only primal:
-        # dual = dual_eval_exp - kspace_input
+        # dual = Lambda(lambda x: x[0] - x[1], output_shape=input_size, name='dual_residual_{i}'.format(i=i+1))([dual_eval_exp, kspace_input])
 
 
         # Then work in image space (primal space)
