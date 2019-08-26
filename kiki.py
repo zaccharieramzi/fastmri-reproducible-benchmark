@@ -45,7 +45,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
             use_bias=False,
         )(res_image)
         res_image = complex_from_half(res_image, 1, input_size)
-        image = Add(name='i_res_connex_{i}'.format(i=i+1))([image, res_image])
+        image = Add(name='res_connex_{i}'.format(i=i+1))([image, res_image])
         # data consistency layer
         cnn_fft = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
         if noiseless:
@@ -57,26 +57,25 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
             data_consistency_fourier = multiply_scalar(data_consistency_fourier)
             data_consistency_fourier = Add()([data_consistency_fourier, cnn_fft])
         # K-net
-        res_k_data = concatenate_real_imag(data_consistency_fourier)
+        data_consistency_fourier = concatenate_real_imag(data_consistency_fourier)
         for j in range(n_convs):
-            res_k_data = Conv2D(
+            data_consistency_fourier = Conv2D(
                 n_filters,
                 3,
                 activation='relu',
                 padding='same',
                 kernel_initializer='he_normal',
                 use_bias=False,
-            )(res_k_data)
-        res_k_data = Conv2D(
+            )(data_consistency_fourier)
+        data_consistency_fourier = Conv2D(
             2,
             3,
             activation='relu',
             padding='same',
             kernel_initializer='he_normal',
             use_bias=False,
-        )(res_k_data)
-        res_k_data = complex_from_half(res_k_data, 1, input_size)
-        data_consistency_fourier = Add(name='k_res_connex_{i}'.format(i=i+1))([data_consistency_fourier, res_k_data])
+        )(data_consistency_fourier)
+        data_consistency_fourier = complex_from_half(data_consistency_fourier, 1, input_size)
 
         image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(data_consistency_fourier)
 
