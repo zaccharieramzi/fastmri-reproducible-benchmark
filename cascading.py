@@ -84,15 +84,10 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     image = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image)
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
-    run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-    run_metadata = tf.RunMetadata()
-
     model.compile(
         optimizer=Adam(lr=lr),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
-        options=run_options,
-        run_metadata=run_metadata,
     )
 
-    return model, run_metadata
+    return model
