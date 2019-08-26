@@ -60,7 +60,7 @@ run_params = {
     'res_connection': True,
 }
 
-n_epochs = 500
+n_epochs = 250
 run_id = f'pdnet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
@@ -76,7 +76,7 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
-lr_on_plat_cback = ReduceLROnPlateau(monitor='val_loss', min_lr=5*1e-5, mode='auto', patience=3)
+lr_on_plat_cback = ReduceLROnPlateau(monitor='val_keras_psnr', min_lr=5*1e-5, mode='max', patience=5)
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
