@@ -39,7 +39,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
         res_image = Conv2D(
             2,
             3,
-            activation='relu',
+            activation='linear',
             padding='same',
             kernel_initializer='he_normal',
             use_bias=False,
@@ -70,7 +70,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
         data_consistency_fourier = Conv2D(
             2,
             3,
-            activation='relu',
+            activation='linear',
             padding='same',
             kernel_initializer='he_normal',
             use_bias=False,
