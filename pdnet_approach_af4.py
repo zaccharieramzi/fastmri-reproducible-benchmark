@@ -45,7 +45,7 @@ n_volumes_val = 199
 # generators
 AF = 4
 # MaskShifted2DSequence, MaskShiftedSingleImage2DSequence, MaskedUntouched2DSequence
-train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=8)
+train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=1)
 val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
@@ -53,11 +53,11 @@ val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
 run_params = {
-    'n_primal': 4,
-    'n_dual': 4,
-    'n_iter': 4,
-    'n_filters': 16,
-    'res_connection': True,
+    'n_primal': 5,
+    'n_dual': 5,
+    'n_iter': 10,
+    'n_filters': 32,
+    'res_connection': False,
 }
 
 n_epochs = 250
@@ -84,7 +84,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet_crop(lr=1e-2, **run_params)
+model = pdnet_crop(lr=1e-3, **run_params)
 print(model.summary(line_length=150))
 
 
@@ -96,9 +96,9 @@ model.fit_generator(
     steps_per_epoch=n_volumes_train,
     epochs=n_epochs,
     validation_data=val_gen,
-    validation_steps=n_volumes_val,
+    validation_steps=1,
     verbose=0,
-    callbacks=[tqdm_cb, tboard_cback, chkpt_cback, lr_on_plat_cback],
+    callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
     max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
