@@ -95,8 +95,6 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
     mask = Input(mask_shape, dtype='complex64', name='mask_input_simple')
     # # simple inverse
     image_res = Lambda(tf_adj_op, output_shape=input_size, name='ifft_simple')([kspace_input, mask])
-    # image_res = conv2d_complex(image_res, n_filters, activation='relu', output_shape=conv_shape)
-    # image_res = conv2d_complex(image_res, 1, activation='linear', output_shape=input_size)
     image_res = Lambda(tf.math.abs, name='image_module_simple')(image_res)
     image_res = Lambda(tf_crop, name='cropping')(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
@@ -104,7 +102,6 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
         optimizer=Adam(lr=lr),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
-        # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
     )
 
     return model
