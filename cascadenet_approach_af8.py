@@ -62,6 +62,7 @@ run_params = {
 n_epochs = 300
 run_id = f'cascadenet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+print(run_id)
 
 
 
