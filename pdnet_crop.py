@@ -109,7 +109,7 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
 
     return model
 
-def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, res_connection=False):
+def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, res_connection=False, primal_only=False):
     # shapes
     mask_shape = input_size[:-1]
     primal_shape = list(input_size)
@@ -128,47 +128,48 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
 
 
     primal = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_primal, axis=-1), output_shape=primal_shape, name='buffer_primal')(kspace_input)
-    dual = Lambda(lambda x: tf.concat([tf.zeros_like(kspace_input, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape, name='buffer_dual')(kspace_input)
+    if not primal_only:
+        dual = Lambda(lambda x: tf.concat([tf.zeros_like(x, dtype='complex64')] * n_dual, axis=-1), output_shape=dual_shape, name='buffer_dual')(kspace_input)
 
     for i in range(n_iter):
         # first work in kspace (dual space)
         dual_eval_exp = Lambda(tf_op, output_shape=input_size, arguments={'idx': 1}, name='fft_masked_{i}'.format(i=i+1))([primal, mask])
-        update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
-        update = concatenate_real_imag(update)
-
-        update = Conv2D(
-            n_filters,
-            3,
-            activation='relu',
-            padding='same',
-            kernel_initializer='he_normal',
-            use_bias=False,
-        )(update)
-        update = Conv2D(
-            n_filters,
-            3,
-            activation='relu',
-            padding='same',
-            kernel_initializer='he_normal',
-            use_bias=False,
-        )(update)
-        update = Conv2D(
-            2 * n_dual,
-            3,
-            activation='linear',
-            padding='same',
-            kernel_initializer='he_normal',
-            use_bias=False,
-        )(update)
-        update = complex_from_half(update, n_dual, dual_shape)
-        if res_connection:
-            to_add = [dual, update, dual_eval_exp]
+        if primal_only:
+            dual = Lambda(lambda x: x[0] - x[1], output_shape=input_size, name='dual_residual_{i}'.format(i=i+1))([dual_eval_exp, kspace_input])
         else:
-            to_add = [dual, update]
-        dual = Add()(to_add)
+            update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
+            update = concatenate_real_imag(update)
 
-        # if only primal:
-        # dual = Lambda(lambda x: x[0] - x[1], output_shape=input_size, name='dual_residual_{i}'.format(i=i+1))([dual_eval_exp, kspace_input])
+            update = Conv2D(
+                n_filters,
+                3,
+                activation='relu',
+                padding='same',
+                kernel_initializer='he_normal',
+                use_bias=False,
+            )(update)
+            update = Conv2D(
+                n_filters,
+                3,
+                activation='relu',
+                padding='same',
+                kernel_initializer='he_normal',
+                use_bias=False,
+            )(update)
+            update = Conv2D(
+                2 * n_dual,
+                3,
+                activation='linear',
+                padding='same',
+                kernel_initializer='he_normal',
+                use_bias=False,
+            )(update)
+            update = complex_from_half(update, n_dual, dual_shape)
+            if res_connection:
+                to_add = [update, dual_eval_exp]
+            else:
+                to_add = [dual, update]
+            dual = Add()(to_add)
 
 
         # Then work in image space (primal space)
@@ -202,7 +203,7 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
         )(update)
         update = complex_from_half(update, n_primal, primal_shape)
         if res_connection:
-            to_add = [primal, update, primal_exp]
+            to_add = [update, primal_exp]
         else:
             to_add = [primal, update]
         primal = Add()(to_add)
@@ -213,7 +214,7 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
     image_res = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     model.compile(
-        optimizer=Adam(lr=lr),
+        optimizer=Adam(lr=lr, clipnorm=1.),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
         # options=tf.RunOptions(report_tensor_allocations_upon_oom=True),
