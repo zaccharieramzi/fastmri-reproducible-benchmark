@@ -45,7 +45,7 @@ n_volumes_val = 199
 # generators
 AF = 4
 # MaskShifted2DSequence, MaskShiftedSingleImage2DSequence, MaskedUntouched2DSequence
-train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=1)
+train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=8, rand=True)
 val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
@@ -84,10 +84,16 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = cascade_net(lr=1e-3, **run_params)
+model = cascade_net(lr=1e-4, **run_params)
 print(model.summary(line_length=150))
 
 
+if True:
+# if False:
+    ex_run_id = f'cascadenet_af{AF}_1566919402'
+    epoch = 200
+    ex_chkpt_path = f'checkpoints/{ex_run_id}-{epoch}.hdf5'
+    model.load_weights(ex_chkpt_path)
 
 
 
