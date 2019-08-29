@@ -42,8 +42,8 @@ def evaluate(epoch, model, data_loader, writer, device, hard_limit=None, tqdm_wr
     def save_images(image, tag):
         image -= image.min()
         image /= image.max()
-        grid = torchvision.utils.make_grid(image, nrow=4, pad_value=1)
-        writer.add_images(tag, grid, epoch)
+        image = image.unsqueeze(1)
+        writer.add_images(tag, image, epoch)
 
     model.eval()
     losses = []
