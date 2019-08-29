@@ -1,5 +1,6 @@
 from functools import lru_cache
 import glob
+import random
 import time
 
 import h5py
@@ -210,9 +211,10 @@ class Untouched2DSequence(fastMRI2DSequence):
         return mask, kspaces
 
 class MaskedUntouched2DSequence(Untouched2DSequence):
-    def __init__(self, *args, inner_slices=None, **kwargs):
+    def __init__(self, *args, inner_slices=None, rand=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.inner_slices = inner_slices
+        self.rand = rand
 
     def get_item_train(self, filename):
         images, kspaces = super(MaskedUntouched2DSequence, self).get_item_train(filename)
@@ -225,9 +227,14 @@ class MaskedUntouched2DSequence(Untouched2DSequence):
         if self.inner_slices is not None:
             n_slices = len(kspaces)
             slice_start = n_slices // 2 - self.inner_slices // 2
-            kspaces = kspaces[slice_start:slice_start + self.inner_slices]
-            images = images[slice_start:slice_start + self.inner_slices]
-            mask_batch = mask_batch[slice_start:slice_start + self.inner_slices]
+            if self.rand:
+                i_slice = random.randint(slice_start, slice_start + self.inner_slices)
+                selected_slices = slice(i_slice, i_slice + 1)
+            else:
+                selected_slices = slice(slice_start, slice_start + self.inner_slices)
+            kspaces = kspaces[selected_slices]
+            images = images[selected_slices]
+            mask_batch = mask_batch[selected_slices]
         return ([kspaces, mask_batch], images)
 
     def get_item_test(self, filename):
