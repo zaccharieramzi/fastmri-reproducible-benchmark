@@ -45,7 +45,7 @@ n_volumes_val = 199
 # generators
 AF = 4
 # MaskShifted2DSequence, MaskShiftedSingleImage2DSequence, MaskedUntouched2DSequence
-train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=1)
+train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=8, rand=True)
 val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 
 
@@ -55,13 +55,14 @@ val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 run_params = {
     'n_cascade': 2,
     'n_convs': 25,
-    'n_filters': 64,
+    'n_filters': 32,
     'noiseless': True,
 }
 
 n_epochs = 300
 run_id = f'kikinet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+print(run_id)
 
 
 
@@ -83,7 +84,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = kiki_net(lr=1e-3, **run_params)
+model = kiki_net(lr=1e-4, **run_params)
 print(model.summary(line_length=150))
 
 
