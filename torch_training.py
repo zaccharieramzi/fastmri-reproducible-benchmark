@@ -87,10 +87,10 @@ def save_model(chkpt_path, run_id, model):
 def fit_torch(model, train_loader, val_loader, epochs, writer, optimizer, chkpt_path, run_id=None, device='cpu', save_freq=100, hard_limit_train=None, hard_limit_val=None, tqdm_wrapper=tqdm):
     if run_id is None:
         run_id = str(int(time.time()))
-    dummy_kspace = torch.randn(1, 640, 422, 2, device=device)
-    dummy_mask = torch.randn(1, 640, 422, device=device)
-    if writer is not None:
-        writer.add_graph(model, [dummy_kspace, dummy_mask])
+    # dummy_kspace = torch.randn(1, 640, 422, 2, device=device)
+    # dummy_mask = torch.randn(1, 640, 422, device=device)
+    # if writer is not None:
+    #     writer.add_graph(model, [dummy_kspace, dummy_mask])
     for epoch in tqdm_wrapper(range(epochs), total=epochs, desc='Epochs'):
         train_epoch(epoch, model, train_loader, optimizer, writer, device, hard_limit=hard_limit_train, tqdm_wrapper=tqdm_wrapper)
         if val_loader is not None:
