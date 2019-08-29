@@ -2,9 +2,12 @@ from keras.layers import Input, Lambda, Conv2D, Add, Layer
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
+import torch
+from torch import nn
 
 from pdnet_crop import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op
 from utils import keras_psnr, keras_ssim
+from transforms import ifft2, fft2, center_crop, complex_abs
 
 class MultiplyScalar(Layer):
     def __init__(self, **kwargs):
@@ -31,8 +34,6 @@ def replace_values_on_mask(x):
     anti_mask = tf.expand_dims(tf.dtypes.cast(1.0 - mask, cnn_fft.dtype), axis=-1)
     replace_cnn_fft = tf.math.multiply(anti_mask, cnn_fft) + kspace_input
     return replace_cnn_fft
-
-
 
 def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
     mask_shape = input_size[:-1]
@@ -91,3 +92,59 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     )
 
     return model
+
+class ConvBlock(torch.nn.Module):
+    def __init__(self, n_convs=5, n_filters=16):
+        super(ConvBlock, self).__init__()
+        self.n_convs = n_convs
+        self.n_filters = n_filters
+
+        first_conv = nn.Sequential(nn.Conv2d(2, n_filters, kernel_size=3, padding=1), nn.ReLU())
+        simple_convs = nn.Sequential(*[
+            nn.Sequential(nn.Conv2d(n_filters, n_filters, kernel_size=3, padding=1), nn.ReLU())
+            for i in range(n_convs - 2)
+        ])
+        last_conv = nn.Conv2d(n_filters, 2, kernel_size=3, padding=1)
+        self.overall_convs = nn.Sequential(first_conv, simple_convs, last_conv)
+
+    def forward(self, x):
+        y = self.overall_convs(x)
+        return y
+
+def replace_values_on_mask_torch(cnn_fft, kspace, mask):
+    mask = mask[..., None]
+    mask = mask.expand_as(kspace).float()
+    anti_mask = 1.0 - mask
+    replace_cnn_fft = anti_mask * cnn_fft + kspace
+    return replace_cnn_fft
+
+
+class CascadeNet(torch.nn.Module):
+    def __init__(self, n_cascade=5, n_convs=5, n_filters=16):
+        super(CascadeNet, self).__init__()
+        self.n_cascade = n_cascade
+        self.n_convs = n_convs
+        self.n_filters = n_filters
+
+        self.conv_layers = nn.ModuleList([ConvBlock(n_convs, n_filters) for _ in range(n_cascade)])
+
+    def forward(self, kspace, mask):
+        zero_filled = ifft2(kspace)
+        image = zero_filled
+        # this because pytorch doesn't support NHWC
+        for i, conv_layer in enumerate(self.conv_layers):
+            # residual convolution
+            res_image = image
+            res_image = res_image.permute(0, 3, 1, 2)
+            res_image = conv_layer(res_image)
+            res_image = res_image.permute(0, 2, 3, 1)
+            image = image + res_image
+            # data consistency layer
+            cnn_fft = fft2(image)
+            data_consistency_fourier = replace_values_on_mask_torch(cnn_fft, kspace, mask)
+            image = ifft2(data_consistency_fourier)
+
+        # equivalent of taking the module of the image
+        image = complex_abs(image)
+        image = center_crop(image, (320, 320))
+        return image
