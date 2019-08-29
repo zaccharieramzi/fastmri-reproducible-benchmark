@@ -37,7 +37,7 @@ def train_epoch(epoch, model, data_loader, optimizer, writer, device, hard_limit
             writer.add_scalar('TrainPSNR', torch_psnr(image_pred, image_gt), global_step + i_iter)
 
 
-def evaluate(epoch, model, data_loader, writer, device):
+def evaluate(epoch, model, data_loader, writer, device, hard_limit=None):
     def save_image(image, tag):
         image -= image.min()
         image /= image.max()
@@ -48,7 +48,9 @@ def evaluate(epoch, model, data_loader, writer, device):
     losses = []
     psnrs = []
     with torch.no_grad():
-        for data in data_loader:
+        for i_iter, data in enumerate(data_loader):
+            if hard_limit is not None and i_iter > hard_limit:
+                break
             kspace, mask, image_gt = data
             kspace = kspace[0]
             mask = mask[0]
@@ -81,7 +83,7 @@ def save_model(chkpt_path, run_id, model):
     )
 
 
-def fit_torch(model, train_loader, val_loader, epochs, writer, optimizer, chkpt_path, run_id=None, device='cpu', save_freq=100, hard_limit=None):
+def fit_torch(model, train_loader, val_loader, epochs, writer, optimizer, chkpt_path, run_id=None, device='cpu', save_freq=100, hard_limit_train=None, hard_limit_val=None):
     if run_id is None:
         run_id = str(int(time.time()))
     # dummy_kspace = torch.randn(35, 640, 422, 2, device=device)
@@ -89,9 +91,9 @@ def fit_torch(model, train_loader, val_loader, epochs, writer, optimizer, chkpt_
     # if writer is not None:
     #     writer.add_graph(model, [dummy_kspace, dummy_mask])
     for epoch in range(epochs):
-        train_epoch(epoch, model, train_loader, optimizer, writer, device, hard_limit=hard_limit)
+        train_epoch(epoch, model, train_loader, optimizer, writer, device, hard_limit=hard_limit_train)
         if val_loader is not None:
-            evaluate(epoch, model, val_loader, writer, device)
+            evaluate(epoch, model, val_loader, writer, device, hard_limit=hard_limit_val)
         if (epoch + 1) % save_freq == 0:
             save_model(chkpt_path, run_id, model)
     writer.close()
