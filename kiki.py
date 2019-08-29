@@ -111,7 +111,7 @@ class KikiNet(torch.nn.Module):
         zero_filled = ifft2(kspace)
         image = zero_filled
         # this because pytorch doesn't support NHWC
-        for i, i_conv_layer, k_conv_layer in enumerate(zip(self.i_conv_layers, self.k_conv_layers)):
+        for i, (i_conv_layer, k_conv_layer) in enumerate(zip(self.i_conv_layers, self.k_conv_layers)):
             # residual convolution
             res_image = image
             res_image = res_image.permute(0, 3, 1, 2)
