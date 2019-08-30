@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 def torch_psnr(image_pred, image_gt):
-    mse = F.mse_loss(image_pred, image_gt, reduction='sum')
+    mse = F.mse_loss(image_pred, image_gt, reduction='mean')
     psnr = 10 * torch.log10(torch.max(image_gt)**2 / mse)
     return psnr
 
@@ -61,7 +61,7 @@ def evaluate(epoch, model, data_loader, writer, device, hard_limit=None, tqdm_wr
             image_gt = image_gt.to(device)
             image_pred = model(kspace, mask)
 
-            loss = F.mse_loss(image_pred, image_gt, reduction='sum')
+            loss = F.mse_loss(image_pred, image_gt, reduction='mean')
             losses.append(loss.item())
             psnr = torch_psnr(image_pred, image_pred)
             psnrs.append(psnr.item())
