@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 def torch_psnr(image_pred, image_gt):
     mse = F.mse_loss(image_pred, image_gt, reduction='sum')
-    psnr = 10 * torch.log10(torch.max(image_gt) / mse)
+    psnr = 10 * torch.log10(torch.max(image_gt)**2 / mse)
     return psnr
 
 
