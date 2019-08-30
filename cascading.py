@@ -7,6 +7,7 @@ from torch import nn
 
 from pdnet_crop import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op
 from utils import keras_psnr, keras_ssim
+from torch_utils import ConvBlock, replace_values_on_mask_torch
 from transforms import ifft2, fft2, center_crop, complex_abs
 
 class MultiplyScalar(Layer):
@@ -92,31 +93,6 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     )
 
     return model
-
-class ConvBlock(torch.nn.Module):
-    def __init__(self, n_convs=5, n_filters=16):
-        super(ConvBlock, self).__init__()
-        self.n_convs = n_convs
-        self.n_filters = n_filters
-
-        first_conv = nn.Sequential(nn.Conv2d(2, n_filters, kernel_size=3, padding=1), nn.ReLU())
-        simple_convs = nn.Sequential(*[
-            nn.Sequential(nn.Conv2d(n_filters, n_filters, kernel_size=3, padding=1), nn.ReLU())
-            for i in range(n_convs - 2)
-        ])
-        last_conv = nn.Conv2d(n_filters, 2, kernel_size=3, padding=1)
-        self.overall_convs = nn.Sequential(first_conv, simple_convs, last_conv)
-
-    def forward(self, x):
-        y = self.overall_convs(x)
-        return y
-
-def replace_values_on_mask_torch(cnn_fft, kspace, mask):
-    mask = mask[..., None]
-    mask = mask.expand_as(kspace).float()
-    anti_mask = 1.0 - mask
-    replace_cnn_fft = anti_mask * cnn_fft + kspace
-    return replace_cnn_fft
 
 
 class CascadeNet(torch.nn.Module):
