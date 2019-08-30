@@ -415,3 +415,103 @@ class ZeroFilled3DSequence(ZeroFilled2DSequence):
             return z_kspace_batch, means, stddevs, pad_seq
         else:
             return z_kspace_batch, pad_seq
+
+
+class fastMRI2DAllLoadedSequence(Sequence):
+    train_modes = ('training', 'validation')
+
+    def __init__(self, path, mode='training', af=4, norm=False, inner_slices=None):
+        self.path = path
+        self.mode = mode
+        self.af = af
+        self.norm = norm
+        self.inner_slices = inner_slices
+
+        filenames = glob.glob(path + '*.h5')
+        if not filenames:
+            raise ValueError('No h5 files at path {}'.format(path))
+        filenames.sort()
+        if mode == 'testing':
+            af_filenames = list()
+            for filename in filenames:
+                mask, _ = from_test_file_to_mask_and_kspace(filename)
+                mask_af = len(mask) / sum(mask)
+                if af == 4 and mask_af < 5.5 or af == 8 and mask_af > 5.5:
+                    af_filenames.append(filename)
+            filenames = af_filenames
+        self.data = []
+        for filename in filenames:
+            self.data.append(self.load_item(filename))
+
+    def load_item(self, filename):
+        if self.mode in type(self).train_modes:
+            return self.load_item_train(filename)
+        else:
+            return self.load_item_test(filename)
+
+    def load_item_train(self, filename):
+        images, kspaces = from_train_file_to_image_and_kspace(filename)
+        if self.inner_slices is not None:
+            n_slices = len(kspaces)
+            slice_start = n_slices // 2 - self.inner_slices // 2
+            selected_slices = slice(slice_start, slice_start + self.inner_slices)
+            kspaces = kspaces[selected_slices]
+            images = images[selected_slices]
+        return images, kspaces
+
+    def load_item_test(self, filename):
+        mask, kspaces = from_test_file_to_mask_and_kspace(filename)
+        if self.inner_slices is not None:
+            n_slices = len(kspaces)
+            slice_start = n_slices // 2 - self.inner_slices // 2
+            selected_slices = slice(slice_start, slice_start + self.inner_slices)
+            kspaces = kspaces[selected_slices]
+        return mask, kspaces
+
+    def __len__(self):
+        """From fastMRI paper"""
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        if self.mode in type(self).train_modes:
+            return self.get_item_train(idx)
+        else:
+            return self.get_item_test(idx)
+
+
+    def get_item_train(self, idx):
+        pass
+
+    def get_item_test(self, idx):
+        pass
+
+
+class MaskedUntouched2DAllLoadedSequence(fastMRI2DAllLoadedSequence):
+    def __init__(self, *args, rand=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rand = rand
+
+    def get_item_train(self, idx):
+        images, kspaces = self.data[idx]
+        images = images[..., None]
+        kspaces = kspaces[..., None]
+        k_shape = kspaces[0].shape
+        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
+        kspaces *= mask_batch
+        mask_batch = mask_batch[..., 0]
+        if self.rand:
+            i_slice = random.randint(0, self.inner_slices)
+            kspaces = kspaces[i_slice:i_slice+1]
+            images = images[i_slice:i_slice+1]
+            mask_batch = mask_batch[i_slice:i_slice+1]
+        return ([kspaces, mask_batch], images)
+
+    def get_item_test(self, idx):
+        mask, kspaces = self.data[idx]
+        kspaces = kspaces[..., None]
+        k_shape = kspaces[0].shape
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)
+        return [kspaces, mask_batch]
