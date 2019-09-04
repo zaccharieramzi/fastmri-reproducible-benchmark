@@ -55,7 +55,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
                 3,
                 activation='relu',
                 padding='same',
-                kernel_initializer='he_normal',
+                kernel_initializer='glorot_uniform',
                 use_bias=False,
             )(res_image)
         res_image = Conv2D(
@@ -63,7 +63,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
             3,
             activation='linear',
             padding='same',
-            kernel_initializer='he_normal',
+            kernel_initializer='glorot_uniform',
             use_bias=False,
         )(res_image)
         res_image = complex_from_half(res_image, 1, input_size)
