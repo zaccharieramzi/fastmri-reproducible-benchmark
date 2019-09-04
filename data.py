@@ -515,3 +515,19 @@ class MaskedUntouched2DAllLoadedSequence(fastMRI2DAllLoadedSequence):
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)
         return [kspaces, mask_batch]
+
+class MaskedScaled2DSequence(MaskedUntouched2DSequence):
+    def __init__(self, *args, scale_factor=1e5, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.scale_factor = scale_factor
+
+    def get_item_train(self, filename):
+        ([kspaces, mask_batch], images) = super(MaskedScaled2DSequence, self).get_item_train(filename)
+        kspaces *= self.scale_factor
+        images *= self.scale_factor
+        return ([kspaces, mask_batch], images)
+
+    def get_item_test(self, filename):
+        [kspaces, mask_batch] = super(MaskedScaled2DSequence, self).get_item_test(filename)
+        kspaces *= self.scale_factor
+        return [kspaces, mask_batch]
