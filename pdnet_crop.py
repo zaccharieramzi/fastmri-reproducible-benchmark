@@ -146,24 +146,21 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
                 3,
                 activation='relu',
                 padding='same',
-                kernel_initializer='he_normal',
-                use_bias=False,
+                kernel_initializer='glorot_uniform',
             )(update)
             update = Conv2D(
                 n_filters,
                 3,
                 activation='relu',
                 padding='same',
-                kernel_initializer='he_normal',
-                use_bias=False,
+                kernel_initializer='glorot_uniform',
             )(update)
             update = Conv2D(
                 2 * n_dual,
                 3,
                 activation='linear',
                 padding='same',
-                kernel_initializer='he_normal',
-                use_bias=False,
+                kernel_initializer='glorot_uniform',
             )(update)
             update = complex_from_half(update, n_dual, dual_shape)
             if res_connection:
