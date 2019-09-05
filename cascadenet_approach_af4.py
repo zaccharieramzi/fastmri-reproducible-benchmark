@@ -8,7 +8,7 @@ from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from data import MaskedUntouched2DSequence
+from data import MaskedScaled2DSequence
 from evaluate import psnr, ssim
 from cascading import cascade_net
 
@@ -44,9 +44,8 @@ n_volumes_val = 199
 
 # generators
 AF = 4
-# MaskShifted2DSequence, MaskShiftedSingleImage2DSequence, MaskedUntouched2DSequence
-train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=8, rand=True)
-val_gen = MaskedUntouched2DSequence(val_path, af=AF)
+train_gen = MaskedScaled2DSequence(train_path, af=AF, inner_slices=8, rand=True, scale_factor=1e6)
+val_gen = MaskedScaled2DSequence(val_path, af=AF, scale_factor=1e6)
 
 
 
@@ -55,7 +54,7 @@ val_gen = MaskedUntouched2DSequence(val_path, af=AF)
 run_params = {
     'n_cascade': 5,
     'n_convs': 5,
-    'n_filters': 64,
+    'n_filters': 48,
     'noiseless': True,
 }
 
@@ -84,16 +83,9 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = cascade_net(lr=1e-4, **run_params)
+model = cascade_net(lr=1e-3, **run_params)
 print(model.summary(line_length=150))
 
-
-if True:
-# if False:
-    ex_run_id = f'cascadenet_af{AF}_1566919402'
-    epoch = 200
-    ex_chkpt_path = f'checkpoints/{ex_run_id}-{epoch}.hdf5'
-    model.load_weights(ex_chkpt_path)
 
 
 
@@ -105,7 +97,7 @@ model.fit_generator(
     validation_steps=1,
     verbose=0,
     callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
-    max_queue_size=35,
+    # max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
     shuffle=True,
