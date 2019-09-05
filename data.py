@@ -14,7 +14,7 @@ def from_test_file_to_mask_and_kspace(filename):
     with  h5py.File(filename) as h5_obj:
         masks = h5_obj['mask'][()]
         kspaces = h5_obj['kspace'][()]
-        return masks, kspaces
+    return masks, kspaces
 
 
 @lru_cache(maxsize=128)
@@ -22,7 +22,7 @@ def from_train_file_to_image_and_kspace(filename):
     with h5py.File(filename) as h5_obj:
         images = h5_obj['reconstruction_esc'][()]
         kspaces = h5_obj['kspace'][()]
-        return images, kspaces
+    return images, kspaces
 
 
 def from_file_to_kspace(filename):
@@ -523,9 +523,13 @@ class MaskedScaled2DSequence(MaskedUntouched2DSequence):
 
     def get_item_train(self, filename):
         ([kspaces, mask_batch], images) = super(MaskedScaled2DSequence, self).get_item_train(filename)
-        kspaces *= self.scale_factor
-        images *= self.scale_factor
-        return ([kspaces, mask_batch], images)
+        if self.scale_factor == 'max':
+            scale_factor = 1 / np.max(np.abs(kspaces))
+        else:
+            scale_factor = self.scale_factor
+        kspaces_scaled = kspaces * scale_factor
+        images_scaled = images * scale_factor
+        return ([kspaces_scaled, mask_batch], images_scaled)
 
     def get_item_test(self, filename):
         [kspaces, mask_batch] = super(MaskedScaled2DSequence, self).get_item_test(filename)
