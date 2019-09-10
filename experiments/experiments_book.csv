@@ -1,0 +1,5 @@
+run_id,model,run_params,lr,data,git_commit,seed,notes
+unet_wo_lastrelu_af4_1568105928,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","Overfitting (1 train), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+unet_wo_lastrelu_af4_1568117743,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","small train (10 train 1 val), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+cascadenet_af4_1568115035,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","Overfitting (1 train), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+cascadenet_af4_1568118490,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","small train (10 train 1 val), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
