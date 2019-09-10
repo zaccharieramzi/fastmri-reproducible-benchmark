@@ -1,8 +1,10 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
-from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization
+from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
+import tensorflow as tf
 
+from pdnet_crop import tf_unmasked_adj_op, tf_crop, concatenate_real_imag, complex_from_half
 from utils import keras_psnr, keras_ssim
 
 
@@ -81,6 +83,7 @@ def unet(
         non_relu_contract=False,
         pool='max',
         lr=1e-3,
+        compile=True,
     ):
     if isinstance(layers_n_channels, int):
         layers_n_channels = [layers_n_channels] * n_layers
@@ -115,12 +118,36 @@ def unet(
         kernel_initializer='he_normal',
     )(output)
     model = Model(inputs=inputs, outputs=output)
-    model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
+    if compile:
+        model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
 
     if pretrained_weights:
         model.load_weights(pretrained_weights)
 
     return model
+
+
+def full_unet(
+        input_size=(640, None, 1),
+        lr=1e-3,
+        **unet_kwargs,
+    ):
+    kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
+    zero_filled = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft')(kspace_input)
+    image = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(zero_filled)
+    image = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image)
+    unet_pred = unet(input_size=(320, 320, 1), compile=False, **unet_kwargs)
+    image = unet_pred(image)
+    model = Model(inputs=kspace_input, outputs=image)
+    model.compile(
+        optimizer=Adam(lr=lr, clipnorm=1.),
+        loss='mean_absolute_error',
+        metrics=['mean_squared_error', keras_psnr, keras_ssim],
+    )
+
+    return model
+
+
 
 
 def old_unet(pretrained_weights=None, input_size=(256, 256, 1), dropout=0.5, kernel_size=3):
