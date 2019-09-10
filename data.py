@@ -535,3 +535,13 @@ class MaskedScaled2DSequence(MaskedUntouched2DSequence):
         [kspaces, mask_batch] = super(MaskedScaled2DSequence, self).get_item_test(filename)
         kspaces *= self.scale_factor
         return [kspaces, mask_batch]
+
+
+class Scaled2DSequence(MaskedScaled2DSequence):
+    def get_item_train(self, filename):
+        ([kspaces, _], images) = super(Scaled2DSequence, self).get_item_train(filename)
+        return kspaces, images
+
+    def get_item_test(self, filename):
+        [kspaces, _] = super(Scaled2DSequence, self).get_item_test(filename)
+        return kspaces
