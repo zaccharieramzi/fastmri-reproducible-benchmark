@@ -32,6 +32,7 @@ def train_epoch(epoch, model, data_loader, optimizer, writer, device, hard_limit
         loss = F.l1_loss(image_pred, image_gt)
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
         if writer is not None:
             writer.add_scalar('TrainLoss', loss.item(), global_step + i_iter)
