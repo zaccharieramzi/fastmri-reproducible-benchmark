@@ -85,7 +85,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
     model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1., amsgrad=True),
+        optimizer=Adam(lr=lr, clipnorm=1.),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
     )
