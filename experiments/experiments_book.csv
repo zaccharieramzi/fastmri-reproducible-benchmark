@@ -1,5 +1,10 @@
 run_id,model,run_params,lr,data,git_commit,seed,notes
-unet_wo_lastrelu_af4_1568105928,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","Overfitting (1 train), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
-unet_wo_lastrelu_af4_1568117743,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","small train (10 train 1 val), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
-cascadenet_af4_1568115035,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","Overfitting (1 train), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
-cascadenet_af4_1568118490,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","small train (10 train 1 val), fastMRI",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+unet_wo_lastrelu_af4_1568105928,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","Overfitting (1 train), fastMRI, inner_slice=1",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+unet_wo_lastrelu_af4_1568117743,full_unet,"'n_layers': 4,  ""layers_n_channels"": [16, 32, 64, 128], 'layers_n_non_lins': 2,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+cascadenet_af4_1568115035,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","Overfitting (1 train), fastMRI, inner_slice=1",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+cascadenet_af4_1568118714,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",860d338945bc05ac5ef2225a502000b4080cd1f7,0,
+cascadenet_af4_1568120200,cascadenet,"'n_cascade': 4, 'n_convs': 5, 'n_filters': 48,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",74591b1f8a85c141f5ac6d3be42b251d7a9d9ca3,0,amsgrad=True
+cascadenet_orig_torch_af4_1568123118,cascadenet,"'nc': 5, 'nd': 5, 'nf': 48,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",86d1ef4e7db2ca4fafc6fc778141b14ea186f80b,0,"in deep-mri-recon, with the original code"
+cascadenet_orig_torch_af4_1568124375,cascadenet,"'nc': 5, 'nd': 5, 'nf': 48,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",86d1ef4e7db2ca4fafc6fc778141b14ea186f80b,0,"in deep-mri-recon, with the original code, glorot uniform init"
+cascadenet_orig_torch_af4_1568124613,cascadenet,"'nc': 5, 'nd': 5, 'nf': 48,","1,00E-03","Overfitting (1 train), fastMRI, inner_slice=1",86d1ef4e7db2ca4fafc6fc778141b14ea186f80b,0,"in deep-mri-recon, with the original code"
+cascadenet_orig_torch_af4_1568127417,cascadenet,"'nc': 5, 'nd': 5, 'nf': 48, ‘nl’ : ‘relu’,","1,00E-03","small train (10 train 1 val), fastMRI, inner_slice=1",585c6d36f27fcf82ab6bc30f6b276aba8f3c9ac8,0,"in deep-mri-recon, with the original code, weight decay 1e-7"
