@@ -9,12 +9,12 @@ class ConvBlock(torch.nn.Module):
         self.in_chans = in_chans
         self.out_chans = out_chans
 
-        first_conv = nn.Sequential(nn.Conv2d(in_chans, n_filters, kernel_size=3, padding=1, bias=False), nn.ReLU())
+        first_conv = nn.Sequential(nn.Conv2d(in_chans, n_filters, kernel_size=3, padding=1, bias=True), nn.ReLU())
         simple_convs = nn.Sequential(*[
-            nn.Sequential(nn.Conv2d(n_filters, n_filters, kernel_size=3, padding=1, bias=False), nn.ReLU())
+            nn.Sequential(nn.Conv2d(n_filters, n_filters, kernel_size=3, padding=1, bias=True), nn.ReLU())
             for i in range(n_convs - 2)
         ])
-        last_conv = nn.Conv2d(n_filters, out_chans, kernel_size=3, padding=1, bias=False)
+        last_conv = nn.Conv2d(n_filters, out_chans, kernel_size=3, padding=1, bias=True)
         self.overall_convs = nn.Sequential(first_conv, simple_convs, last_conv)
 
     def forward(self, x):
