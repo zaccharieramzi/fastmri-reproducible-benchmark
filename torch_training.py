@@ -21,9 +21,9 @@ def train_epoch(epoch, model, data_loader, optimizer, writer, device, hard_limit
         if hard_limit is not None and i_iter > hard_limit:
             break
         kspace, mask, image_gt = data
-        kspace = kspace[0]
+        kspace = kspace[0] * 1e6
         mask = mask[0]
-        image_gt = image_gt[0]
+        image_gt = image_gt[0] * 1e6
         kspace = kspace.to(device)
         mask = mask.to(device)
         image_gt = image_gt.to(device)
@@ -58,9 +58,9 @@ def evaluate(epoch, model, data_loader, writer, device, hard_limit=None, tqdm_wr
             if hard_limit is not None and i_iter > hard_limit:
                 break
             kspace, mask, image_gt = data
-            kspace = kspace[0]
+            kspace = kspace[0] * 1e6
             mask = mask[0]
-            image_gt = image_gt[0]
+            image_gt = image_gt[0] * 1e6
             kspace = kspace.to(device)
             mask = mask.to(device)
             image_gt = image_gt.to(device)
@@ -71,9 +71,10 @@ def evaluate(epoch, model, data_loader, writer, device, hard_limit=None, tqdm_wr
             psnr = torch_psnr(image_pred, image_gt)
             psnrs.append(psnr.item())
         if writer is not None:
-            save_images(image_gt, 'Target')
-            save_images(image_pred, 'Reconstruction')
-            save_images(torch.abs(image_gt - image_pred), 'Error')
+            if False:
+                save_images(image_gt, 'Target')
+                save_images(image_pred, 'Reconstruction')
+                save_images(torch.abs(image_gt - image_pred), 'Error')
             writer.add_scalar('ValMSE', np.mean(losses), epoch)
             writer.add_scalar('ValPSNR', np.mean(psnrs), epoch)
 
