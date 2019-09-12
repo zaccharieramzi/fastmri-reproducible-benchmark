@@ -14,6 +14,7 @@ def crop_center(img, cropx, cropy=None):
 
 def gen_mask(kspace, accel_factor=8):
     # inspired by https://github.com/facebookresearch/fastMRI/blob/master/common/subsample.py
+    np.random.seed(0)
     shape = kspace.shape
     num_cols = shape[-1]
 
