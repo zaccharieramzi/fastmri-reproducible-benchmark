@@ -10,15 +10,7 @@ from tqdm import tqdm_notebook
 
 from data_torch import MaskedUntouched2DDataset
 from cascading import CascadeNet
-
-
-
-
-
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-
+from torch_training import fit_torch
 
 
 
@@ -54,7 +46,6 @@ run_params = {
     'n_cascade': 5,
     'n_convs': 5,
     'n_filters': 48,
-    'noiseless': True,
 }
 
 n_epochs = 300
@@ -66,7 +57,7 @@ print(run_id)
 
 log_dir = op.join('logs', run_id)
 model = CascadeNet(**run_params)
-optimizer = Adam(model.parameters(), lr=1e-3, weight_decay=1e-7)
+optimizer = Adam(model.parameters(), lr=1e-4, weight_decay=1e-7)
 writer = SummaryWriter(log_dir=log_dir)
 
 model.cuda();
@@ -96,6 +87,5 @@ fit_torch(
     chkpt_path,
     run_id=run_id,
     device='cuda',
-    save_freq=500,
-    tqdm_wrapper=tqdm_notebook,
+    save_freq=100,
 )
