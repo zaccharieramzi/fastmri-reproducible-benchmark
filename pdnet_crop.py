@@ -226,9 +226,9 @@ class PDNetCrop(torch.nn.Module):
         self.n_filters = n_filters
         self.primal_only = primal_only
 
-        self.primal_conv_layers = nn.ModuleList([ConvBlock(5, n_filters, 2 * (n_primal + 1), 2 * n_primal) for _ in range(n_iter)])
+        self.primal_conv_layers = nn.ModuleList([ConvBlock(3, n_filters, 2 * (n_primal + 1), 2 * n_primal) for _ in range(n_iter)])
         if not self.primal_only:
-            self.dual_conv_layers = nn.ModuleList([ConvBlock(5, n_filters, 2 * (n_dual + 2), 2 * n_dual) for _ in range(n_iter)])
+            self.dual_conv_layers = nn.ModuleList([ConvBlock(3, n_filters, 2 * (n_dual + 2), 2 * n_dual) for _ in range(n_iter)])
 
 
     def forward(self, kspace, mask):
