@@ -4,3 +4,4 @@ keras-tqdm
 runstats
 keras
 torch
+torchvision
