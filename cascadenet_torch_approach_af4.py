@@ -1,12 +1,9 @@
 import os.path as op
 import time
 
-import torch
 from torch.optim import Adam
-from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from tqdm import tqdm_notebook
 
 from data_torch import MaskedUntouched2DDataset
 from cascading import CascadeNet
@@ -73,7 +70,7 @@ train_loader = DataLoader(
 val_loader = DataLoader(
     dataset=val_gen,
     batch_size=1,
-#     num_workers=35,
+    num_workers=5,
     pin_memory=True,
     shuffle=False,
 )
