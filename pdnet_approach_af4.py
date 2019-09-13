@@ -96,4 +96,5 @@ model.fit_generator(
     # max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
+    shuffle=False,
 )
