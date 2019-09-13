@@ -86,7 +86,7 @@ def save_model(chkpt_path, run_id, model):
             'model': model.state_dict(),
             'chkpt_path': chkpt_path,
         },
-        f=chkpt_path / f'{run_id}.pt'
+        f=f'{chkpt_path}/{run_id}.pt'
     )
 
 
