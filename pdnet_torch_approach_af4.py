@@ -6,7 +6,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from data_torch import MaskedUntouched2DDataset
+from fastmri_datasets import Masked2DDataset
 from pdnet_crop import PDNetCrop
 from torch_training import fit_torch
 
@@ -33,8 +33,8 @@ n_volumes_val = 199
 
 # generators
 AF = 4
-train_gen = MaskedUntouched2DDataset(train_path, af=AF, inner_slices=8, rand=True)
-val_gen = MaskedUntouched2DDataset(val_path, af=AF)
+train_gen = Masked2DDataset(train_path, af=AF, inner_slices=8, rand=True, scale_factor=1e6)
+val_gen = Masked2DDataset(val_path, af=AF, scale_factor=1e6)
 
 
 

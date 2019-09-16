@@ -8,8 +8,7 @@ from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from data import MaskedUntouched2DSequence
-from evaluate import psnr, ssim
+from fastmri_sequences import Masked2DSequence
 from kiki import kiki_net
 
 
@@ -44,9 +43,8 @@ n_volumes_val = 199
 
 # generators
 AF = 4
-# MaskShifted2DSequence, MaskShiftedSingleImage2DSequence, MaskedUntouched2DSequence
-train_gen = MaskedUntouched2DSequence(train_path, af=AF, inner_slices=8, rand=True)
-val_gen = MaskedUntouched2DSequence(val_path, af=AF)
+train_gen = Masked2DSequence(train_path, af=AF, inner_slices=8, rand=True)
+val_gen = Masked2DSequence(val_path, af=AF)
 
 
 

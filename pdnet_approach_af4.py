@@ -5,7 +5,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from data import MaskedScaled2DSequence
+from fastmri_sequences import Masked2DSequence
 from pdnet_crop import pdnet_crop
 
 
@@ -40,8 +40,8 @@ n_volumes_val = 199
 
 # generators
 AF = 4
-train_gen = MaskedScaled2DSequence(train_path, af=AF, inner_slices=8, rand=True, scale_factor=1e6)
-val_gen = MaskedScaled2DSequence(val_path, af=AF, scale_factor=1e6)
+train_gen = Masked2DSequence(train_path, af=AF, inner_slices=8, rand=True, scale_factor=1e6)
+val_gen = Masked2DSequence(val_path, af=AF, scale_factor=1e6)
 
 
 
