@@ -18,6 +18,11 @@ def reco_z_filled(kspace, fourier_op):
     x_final = crop_center(x_final, 320)
     return x_final
 
+def zero_filled_cropped_recon(kspace):
+    fourier_op = FFT2(np.ones_like(kspace))
+    x_final = reco_z_filled(kspace, fourier_op)
+    return x_final
+
 
 def reco_wav(kspace, gradient_op, mu=1*1e-8, max_iter=10, nb_scales=4, wavelet_name='db4'):
     linear_op = WaveletDecimated(

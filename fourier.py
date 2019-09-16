@@ -38,3 +38,14 @@ class FFT2:
         """
         masked_fft_coeffs = self.mask * x
         return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(masked_fft_coeffs), norm='ortho'))
+
+
+def fft(image):
+    fourier_op = FFT2(np.ones_like(image))
+    kspace = fourier_op.op(image)
+    return kspace
+
+def ifft(kspace):
+    fourier_op = FFT2(np.ones_like(kspace))
+    image = fourier_op.adj_op(kspace)
+    return image
