@@ -78,7 +78,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet_crop(lr=1e-2, **run_params)
+model = pdnet_crop(lr=1e-4, **run_params)
 if True:
     model.load_weights('checkpoints/pdnet_af4_1568384763-200.hdf5')
 
