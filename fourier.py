@@ -1,7 +1,11 @@
+"""Fourier utilities"""
 import numpy as np
 
 
 class FFT2:
+    """This class defines the masked fourier transform operator in 2D, where
+    the mask is defined on shifted fourier coefficients.
+    """
     def __init__(self, mask):
         self.mask = mask
         self.shape = mask.shape
@@ -38,3 +42,16 @@ class FFT2:
         """
         masked_fft_coeffs = self.mask * x
         return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(masked_fft_coeffs), norm='ortho'))
+
+
+def fft(image):
+    """Perform the fft of an image"""
+    fourier_op = FFT2(np.ones_like(image))
+    kspace = fourier_op.op(image)
+    return kspace
+
+def ifft(kspace):
+    """Perform the ifft of an image"""
+    fourier_op = FFT2(np.ones_like(kspace))
+    image = fourier_op.adj_op(kspace)
+    return image

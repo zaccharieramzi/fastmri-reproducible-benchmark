@@ -1,4 +1,3 @@
-# from keras.models import load_model
 import numpy as np
 
 from modopt.opt.linear import Identity
@@ -16,6 +15,23 @@ def reco_z_filled(kspace, fourier_op):
     x_final = fourier_op.adj_op(kspace)
     x_final = np.abs(x_final)
     x_final = crop_center(x_final, 320)
+    return x_final
+
+def zero_filled_cropped_recon(kspace):
+    """Perform a fastMRI zero-filled reconstruction on the kspace.
+
+    This function performs an inverse fourier transform on the zero filled
+    kspace, then takes the modulus of the result and crops it to fastMRI
+    proportions.
+
+    Parameters:
+    kspace (ndarray): the zero-filled kspace
+
+    Returns:
+    ndarray: the image obtained by zero-filled reconstruction in fastMRI format
+    """
+    fourier_op = FFT2(np.ones_like(kspace))
+    x_final = reco_z_filled(kspace, fourier_op)
     return x_final
 
 
