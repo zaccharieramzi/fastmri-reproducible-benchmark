@@ -1,3 +1,4 @@
+"""Fourier utilities"""
 import numpy as np
 
 
