@@ -1,6 +1,6 @@
 from keras.layers import Input, Lambda, Multiply, Conv2D, concatenate, Add
 from keras.models import Model
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 import tensorflow as tf
 from tensorflow.python.ops import manip_ops
 from tensorflow.signal import fft2d, ifft2d
@@ -209,7 +209,7 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
     image_res = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
+        optimizer=SGD(lr=lr, clipnorm=1., momentum=0.9),
         loss='mean_absolute_error',
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
     )
