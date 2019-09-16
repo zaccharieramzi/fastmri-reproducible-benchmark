@@ -5,10 +5,10 @@ from mri.numerics.reconstruct import sparse_rec_fista
 from modopt.opt.proximity import SparseThreshold, LinearCompositionProx
 from mri.numerics.gradient import GradAnalysis2
 
-from data import from_test_file_to_mask_and_kspace
-from fourier import FFT2
-from utils import crop_center
-from wavelets import WaveletDecimated
+from ..data.data_utils import from_test_file_to_mask_and_kspace
+from .fourier import FFT2
+from .utils import crop_center
+from ..wavelets import WaveletDecimated
 
 
 def reco_z_filled(kspace, fourier_op):

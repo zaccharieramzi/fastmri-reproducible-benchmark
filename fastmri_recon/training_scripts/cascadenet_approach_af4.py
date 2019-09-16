@@ -8,8 +8,8 @@ from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from cascading import cascade_net
-from fastmri_sequences import Masked2DSequence
+from ..models.cascading import cascade_net
+from ..data.fastmri_sequences import Masked2DSequence
 
 
 

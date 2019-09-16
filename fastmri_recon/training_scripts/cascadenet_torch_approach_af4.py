@@ -2,13 +2,12 @@ import os.path as op
 import time
 
 from torch.optim import Adam
-from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from fastmri_datasets import Masked2DDataset
-from pdnet_crop import PDNetCrop
-from torch_training import fit_torch
+from ..data.fastmri_datasets import Masked2DDataset
+from ..models.cascading import CascadeNet
+from ..helpers.torch_training import fit_torch
 
 
 
@@ -41,28 +40,24 @@ val_gen = Masked2DDataset(val_path, af=AF, scale_factor=1e6)
 
 
 run_params = {
-    'n_primal': 5,
-    'n_dual': 5,
-    'n_iter': 10,
-    'n_filters': 32,
+    'n_cascade': 5,
+    'n_convs': 5,
+    'n_filters': 48,
 }
 
 n_epochs = 300
-run_id = f'pdnet_torch_af{AF}_{int(time.time())}'
+run_id = f'cascadenet_torch_af{AF}_{int(time.time())}'
 chkpt_path = 'checkpoints'
-
-
+print(run_id)
 
 
 
 log_dir = op.join('logs', run_id)
-model = PDNetCrop(**run_params)
-optimizer = Adam(model.parameters(), lr=1e-3)
-scheduler = CosineAnnealingLR(optimizer, n_epochs)
+model = CascadeNet(**run_params)
+optimizer = Adam(model.parameters(), lr=1e-4, weight_decay=1e-7)
 writer = SummaryWriter(log_dir=log_dir)
 
-model.cuda()
-
+model.cuda();
 
 val_gen.filenames = val_gen.filenames[:5]
 train_loader = DataLoader(
@@ -90,5 +85,4 @@ fit_torch(
     run_id=run_id,
     device='cuda',
     save_freq=100,
-    scheduler=scheduler
 )

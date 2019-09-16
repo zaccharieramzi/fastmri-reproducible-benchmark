@@ -1,12 +1,15 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.backend.tensorflow_backend import set_session
+from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+from keras.models import load_model
+from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from fastmri_sequences import Masked2DSequence
-from pdnet_crop import pdnet_crop
+from ..data.fastmri_sequences import Masked2DSequence
+from ..models.kiki import kiki_net
 
 
 
@@ -40,24 +43,24 @@ n_volumes_val = 199
 
 # generators
 AF = 4
-train_gen = Masked2DSequence(train_path, af=AF, inner_slices=8, rand=True, scale_factor=1e6)
-val_gen = Masked2DSequence(val_path, af=AF, scale_factor=1e6)
+train_gen = Masked2DSequence(train_path, af=AF, inner_slices=8, rand=True)
+val_gen = Masked2DSequence(val_path, af=AF)
 
 
 
 
 
 run_params = {
-    'n_primal': 5,
-    'n_dual': 5,
-    'n_iter': 10,
+    'n_cascade': 2,
+    'n_convs': 25,
     'n_filters': 32,
-    'res_connection': False,
+    'noiseless': True,
 }
 
 n_epochs = 300
-run_id = f'pdnet_af{AF}_{int(time.time())}'
+run_id = f'kikinet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+print(run_id)
 
 
 
@@ -71,6 +74,7 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
+lr_on_plat_cback = ReduceLROnPlateau(monitor='val_keras_psnr', min_lr=5*1e-5, mode='max', patience=5)
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
@@ -78,11 +82,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet_crop(lr=1e-4, **run_params)
-if True:
-    model.load_weights('checkpoints/pdnet_af4_1568384763-200.hdf5')
-
-
+model = kiki_net(lr=1e-4, **run_params)
 print(model.summary(line_length=150))
 
 
@@ -94,11 +94,11 @@ model.fit_generator(
     steps_per_epoch=n_volumes_train,
     epochs=n_epochs,
     validation_data=val_gen,
-    validation_steps=5,
+    validation_steps=1,
     verbose=0,
     callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
-    # max_queue_size=35,
+    max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
-    shuffle=False,
+    shuffle=True,
 )
