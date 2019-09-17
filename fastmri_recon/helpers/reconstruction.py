@@ -8,7 +8,6 @@ from mri.numerics.gradient import GradAnalysis2
 from ..data.data_utils import from_test_file_to_mask_and_kspace
 from .fourier import FFT2
 from .utils import crop_center
-from ..wavelets import WaveletDecimated
 
 
 def reco_z_filled(kspace, fourier_op):
@@ -36,6 +35,11 @@ def zero_filled_cropped_recon(kspace):
 
 
 def reco_wav(kspace, gradient_op, mu=1*1e-8, max_iter=10, nb_scales=4, wavelet_name='db4'):
+    # for now this is only working with my fork of pysap-fastMRI
+    # I will get it changed soon so that we don't need to ask for a specific
+    # pysap-mri install
+    from ..wavelets import WaveletDecimated
+
     linear_op = WaveletDecimated(
         nb_scale=nb_scales,
         wavelet_name=wavelet_name,
