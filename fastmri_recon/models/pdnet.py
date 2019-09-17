@@ -30,14 +30,14 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     convolutions.
 
     Parameters:
-    input_size (tuple): the size of your input kspace
-    n_filters (int): number of filters in the convolution blocks
-    lr (float): learning rate
-    n_primal (int): number of elements in the primal memory buffer
-    n_dual (int): number of elements in the dual memory buffer
-    n_iter (int): number of PDHG unrolled iterations
+    input_size (tuple): the size of your input kspace, defaults to (640, None, 1)
+    n_filters (int): number of filters in the convolution blocks, defaults to 32
+    lr (float): learning rate, defaults to 1e-3
+    n_primal (int): number of elements in the primal memory buffer, defaults to 5
+    n_dual (int): number of elements in the dual memory buffer, defaults to 5
+    n_iter (int): number of PDHG unrolled iterations, defaults to 10
     primal_only (bool): whether to use non linearity in the dual space, or just
-        use the residual
+        use the residual, defaults to False
 
     Returns:
     keras.models.Model: the primal dual net model, compiled
