@@ -1,5 +1,5 @@
 """Module containing helpers for building NN for MRI reconstruction in pytorch and keras."""
-from keras.layers import Lambda, Conv2D, Layer, concatenate
+from keras.layers import Lambda, Conv2D, Layer, concatenate, Add
 import tensorflow as tf
 from tensorflow.signal import fft2d, ifft2d
 
@@ -50,27 +50,30 @@ def concatenate_real_imag(x):
 def complex_from_half(x, n, output_shape):
     return Lambda(lambda x: to_complex([x[..., :n], x[..., n:]]), output_shape=output_shape)(x)
 
-def conv2d_complex(x, n_filters, activation='relu', output_shape=None, idx=0):
-    x_real = Lambda(tf.math.real, name=f'real_part_{idx}')(x)
-    x_imag = Lambda(tf.math.imag, name=f'imag_part_{idx}')(x)
-    conv_real = Conv2D(
-        n_filters,
+def conv2d_complex(x, n_filters, n_convs, activation='relu', input_size=None, res=False):
+    x_real_imag = concatenate_real_imag(x)
+    n_complex = input_size[-1]
+    for j in range(n_convs):
+        x_real_imag = Conv2D(
+            n_filters,
+            3,
+            activation=activation,
+            padding='same',
+            kernel_initializer='glorot_uniform',
+        )(x_real_imag)
+    x_real_imag = Conv2D(
+        2 * n_complex,
         3,
-        activation=activation,
+        activation='linear',
         padding='same',
-        kernel_initializer='he_normal',
-        use_bias=False,
-    )(x_real)
-    conv_imag = Conv2D(
-        n_filters,
-        3,
-        activation=activation,
-        padding='same',
-        kernel_initializer='he_normal',
-        use_bias=False,
-    )(x_imag)
-    conv_res = Lambda(to_complex, output_shape=output_shape, name=f'recomplexification_{idx}')([conv_real, conv_imag])
-    return conv_res
+        kernel_initializer='glorot_uniform',
+    )(x_real_imag)
+    x_real_imag = complex_from_half(x_real_imag, n_complex, input_size)
+    if res:
+        x_final = Add()([x, x_real_imag])
+    else:
+        x_final = x_real_imag
+    return x_final
 
 def temptf_fft_shift(x):
     # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
