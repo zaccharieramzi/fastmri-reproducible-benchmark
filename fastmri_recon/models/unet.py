@@ -1,11 +1,9 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
 from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
 from keras.models import Model
-from keras.optimizers import Adam
-import tensorflow as tf
 
-from .pdnet_crop import tf_unmasked_adj_op, tf_crop
-from ..helpers.utils import keras_psnr, keras_ssim
+from ..helpers.keras_utils import default_model_compile
+from ..helpers.nn_mri_helpers import tf_unmasked_adj_op, tf_fastmri_format
 
 
 def unet_rec(
@@ -119,8 +117,7 @@ def unet(
     )(output)
     model = Model(inputs=inputs, outputs=output)
     if compile:
-        model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
-
+        default_model_compile(model, lr)
     if pretrained_weights:
         model.load_weights(pretrained_weights)
 
@@ -134,16 +131,11 @@ def full_unet(
     ):
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
     zero_filled = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft')(kspace_input)
-    image = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(zero_filled)
-    image = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image)
+    image = tf_fastmri_format(zero_filled)
     unet_pred = unet(input_size=(320, 320, 1), compile=False, **unet_kwargs)
     image = unet_pred(image)
     model = Model(inputs=kspace_input, outputs=image)
-    model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
 
     return model
 
