@@ -6,9 +6,9 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from ..data.fastmri_datasets import Masked2DDataset
-from ..models.pdnet_crop import PDNetCrop
-from ..helpers.torch_training import fit_torch
+from fastmri_recon.data.fastmri_datasets import Masked2DDataset
+from fastmri_recon.models.pdnet_crop import PDNetCrop
+from fastmri_recon.helpers.torch_training import fit_torch
 
 
 

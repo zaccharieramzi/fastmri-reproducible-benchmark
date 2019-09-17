@@ -5,8 +5,8 @@ from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
-from ..data.fastmri_sequences import Masked2DSequence
-from ..models.pdnet_crop import pdnet_crop
+from fastmri_recon.data.fastmri_sequences import Masked2DSequence
+from fastmri_recon.models.pdnet_crop import pdnet_crop
 
 
 

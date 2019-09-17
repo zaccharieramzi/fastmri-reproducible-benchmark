@@ -5,9 +5,9 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from ..data.fastmri_datasets import Masked2DDataset
-from ..models.cascading import CascadeNet
-from ..helpers.torch_training import fit_torch
+from fastmri_recon.data.fastmri_datasets import Masked2DDataset
+from fastmri_recon.models.cascading import CascadeNet
+from fastmri_recon.helpers.torch_training import fit_torch
 
 
 
