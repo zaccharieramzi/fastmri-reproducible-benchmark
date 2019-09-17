@@ -1,3 +1,4 @@
+"""Simple example-debug net."""
 from keras.layers import Input, Lambda
 from keras.models import Model
 
@@ -6,6 +7,14 @@ from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_adj_op
 
 
 def zerofill_net(input_size=(640, None, 1), **dummy_kwargs):
+    """A net that performs a simple zero-filled reconstruction
+
+    Parameters:
+    input_size (tuple): the size of your input kspace
+
+    Returns:
+    keras.models.Model: the zerofill net model, compiled
+    """
     # shapes
     mask_shape = input_size[:-1]
     # inputs and buffers
