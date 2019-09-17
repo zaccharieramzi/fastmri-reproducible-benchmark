@@ -11,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
+def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
     r"""This net unrolls the PDHG algorithm in the context of MRI
 
     The original network is described in [A2017]. Its implementation is
@@ -86,9 +86,9 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
     return model
 
 
-class PDNetCrop(torch.nn.Module):
+class PDNet(torch.nn.Module):
     def __init__(self, n_filters=32, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
-        super(PDNetCrop, self).__init__()
+        super(PDNet, self).__init__()
         self.n_primal = n_primal
         self.n_dual = n_dual
         self.n_iter = n_iter

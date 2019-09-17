@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from fastmri_recon.data.fastmri_datasets import Masked2DDataset
-from fastmri_recon.models.pdnet_crop import PDNetCrop
+from fastmri_recon.models.pdnet import PDNet
 from fastmri_recon.helpers.torch_training import fit_torch
 
 
@@ -56,7 +56,7 @@ chkpt_path = 'checkpoints'
 
 
 log_dir = op.join('logs', run_id)
-model = PDNetCrop(**run_params)
+model = PDNet(**run_params)
 optimizer = Adam(model.parameters(), lr=1e-3)
 scheduler = CosineAnnealingLR(optimizer, n_epochs)
 writer = SummaryWriter(log_dir=log_dir)
