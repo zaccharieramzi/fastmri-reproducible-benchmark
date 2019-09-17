@@ -40,7 +40,7 @@ def mask_tf(x):
     masked_k_data = tf.math.multiply(mask, k_data)
     return masked_k_data
 
-def to_complex(x):
+def _to_complex(x):
     return tf.complex(x[0], x[1])
 
 def _concatenate_real_imag(x):
@@ -49,7 +49,7 @@ def _concatenate_real_imag(x):
     return concatenate([x_real, x_imag])
 
 def _complex_from_half(x, n, output_shape):
-    return Lambda(lambda x: to_complex([x[..., :n], x[..., n:]]), output_shape=output_shape)(x)
+    return Lambda(lambda x: _to_complex([x[..., :n], x[..., n:]]), output_shape=output_shape)(x)
 
 def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, res=False):
     x_real_imag = _concatenate_real_imag(x)
