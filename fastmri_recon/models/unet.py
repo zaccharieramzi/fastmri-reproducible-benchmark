@@ -3,7 +3,7 @@ from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2
 from keras.models import Model
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri_helpers import tf_unmasked_adj_op, tf_fastmri_format
+from ..helpers.nn_mri import tf_unmasked_adj_op, tf_fastmri_format
 
 
 def unet_rec(
