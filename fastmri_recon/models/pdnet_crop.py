@@ -2,7 +2,6 @@ from keras.layers import Input, Lambda, Conv2D, concatenate, Add
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
-from tensorflow.python.ops import manip_ops
 import torch
 from torch import nn
 

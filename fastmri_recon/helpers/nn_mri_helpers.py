@@ -2,6 +2,7 @@
 from keras.layers import Lambda, Conv2D, Layer, concatenate, Add
 import tensorflow as tf
 from tensorflow.signal import fft2d, ifft2d
+from tensorflow.python.ops import manip_ops
 
 
 ### Keras and TensorFlow ###
