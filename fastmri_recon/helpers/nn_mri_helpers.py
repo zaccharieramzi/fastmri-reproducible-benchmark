@@ -51,9 +51,9 @@ def _concatenate_real_imag(x):
 def _complex_from_half(x, n, output_shape):
     return Lambda(lambda x: to_complex([x[..., :n], x[..., n:]]), output_shape=output_shape)(x)
 
-def conv2d_complex(x, n_filters, n_convs, activation='relu', input_size=None, res=False):
+def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, res=False):
     x_real_imag = _concatenate_real_imag(x)
-    n_complex = input_size[-1]
+    n_complex = output_shape[-1]
     for j in range(n_convs):
         x_real_imag = Conv2D(
             n_filters,
@@ -69,7 +69,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', input_size=None, re
         padding='same',
         kernel_initializer='glorot_uniform',
     )(x_real_imag)
-    x_real_imag = _complex_from_half(x_real_imag, n_complex, input_size)
+    x_real_imag = _complex_from_half(x_real_imag, n_complex, output_shape)
     if res:
         x_final = Add()([x, x_real_imag])
     else:
