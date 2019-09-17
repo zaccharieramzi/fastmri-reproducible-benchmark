@@ -1,22 +1,14 @@
-from keras.layers import Input, Lambda, Conv2D, Add, Layer
+from keras.layers import Input, Lambda, Conv2D, Add
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
 import torch
 from torch import nn
 
-from .cascading import MultiplyScalar, replace_values_on_mask
-from .pdnet_crop import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op
-from ..helpers.torch_utils import ConvBlock, replace_values_on_mask_torch
+from ..helpers.nn_mri_helpers import concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask, replace_values_on_mask_torch, mask_tf
+from ..helpers.torch_utils import ConvBlock
 from ..helpers.utils import keras_psnr, keras_ssim
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
-
-
-def mask_tf(x):
-    k_data, mask = x
-    mask = tf.expand_dims(tf.dtypes.cast(mask, k_data.dtype), axis=-1)
-    masked_k_data = tf.math.multiply(mask, k_data)
-    return masked_k_data
 
 
 def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):

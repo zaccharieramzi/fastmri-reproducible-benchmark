@@ -5,36 +5,11 @@ import tensorflow as tf
 import torch
 from torch import nn
 
-from .pdnet_crop import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op
+from ..helpers.nn_mri_helpers import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, replace_values_on_mask
 from ..helpers.utils import keras_psnr, keras_ssim
-from ..helpers.torch_utils import ConvBlock, replace_values_on_mask_torch
+from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
-class MultiplyScalar(Layer):
-    def __init__(self, **kwargs):
-        super(MultiplyScalar, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        # Create a trainable weight variable for this layer.
-        self.sample_weight = self.add_weight(
-            name='sample_weight',
-            shape=(1,),
-            initializer='ones',
-            trainable=True,
-        )
-        super(MultiplyScalar, self).build(input_shape)  # Be sure to call this at the end
-
-    def call(self, x):
-        return tf.cast(self.sample_weight, tf.complex64) * x
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
-def replace_values_on_mask(x):
-    cnn_fft, kspace_input, mask = x
-    anti_mask = tf.expand_dims(tf.dtypes.cast(1.0 - mask, cnn_fft.dtype), axis=-1)
-    replace_cnn_fft = tf.math.multiply(anti_mask, cnn_fft) + kspace_input
-    return replace_cnn_fft
 
 def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
     mask_shape = input_size[:-1]
