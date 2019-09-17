@@ -3,7 +3,7 @@ from keras.layers import Input, Lambda
 from keras.models import Model
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_adj_op
+from ..helpers.nn_mri import tf_fastmri_format, tf_adj_op
 
 
 def zerofill_net(input_size=(640, None, 1), **dummy_kwargs):

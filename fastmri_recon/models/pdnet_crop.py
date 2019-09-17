@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_adj_op, tf_op, conv2d_complex
+from ..helpers.nn_mri import tf_fastmri_format, tf_adj_op, tf_op, conv2d_complex
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
