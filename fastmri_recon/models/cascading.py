@@ -17,14 +17,14 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     available at https://github.com/js3611/Deep-MRI-Reconstruction in pytorch.
 
     Parameters:
-    input_size (tuple): the size of your input kspace
-    n_cascade (int): number of cascades (n_c in paper)
-    n_convs (int): number of convolution in convolution blocks (n_d + 1 in paper)
-    n_filters (int): number of fileters in a convolution
+    input_size (tuple): the size of your input kspace, default to (640, None, 1)
+    n_cascade (int): number of cascades (n_c in paper), defaults to 5
+    n_convs (int): number of convolution in convolution blocks (n_d + 1 in paper), defaults to 5
+    n_filters (int): number of filters in a convolution, defaults to 16
     noiseless (bool): whether the data consistency has to be done in a noiseless
         manner. If noiseless is `False`, the noise level is learned (i.e. lambda
-        in paper, is learned)
-    lr (float): learning rate
+        in paper, is learned). Defaults to `True`.
+    lr (float): learning rate, defaults to 1e-3
 
     Returns:
     keras.models.Model: the deep cascade net model, compiled
