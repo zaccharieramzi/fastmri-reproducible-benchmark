@@ -10,21 +10,6 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs):
-    # shapes
-    mask_shape = input_size[:-1]
-    # inputs and buffers
-    kspace_input = Input(input_size, dtype='complex64', name='kspace_input_simple')
-    mask = Input(mask_shape, dtype='complex64', name='mask_input_simple')
-    # # simple inverse
-    image_res = Lambda(tf_adj_op, output_shape=input_size, name='ifft_simple')([kspace_input, mask])
-    image_res = tf_fastmri_format(image_res)
-    model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    default_model_compile(model, lr)
-
-
-    return model
-
 def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
     # shapes
     mask_shape = input_size[:-1]
