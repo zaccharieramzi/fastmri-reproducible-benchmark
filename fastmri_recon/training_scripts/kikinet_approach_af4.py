@@ -2,7 +2,7 @@ import os.path as op
 import time
 
 from keras.backend.tensorflow_backend import set_session
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.models import load_model
 from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
@@ -74,7 +74,6 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
-lr_on_plat_cback = ReduceLROnPlateau(monitor='val_keras_psnr', min_lr=5*1e-5, mode='max', patience=5)
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
@@ -82,7 +81,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = kiki_net(lr=1e-4, **run_params)
+model = kiki_net(lr=1e-3, **run_params)
 print(model.summary(line_length=150))
 
 
