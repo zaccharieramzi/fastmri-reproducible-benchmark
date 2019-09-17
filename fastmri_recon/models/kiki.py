@@ -1,11 +1,11 @@
-from keras.layers import Input, Lambda, Add
+from keras.layers import Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
 import torch
 from torch import nn
 
-from ..helpers.nn_mri_helpers import tf_crop, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask, replace_values_on_mask_torch, mask_tf, conv2d_complex
+from ..helpers.nn_mri_helpers import tf_crop, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.utils import keras_psnr, keras_ssim
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
@@ -24,19 +24,12 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
         # residual convolution (I-net)
         image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True)
         # data consistency layer
-        cnn_fft = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
-        if noiseless:
-            data_consistency_fourier = Lambda(replace_values_on_mask, output_shape=input_size, name='fft_repl_{i}'.format(i=i+1))([cnn_fft, kspace_input, mask])
-        else:
-            cnn_fft_masked = Lambda(mask_tf, output_shape=input_size)([cnn_fft, mask])
-            cnn_fft_masked = Lambda(lambda x: -x, output_shape=input_size)(cnn_fft_masked)
-            data_consistency_fourier = Add(name='data_consist_fft_{i}'.format(i=i+1))([kspace_input, cnn_fft_masked])
-            data_consistency_fourier = multiply_scalar(data_consistency_fourier)
-            data_consistency_fourier = Add()([data_consistency_fourier, cnn_fft])
+        kspace = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
+        kspace = enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, multiply_scalar, noiseless)
         # K-net
-        data_consistency_fourier = conv2d_complex(data_consistency_fourier, n_filters, n_convs, output_shape=input_size, res=False)
+        kspace = conv2d_complex(kspace, n_filters, n_convs, output_shape=input_size, res=False)
 
-        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(data_consistency_fourier)
+        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
 
     # module and crop of image
     image = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(image)
