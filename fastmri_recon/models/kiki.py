@@ -5,7 +5,7 @@ import tensorflow as tf
 import torch
 from torch import nn
 
-from ..helpers.nn_mri_helpers import tf_crop, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
+from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.utils import keras_psnr, keras_ssim
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
@@ -32,8 +32,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
         image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
 
     # module and crop of image
-    image = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(image)
-    image = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image)
+    image = tf_fastmri_format(image)
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
     model.compile(

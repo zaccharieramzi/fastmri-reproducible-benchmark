@@ -5,7 +5,7 @@ import tensorflow as tf
 import torch
 from torch import nn
 
-from ..helpers.nn_mri_helpers import tf_crop, tf_adj_op, tf_op, conv2d_complex
+from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_adj_op, tf_op, conv2d_complex
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 from ..helpers.utils import keras_psnr, keras_ssim
@@ -19,8 +19,7 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
     mask = Input(mask_shape, dtype='complex64', name='mask_input_simple')
     # # simple inverse
     image_res = Lambda(tf_adj_op, output_shape=input_size, name='ifft_simple')([kspace_input, mask])
-    image_res = Lambda(tf.math.abs, name='image_module_simple')(image_res)
-    image_res = Lambda(tf_crop, name='cropping')(image_res)
+    image_res = tf_fastmri_format(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     model.compile(
         optimizer=Adam(lr=lr),

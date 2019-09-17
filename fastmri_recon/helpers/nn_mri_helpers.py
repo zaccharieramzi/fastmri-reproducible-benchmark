@@ -123,8 +123,8 @@ def enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, mult
         data_consistent_kspace = Add()([data_consistent_kspace, kspace])
     return data_consistent_kspace
 
-
-def tf_crop(im, crop=320):
+## fastMRI helpers
+def _tf_crop(im, crop=320):
     im_shape = tf.shape(im)
     y = im_shape[1]
     x = im_shape[2]
@@ -133,6 +133,9 @@ def tf_crop(im, crop=320):
     im = im[:, starty:starty+crop, startx:startx+crop, :]
     return im
 
+def tf_fastmri_format(image):
+    image = Lambda(lambda x: _tf_crop(tf.math.abs(x)), name='cropping', output_shape=(320, 320, 1))(image)
+    return image
 
 ### PyTorch ###
 def replace_values_on_mask_torch(cnn_fft, kspace, mask):
