@@ -1,11 +1,11 @@
-from keras.layers import Input, Lambda, Conv2D, concatenate, Add
+from keras.layers import Input, Lambda, concatenate, Add
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
 import torch
 from torch import nn
 
-from ..helpers.nn_mri_helpers import concatenate_real_imag, complex_from_half, tf_crop, tf_adj_op, tf_op, mask_tf
+from ..helpers.nn_mri_helpers import tf_crop, tf_adj_op, tf_op, conv2d_complex
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 from ..helpers.utils import keras_psnr, keras_ssim
@@ -30,7 +30,7 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
 
     return model
 
-def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, res_connection=False, primal_only=False):
+def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
     # shapes
     mask_shape = input_size[:-1]
     primal_shape = list(input_size)
@@ -39,9 +39,6 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
     dual_shape = list(input_size)
     dual_shape[-1] = n_dual
     dual_shape = tuple(dual_shape)
-    conv_shape = list(input_size)
-    conv_shape[-1] = n_filters
-    conv_shape = tuple(conv_shape)
 
     # inputs and buffers
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
@@ -59,69 +56,15 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
             dual = Lambda(lambda x: x[0] - x[1], output_shape=input_size, name='dual_residual_{i}'.format(i=i+1))([dual_eval_exp, kspace_input])
         else:
             update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
-            update = concatenate_real_imag(update)
-
-            update = Conv2D(
-                n_filters,
-                3,
-                activation='relu',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(update)
-            update = Conv2D(
-                n_filters,
-                3,
-                activation='relu',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(update)
-            update = Conv2D(
-                2 * n_dual,
-                3,
-                activation='linear',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(update)
-            update = complex_from_half(update, n_dual, dual_shape)
-            if res_connection:
-                to_add = [update, dual_eval_exp]
-            else:
-                to_add = [dual, update]
-            dual = Add()(to_add)
+            update = conv2d_complex(update, n_filters, 2, output_shape=dual_shape, res=False)
+            dual = Add()([dual, update])
 
 
         # Then work in image space (primal space)
         primal_exp = Lambda(tf_adj_op, output_shape=input_size, name='ifft_masked_{i}'.format(i=i+1))([dual, mask])
         update = concatenate([primal, primal_exp], axis=-1)
-        update = concatenate_real_imag(update)
-
-        update = Conv2D(
-            n_filters,
-            3,
-            activation='relu',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(update)
-        update = Conv2D(
-            n_filters,
-            3,
-            activation='relu',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(update)
-        update = Conv2D(
-            2 * n_primal,
-            3,
-            activation='linear',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(update)
-        update = complex_from_half(update, n_primal, primal_shape)
-        if res_connection:
-            to_add = [update, primal_exp]
-        else:
-            to_add = [primal, update]
-        primal = Add()(to_add)
+        update = conv2d_complex(update, n_filters, 2, output_shape=primal_shape, res=False)
+        primal = Add()([primal, update])
 
     image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size, name='image_getting')(primal)
 
