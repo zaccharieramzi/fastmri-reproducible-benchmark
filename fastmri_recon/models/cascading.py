@@ -1,11 +1,11 @@
-from keras.layers import Input, Lambda, Conv2D, Add, Layer
+from keras.layers import Input, Lambda, Add
 from keras.models import Model
 from keras.optimizers import Adam
 import tensorflow as tf
 import torch
 from torch import nn
 
-from ..helpers.nn_mri_helpers import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, replace_values_on_mask
+from ..helpers.nn_mri_helpers import tf_adj_op, tf_op, tf_crop, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, replace_values_on_mask, conv2d_complex
 from ..helpers.utils import keras_psnr, keras_ssim
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
@@ -23,24 +23,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     multiply_scalar = MultiplyScalar()
     for i in range(n_cascade):
         # residual convolution
-        res_image = concatenate_real_imag(image)
-        for j in range(n_convs):
-            res_image = Conv2D(
-                n_filters,
-                3,
-                activation='relu',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(res_image)
-        res_image = Conv2D(
-            2,
-            3,
-            activation='linear',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(res_image)
-        res_image = complex_from_half(res_image, 1, input_size)
-        image = Add(name='res_connex_{i}'.format(i=i+1))([image, res_image])
+        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True)
         # data consistency layer
         if noiseless:
             cnn_fft = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
