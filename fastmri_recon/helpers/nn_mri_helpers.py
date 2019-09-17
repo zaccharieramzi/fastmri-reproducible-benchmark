@@ -8,38 +8,7 @@ from tensorflow.python.ops import manip_ops
 ### Keras and TensorFlow ###
 FOURIER_SHIFT_AXES = [1, 2]
 
-class MultiplyScalar(Layer):
-    def __init__(self, **kwargs):
-        super(MultiplyScalar, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        # Create a trainable weight variable for this layer.
-        self.sample_weight = self.add_weight(
-            name='sample_weight',
-            shape=(1,),
-            initializer='ones',
-            trainable=True,
-        )
-        super(MultiplyScalar, self).build(input_shape)  # Be sure to call this at the end
-
-    def call(self, x):
-        return tf.cast(self.sample_weight, tf.complex64) * x
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
-def replace_values_on_mask(x):
-    cnn_fft, kspace_input, mask = x
-    anti_mask = tf.expand_dims(tf.dtypes.cast(1.0 - mask, cnn_fft.dtype), axis=-1)
-    replace_cnn_fft = tf.math.multiply(anti_mask, cnn_fft) + kspace_input
-    return replace_cnn_fft
-
-def mask_tf(x):
-    k_data, mask = x
-    mask = tf.expand_dims(tf.dtypes.cast(mask, k_data.dtype), axis=-1)
-    masked_k_data = tf.math.multiply(mask, k_data)
-    return masked_k_data
-
+## complex numbers handling
 def _to_complex(x):
     return tf.complex(x[0], x[1])
 
@@ -76,38 +45,71 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
         x_final = x_real_imag
     return x_final
 
-def temptf_fft_shift(x):
+## fourier ops definitions
+def _mask_tf(x):
+    k_data, mask = x
+    mask = tf.expand_dims(tf.dtypes.cast(mask, k_data.dtype), axis=-1)
+    masked_k_data = tf.math.multiply(mask, k_data)
+    return masked_k_data
+
+# we have to define temporary fftshift ops to be compatible with most tf versions
+# cf https://github.com/tensorflow/tensorflow/issues/26989#issuecomment-517622706
+def _temptf_fft_shift(x):
     # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
     shift = [tf.shape(x)[ax] // 2 for ax in FOURIER_SHIFT_AXES]
     return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
 
-
-def temptf_ifft_shift(x):
+def _temptf_ifft_shift(x):
     # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
     shift = [-tf.cast(tf.shape(x)[ax] // 2, tf.int32) for ax in FOURIER_SHIFT_AXES]
     return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
 
 def tf_adj_op(y, idx=0):
     x, mask = y
-    mask_complex = tf.dtypes.cast(mask, x.dtype)
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return scaling_norm * tf.expand_dims(temptf_fft_shift(ifft2d(temptf_ifft_shift(tf.math.multiply(mask_complex, x[..., idx])))), axis=-1)
+    x_masked = _mask_tf((x, mask))
+    x_inv = tf_unmasked_adj_op(x_masked, idx=idx)
+    return x_inv
 
 def tf_unmasked_adj_op(x, idx=0):
     scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return scaling_norm * tf.expand_dims(temptf_fft_shift(ifft2d(temptf_ifft_shift(x[..., idx]))), axis=-1)
-
+    return scaling_norm * tf.expand_dims(_temptf_fft_shift(ifft2d(_temptf_ifft_shift(x[..., idx]))), axis=-1)
 
 def tf_op(y, idx=0):
     x, mask = y
-    mask_complex = tf.dtypes.cast(mask, x.dtype)
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return tf.expand_dims(tf.math.multiply(mask_complex, temptf_ifft_shift(fft2d(temptf_fft_shift(x[..., idx])))), axis=-1) / scaling_norm
-
+    x_fourier = tf_unmasked_op(x, idx=idx)
+    x_masked = _mask_tf((x_fourier, mask))
+    return x_masked
 
 def tf_unmasked_op(x, idx=0):
     scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return tf.expand_dims(temptf_ifft_shift(fft2d(temptf_fft_shift(x[..., idx]))), axis=-1) / scaling_norm
+    return tf.expand_dims(_temptf_ifft_shift(fft2d(_temptf_fft_shift(x[..., idx]))), axis=-1) / scaling_norm
+
+## Data consistency ops
+class MultiplyScalar(Layer):
+    def __init__(self, **kwargs):
+        super(MultiplyScalar, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        # Create a trainable weight variable for this layer.
+        self.sample_weight = self.add_weight(
+            name='sample_weight',
+            shape=(1,),
+            initializer='ones',
+            trainable=True,
+        )
+        super(MultiplyScalar, self).build(input_shape)  # Be sure to call this at the end
+
+    def call(self, x):
+        return tf.cast(self.sample_weight, tf.complex64) * x
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+def replace_values_on_mask(x):
+    cnn_fft, kspace_input, mask = x
+    anti_mask = tf.expand_dims(tf.dtypes.cast(1.0 - mask, cnn_fft.dtype), axis=-1)
+    replace_cnn_fft = tf.math.multiply(anti_mask, cnn_fft) + kspace_input
+    return replace_cnn_fft
 
 
 def tf_crop(im, crop=320):
