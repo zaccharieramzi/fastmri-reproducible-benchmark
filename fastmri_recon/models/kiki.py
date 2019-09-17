@@ -1,15 +1,34 @@
+"""KIKI network."""
 from keras.layers import Input, Lambda
 from keras.models import Model
 import torch
 from torch import nn
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
+from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
+def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
+    r"""This net is a sequence of of convolution blocks in both the direct and indirect space
+
+    The original network is described in [E2017]. It also features a data consistency
+    layer before performing convolutions in the indirect space (kspace).
+
+    Parameters:
+    input_size (tuple): the size of your input kspace, default to (640, None, 1)
+    n_cascade (int): number of cascades, defaults to 2 like in paper
+    n_convs (int): number of convolution in convolution blocks (N_I in paper), defaults to 5
+    n_filters (int): number of filters in a convolution, defaults to 16
+    noiseless (bool): whether the data consistency has to be done in a noiseless
+        manner. If noiseless is `False`, the noise level is learned (i.e. lambda
+        in paper, is learned). Defaults to `True`.
+    lr (float): learning rate, defaults to 1e-3
+
+    Returns:
+    keras.models.Model: the KIKI net model, compiled
+    """
     mask_shape = input_size[:-1]
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
     mask = Input(mask_shape, dtype='complex64', name='mask_input')

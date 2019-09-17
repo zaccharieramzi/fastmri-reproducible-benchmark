@@ -6,7 +6,7 @@ from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence
-from fastmri_recon.models.pdnet_crop import pdnet_crop
+from fastmri_recon.models.pdnet import pdnet
 
 
 
@@ -78,7 +78,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet_crop(lr=1e-4, **run_params)
+model = pdnet(lr=1e-4, **run_params)
 if True:
     model.load_weights('checkpoints/pdnet_af4_1568384763-200.hdf5')
 

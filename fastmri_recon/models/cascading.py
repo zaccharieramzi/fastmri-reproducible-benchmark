@@ -1,15 +1,35 @@
+"""Deep cascade network."""
 from keras.layers import Input, Lambda
 from keras.models import Model
 import torch
 from torch import nn
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, conv2d_complex, enforce_kspace_data_consistency
+from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, conv2d_complex, enforce_kspace_data_consistency
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
 def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
+    r"""This net cascades several convolution blocks followed by data consistency layers
+
+    The original network is described in [S2017]. Its implementation is
+    available at https://github.com/js3611/Deep-MRI-Reconstruction in pytorch.
+
+    Parameters:
+    input_size (tuple): the size of your input kspace, default to (640, None, 1)
+    n_cascade (int): number of cascades (n_c in paper), defaults to 5
+    n_convs (int): number of convolution in convolution blocks (n_d + 1 in paper), defaults to 5
+    n_filters (int): number of filters in a convolution, defaults to 16
+    noiseless (bool): whether the data consistency has to be done in a noiseless
+        manner. If noiseless is `False`, the noise level is learned (i.e. lambda
+        in paper, is learned). Defaults to `True`.
+    lr (float): learning rate, defaults to 1e-3
+
+    Returns:
+    keras.models.Model: the deep cascade net model, compiled
+    """
+    # inputs
     mask_shape = input_size[:-1]
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
     mask = Input(mask_shape, dtype='complex64', name='mask_input')
