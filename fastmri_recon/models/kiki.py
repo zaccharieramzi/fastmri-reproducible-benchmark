@@ -1,22 +1,12 @@
-from keras.layers import Input, Lambda, Conv2D, Add, Layer
+from keras.layers import Input, Lambda
 from keras.models import Model
-from keras.optimizers import Adam
-import tensorflow as tf
 import torch
 from torch import nn
 
-from .cascading import MultiplyScalar, replace_values_on_mask
-from .pdnet_crop import tf_adj_op, tf_op, concatenate_real_imag, complex_from_half, tf_crop, tf_unmasked_adj_op, tf_unmasked_op
-from ..helpers.torch_utils import ConvBlock, replace_values_on_mask_torch
-from ..helpers.utils import keras_psnr, keras_ssim
+from ..helpers.keras_utils import default_model_compile
+from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
+from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
-
-
-def mask_tf(x):
-    k_data, mask = x
-    mask = tf.expand_dims(tf.dtypes.cast(mask, k_data.dtype), axis=-1)
-    masked_k_data = tf.math.multiply(mask, k_data)
-    return masked_k_data
 
 
 def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
@@ -30,65 +20,19 @@ def kiki_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, no
     multiply_scalar = MultiplyScalar()
     for i in range(n_cascade):
         # residual convolution (I-net)
-        res_image = concatenate_real_imag(image)
-        for j in range(n_convs):
-            res_image = Conv2D(
-                n_filters,
-                3,
-                activation='relu',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(res_image)
-        res_image = Conv2D(
-            2,
-            3,
-            activation='linear',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(res_image)
-        res_image = complex_from_half(res_image, 1, input_size)
-        image = Add(name='res_connex_{i}'.format(i=i+1))([image, res_image])
+        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True)
         # data consistency layer
-        cnn_fft = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
-        if noiseless:
-            data_consistency_fourier = Lambda(replace_values_on_mask, output_shape=input_size, name='fft_repl_{i}'.format(i=i+1))([cnn_fft, kspace_input, mask])
-        else:
-            cnn_fft_masked = Lambda(mask_tf, output_shape=input_size)([cnn_fft, mask])
-            cnn_fft_masked = Lambda(lambda x: -x, output_shape=input_size)(cnn_fft_masked)
-            data_consistency_fourier = Add(name='data_consist_fft_{i}'.format(i=i+1))([kspace_input, cnn_fft_masked])
-            data_consistency_fourier = multiply_scalar(data_consistency_fourier)
-            data_consistency_fourier = Add()([data_consistency_fourier, cnn_fft])
+        kspace = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
+        kspace = enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, multiply_scalar, noiseless)
         # K-net
-        data_consistency_fourier = concatenate_real_imag(data_consistency_fourier)
-        for j in range(n_convs):
-            data_consistency_fourier = Conv2D(
-                n_filters,
-                3,
-                activation='relu',
-                padding='same',
-                kernel_initializer='glorot_uniform',
-            )(data_consistency_fourier)
-        data_consistency_fourier = Conv2D(
-            2,
-            3,
-            activation='linear',
-            padding='same',
-            kernel_initializer='glorot_uniform',
-        )(data_consistency_fourier)
-        data_consistency_fourier = complex_from_half(data_consistency_fourier, 1, input_size)
-
-        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(data_consistency_fourier)
+        kspace = conv2d_complex(kspace, n_filters, n_convs, output_shape=input_size, res=False)
+        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
 
     # module and crop of image
-    image = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(image)
-    image = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image)
+    image = tf_fastmri_format(image)
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
-    model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
 
     return model
 
