@@ -18,8 +18,8 @@ def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, no
 
     Parameters:
     input_size (tuple): the size of your input kspace, default to (640, None, 1)
-    n_cascade (int): number of cascades (n_c in paper), defaults to 2 like in paper
-    n_convs (int): number of convolution in convolution blocks (n_d + 1 in paper), defaults to 5
+    n_cascade (int): number of cascades, defaults to 2 like in paper
+    n_convs (int): number of convolution in convolution blocks (N_I in paper), defaults to 5
     n_filters (int): number of filters in a convolution, defaults to 16
     noiseless (bool): whether the data consistency has to be done in a noiseless
         manner. If noiseless is `False`, the noise level is learned (i.e. lambda
