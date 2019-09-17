@@ -1,11 +1,9 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
 from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
 from keras.models import Model
-from keras.optimizers import Adam
-import tensorflow as tf
 
+from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri_helpers import tf_unmasked_adj_op, tf_fastmri_format
-from ..helpers.utils import keras_psnr, keras_ssim
 
 
 def unet_rec(
@@ -119,8 +117,7 @@ def unet(
     )(output)
     model = Model(inputs=inputs, outputs=output)
     if compile:
-        model.compile(optimizer=Adam(lr=lr), loss='mean_absolute_error', metrics=['mean_squared_error', keras_psnr, keras_ssim])
-
+        default_model_compile(model, lr)
     if pretrained_weights:
         model.load_weights(pretrained_weights)
 
@@ -138,11 +135,7 @@ def full_unet(
     unet_pred = unet(input_size=(320, 320, 1), compile=False, **unet_kwargs)
     image = unet_pred(image)
     model = Model(inputs=kspace_input, outputs=image)
-    model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
 
     return model
 

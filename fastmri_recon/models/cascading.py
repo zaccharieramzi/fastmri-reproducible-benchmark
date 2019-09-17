@@ -1,12 +1,10 @@
 from keras.layers import Input, Lambda
 from keras.models import Model
-from keras.optimizers import Adam
-import tensorflow as tf
 import torch
 from torch import nn
 
+from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, replace_values_on_mask_torch, MultiplyScalar, conv2d_complex, enforce_kspace_data_consistency
-from ..helpers.utils import keras_psnr, keras_ssim
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
@@ -17,7 +15,6 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     mask = Input(mask_shape, dtype='complex64', name='mask_input')
 
     zero_filled = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple')(kspace_input)
-
 
     image = zero_filled
     multiply_scalar = MultiplyScalar()
@@ -32,11 +29,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     image = tf_fastmri_format(image)
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
-    model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
 
     return model
 

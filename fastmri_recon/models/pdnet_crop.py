@@ -1,14 +1,13 @@
 from keras.layers import Input, Lambda, concatenate, Add
 from keras.models import Model
-from keras.optimizers import Adam
 import tensorflow as tf
 import torch
 from torch import nn
 
+from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri_helpers import tf_fastmri_format, tf_adj_op, tf_op, conv2d_complex
 from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
-from ..helpers.utils import keras_psnr, keras_ssim
 
 
 def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs):
@@ -21,11 +20,8 @@ def invnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, **dummy_kwargs
     image_res = Lambda(tf_adj_op, output_shape=input_size, name='ifft_simple')([kspace_input, mask])
     image_res = tf_fastmri_format(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    model.compile(
-        optimizer=Adam(lr=lr),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
+
 
     return model
 
@@ -67,14 +63,10 @@ def pdnet_crop(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_d
 
     image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size, name='image_getting')(primal)
 
-    image_res = Lambda(tf.math.abs, name='image_module', output_shape=input_size)(image_res)
-    image_res = Lambda(tf_crop, name='cropping', output_shape=(320, 320, 1))(image_res)
+    image_res = tf_fastmri_format(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
-    model.compile(
-        optimizer=Adam(lr=lr, clipnorm=1.),
-        loss='mean_absolute_error',
-        metrics=['mean_squared_error', keras_psnr, keras_ssim],
-    )
+    default_model_compile(model, lr)
+
 
     return model
 
