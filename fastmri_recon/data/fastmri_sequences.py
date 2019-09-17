@@ -5,9 +5,9 @@ import random
 import numpy as np
 from tensorflow.keras.utils import Sequence
 
-from data_utils import from_file_to_kspace, from_test_file_to_mask_and_kspace, from_train_file_to_image_and_kspace
-from reconstruction import zero_filled_cropped_recon
-from utils import gen_mask, normalize, normalize_instance
+from .data_utils import from_file_to_kspace, from_test_file_to_mask_and_kspace, from_train_file_to_image_and_kspace
+from ..helpers.reconstruction import zero_filled_cropped_recon
+from ..helpers.utils import gen_mask, normalize, normalize_instance
 
 
 class fastMRI2DSequence(Sequence):

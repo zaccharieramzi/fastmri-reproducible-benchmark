@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from fastmri_sequences import Masked2DSequence
+from .fastmri_sequences import Masked2DSequence
 
 class Masked2DDataset(Masked2DSequence, Dataset):
     """Sequence equivalent for torch. Read Masked2DSequence docs for more.
