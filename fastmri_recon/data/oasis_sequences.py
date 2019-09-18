@@ -10,16 +10,25 @@ from ..helpers.utils import gen_mask
 
 
 class Oasis2DSequence(Sequence):
-    def __init__(self, path, mode='training', af=4):
+    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
         self.path = path
         self.mode = mode
         self.af = af
 
-        self.filenames = glob.glob(path + '**/*.nii.gz')
-        if not self.filenames:
-            raise ValueError('No compressed nifti files at path {}'.format(path))
+        if filenames is None:
+            self.filenames = glob.glob(path + '**/*.nii.gz')
+            if not self.filenames:
+                raise ValueError('No compressed nifti files at path {}'.format(path))
+            if val_split > 0:
+                n_val = int(len(self.filenames) * val_split)
+                random.seed(seed)
+                random.shuffle(self.filenames)
+                val_filenames = self.filenames[:n_val]
+                self.filenames = self.filenames[n_val:]
+                self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
+        else:
+            self.filenames = filenames
         self.filenames.sort()
-
 
     def __len__(self):
         return len(self.filenames)
