@@ -26,8 +26,11 @@ class Oasis2DSequence(Sequence):
                 val_filenames = self.filenames[:n_val]
                 self.filenames = self.filenames[n_val:]
                 self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
+            else:
+                self.val_sequence = None
         else:
             self.filenames = filenames
+            self.val_sequence = None
         self.filenames.sort()
 
     def __len__(self):
@@ -48,8 +51,9 @@ class Masked2DSequence(Oasis2DSequence):
         self.inner_slices = inner_slices
         self.rand = rand
         self.scale_factor = scale_factor
-        self.val_sequence.inner_slices = inner_slices
-        self.val_sequence.scale_factor = scale_factor
+        if self.val_sequence is not None:
+            self.val_sequence.inner_slices = inner_slices
+            self.val_sequence.scale_factor = scale_factor
 
     def __getitem__(self, idx):
         """Get a training triplet from the file at `idx` in `self.filenames`.
