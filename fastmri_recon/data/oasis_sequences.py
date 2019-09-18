@@ -16,7 +16,7 @@ class Oasis2DSequence(Sequence):
         self.af = af
 
         if filenames is None:
-            self.filenames = glob.glob(path + '**/*.nii.gz')
+            self.filenames = glob.glob(path + '**/*.nii.gz', recursive=True)
             if not self.filenames:
                 raise ValueError('No compressed nifti files at path {}'.format(path))
             if val_split > 0:
@@ -48,6 +48,8 @@ class Masked2DSequence(Oasis2DSequence):
         self.inner_slices = inner_slices
         self.rand = rand
         self.scale_factor = scale_factor
+        self.val_sequence.inner_slices = inner_slices
+        self.val_sequence.scale_factor = scale_factor
 
     def __getitem__(self, idx):
         """Get a training triplet from the file at `idx` in `self.filenames`.
