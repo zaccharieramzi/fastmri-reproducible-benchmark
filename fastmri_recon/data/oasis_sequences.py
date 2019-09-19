@@ -159,5 +159,5 @@ class ZeroFilled2DSequence(Masked2DSequence):
             images corresponding to the volume in NHWC format.
         """
         [kspaces_scaled, _], images_scaled = super(ZeroFilled2DSequence, self).__getitem__(idx)
-        im_z_reco = zero_filled_recon(np.squeeze(kspaces_scaled))[..., None]
+        im_z_reco = zero_filled_recon(kspaces_scaled[..., 0])[..., None]
         return im_z_reco, images_scaled
