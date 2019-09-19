@@ -100,4 +100,5 @@ class Masked2DSequence(Oasis2DSequence):
         scale_factor = self.scale_factor
         kspaces_scaled = kspaces * scale_factor
         images_scaled = images * scale_factor
+        images_scaled = images_scaled.astype(np.float32)
         return ([kspaces_scaled, mask_batch], images_scaled)
