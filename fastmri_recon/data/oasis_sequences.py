@@ -1,5 +1,7 @@
 import glob
+import os.path as op
 import random
+import re
 
 import nibabel as nib
 import numpy as np
@@ -8,6 +10,10 @@ from tensorflow.keras.utils import Sequence
 from ..helpers.fourier import FFT2
 from ..helpers.utils import gen_mask
 
+
+def get_session_from_filename(filename):
+    base_name = op.basename(filename)
+    session_id = re.findall('ses-d\d{4}', base_name)[0]
 
 class Oasis2DSequence(Sequence):
     def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
@@ -32,6 +38,9 @@ class Oasis2DSequence(Sequence):
             self.filenames = filenames
             self.val_sequence = None
         self.filenames.sort()
+
+    def get_sessions(self):
+
 
     def __len__(self):
         return len(self.filenames)
