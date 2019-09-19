@@ -11,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False):
+def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False, fastmri=True):
     r"""This net unrolls the PDHG algorithm in the context of MRI
 
     The original network is described in [A2017]. Its implementation is
@@ -38,6 +38,8 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
     n_iter (int): number of PDHG unrolled iterations, defaults to 10
     primal_only (bool): whether to use non linearity in the dual space, or just
         use the residual, defaults to False
+    fastmri (bool): whether to put the final image in fastMRI format, defaults
+        to True (i.e. image will be cropped to 320, 320)
 
     Returns:
     keras.models.Model: the primal dual net model, compiled
@@ -78,7 +80,10 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
 
     # formatting the image and finalizing the model definition
     image_res = Lambda(lambda x: x[..., 0:1], output_shape=input_size, name='image_getting')(primal)
-    image_res = tf_fastmri_format(image_res)
+    if fastmri:
+        image_res = tf_fastmri_format(image_res)
+    else:
+        image_res = Lambda(tf.math.abs)(image_res)
     model = Model(inputs=[kspace_input, mask], outputs=image_res)
     default_model_compile(model, lr)
 

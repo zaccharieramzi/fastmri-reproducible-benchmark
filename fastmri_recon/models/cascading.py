@@ -1,6 +1,7 @@
 """Deep cascade network."""
 from keras.layers import Input, Lambda
 from keras.models import Model
+import tensorflow as tf
 import torch
 from torch import nn
 
@@ -10,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3):
+def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True):
     r"""This net cascades several convolution blocks followed by data consistency layers
 
     The original network is described in [S2017]. Its implementation is
@@ -25,6 +26,8 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
         manner. If noiseless is `False`, the noise level is learned (i.e. lambda
         in paper, is learned). Defaults to `True`.
     lr (float): learning rate, defaults to 1e-3
+    fastmri (bool): whether to put the final image in fastMRI format, defaults
+        to True (i.e. image will be cropped to 320, 320)
 
     Returns:
     keras.models.Model: the deep cascade net model, compiled
@@ -46,7 +49,10 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
         kspace = enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, multiply_scalar, noiseless)
         image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
     # module and crop of image
-    image = tf_fastmri_format(image)
+    if fastmri:
+        image = tf_fastmri_format(image)
+    else:
+        image = Lambda(tf.math.abs)(image)
     model = Model(inputs=[kspace_input, mask], outputs=image)
 
     default_model_compile(model, lr)

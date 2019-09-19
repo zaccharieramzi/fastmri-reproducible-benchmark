@@ -5,3 +5,4 @@ runstats
 keras
 torch
 torchvision
+nibabel
