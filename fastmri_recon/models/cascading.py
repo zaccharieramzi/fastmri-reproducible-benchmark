@@ -26,6 +26,8 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
         manner. If noiseless is `False`, the noise level is learned (i.e. lambda
         in paper, is learned). Defaults to `True`.
     lr (float): learning rate, defaults to 1e-3
+    fastmri (bool): whether to put the final image in fastMRI format, defaults
+        to True (i.e. image will be cropped to 320, 320)
 
     Returns:
     keras.models.Model: the deep cascade net model, compiled
