@@ -11,12 +11,39 @@ from ..helpers.fourier import FFT2
 from ..helpers.utils import gen_mask
 
 
-def get_session_from_filename(filename):
+def _get_session_from_filename(filename):
     base_name = op.basename(filename)
     session_id = re.findall(r'ses-d\d{4}', base_name)[0]
     return session_id
 
 class Oasis2DSequence(Sequence):
+    """The base class for using the OASIS data in keras.
+    You need to specify the path to the type of data you want, the mode of
+    the sequence, its acceleration rate and the validation split.
+    This will by default enumerate volumes.
+
+    Parameters:
+    path (str): the path to the data of this sequence. The data must be in
+    nii.gz files.
+    mode (str): the mode of sequence in ['training', 'validation'].
+    The mode training is to be used for both validation and training data,
+    when training the neural network. The validation mode is to be used when
+    evaluating the neural network offline, with potentially other
+    reconstruction steps used afterwards.
+    af (int): the acceleration factor.
+    val_split (float): the validation split, between 0 and 1. The split will be
+        made on the sessions rather than the files themselves to avoid having
+        very similar looking images in the training and the validation sets.
+        Defaults to 0.1
+    filenames (list): list of the path to the files containing the data you
+        want for this particular sequence. When `None`, the files will be looked
+        for in the `path`
+    seed (int): the random seed used for the validation random split, defaults
+        to None
+
+    Raises:
+    ValueError: when no nii.gz files can be found in the path directory.
+    """
     def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
         self.path = path
         self.mode = mode
@@ -27,12 +54,12 @@ class Oasis2DSequence(Sequence):
             if not self.filenames:
                 raise ValueError('No compressed nifti files at path {}'.format(path))
             if val_split > 0:
-                sessions = [get_session_from_filename(filename) for filename in self.filenames]
+                sessions = [_get_session_from_filename(filename) for filename in self.filenames]
                 n_val = int(len(sessions) * val_split)
                 random.seed(seed)
                 random.shuffle(sessions)
                 val_sessions = sessions[:n_val]
-                val_filenames = [filename for filename in self.filenames if get_session_from_filename(filename) in val_sessions]
+                val_filenames = [filename for filename in self.filenames if _get_session_from_filename(filename) in val_sessions]
                 self.filenames = [filename for filename in self.filenames if filename not in val_filenames]
                 self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
             else:
@@ -46,6 +73,14 @@ class Oasis2DSequence(Sequence):
         return len(self.filenames)
 
     def __getitem__(self, idx):
+        """Get the volume from the file at `idx` in `self.filenames`.
+
+        Parameters:
+        idx (str): index of the nii.gz file containing the data in `self.filenames`
+
+        Returns:
+        ndarray: the volume in NHWC format
+        """
         filename = self.filenames[idx]
         images = nib.load(filename)
         images = images.get_fdata()
@@ -72,7 +107,7 @@ class Masked2DSequence(Oasis2DSequence):
         the images) with it, and return a tuple ((kspaces, mask), images).
 
         Parameters:
-        filename (str): index of the nii.gz file containing the training data
+        idx (str): index of the nii.gz file containing the training data
             in `self.filenames`.
 
         Returns:
