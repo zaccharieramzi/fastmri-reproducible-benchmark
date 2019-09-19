@@ -96,7 +96,7 @@ class Masked2DSequence(Oasis2DSequence):
         fourier_op = FFT2(fourier_mask)
         for i, image in enumerate(images):
             kspaces[i] = fourier_op.op(image[..., 0])[..., None]
-        mask_batch = fourier_mask[None, ...]
+        mask_batch = np.repeat(fourier_mask[None, ...], len(images), axis=0)
         scale_factor = self.scale_factor
         kspaces_scaled = kspaces * scale_factor
         images_scaled = images * scale_factor
