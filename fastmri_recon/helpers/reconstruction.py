@@ -34,6 +34,17 @@ def zero_filled_cropped_recon(kspace):
     return x_final
 
 
+def zero_filled_recon(kspaces):
+    """Perform a zero-filled reconstruction on a volume"""
+    fourier_op = FFT2(np.ones_like(kspaces[0]))
+    x_final = np.empty_like(kspaces)
+    for i, kspace in enumerate(kspaces):
+        x_final[i] = fourier_op.adj_op(kspace)
+    x_final = np.abs(x_final)
+    return x_final
+
+
+
 def reco_wav(kspace, gradient_op, mu=1*1e-8, max_iter=10, nb_scales=4, wavelet_name='db4'):
     # for now this is only working with my fork of pysap-fastMRI
     # I will get it changed soon so that we don't need to ask for a specific
