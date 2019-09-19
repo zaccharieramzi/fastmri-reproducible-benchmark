@@ -13,7 +13,8 @@ from ..helpers.utils import gen_mask
 
 def get_session_from_filename(filename):
     base_name = op.basename(filename)
-    session_id = re.findall('ses-d\d{4}', base_name)[0]
+    session_id = re.findall(r'ses-d\d{4}', base_name)[0]
+    return session_id
 
 class Oasis2DSequence(Sequence):
     def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
@@ -26,11 +27,13 @@ class Oasis2DSequence(Sequence):
             if not self.filenames:
                 raise ValueError('No compressed nifti files at path {}'.format(path))
             if val_split > 0:
-                n_val = int(len(self.filenames) * val_split)
+                sessions = [get_session_from_filename(filename) for filename in self.filenames]
+                n_val = int(len(sessions) * val_split)
                 random.seed(seed)
-                random.shuffle(self.filenames)
-                val_filenames = self.filenames[:n_val]
-                self.filenames = self.filenames[n_val:]
+                random.shuffle(sessions)
+                val_sessions = sessions[:n_val]
+                val_filenames = [filename for filename in self.filenames if get_session_from_filename(filename) in val_sessions]
+                self.filenames = [filename for filename in self.filenames if filename not in val_filenames]
                 self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
             else:
                 self.val_sequence = None
@@ -38,9 +41,6 @@ class Oasis2DSequence(Sequence):
             self.filenames = filenames
             self.val_sequence = None
         self.filenames.sort()
-
-    def get_sessions(self):
-
 
     def __len__(self):
         return len(self.filenames)
