@@ -8,6 +8,7 @@ import numpy as np
 from tensorflow.keras.utils import Sequence
 
 from ..helpers.fourier import FFT2
+from ..helpers.reconstruction import zero_filled_recon
 from ..helpers.utils import gen_mask
 
 
@@ -137,3 +138,29 @@ class Masked2DSequence(Oasis2DSequence):
         images_scaled = images * scale_factor
         images_scaled = images_scaled.astype(np.float32)
         return ([kspaces_scaled, mask_batch], images_scaled)
+
+class ZeroFilled2DSequence(Masked2DSequence):
+    """
+    This sequence generates pre-reconstructed examples, with zero filling.
+    """
+
+    def __getitem__(self, idx):
+        """Get the reconstructed images and the images of the volume.
+
+        This method will generate a mask on-the-fly, mask the kspaces and then
+        do a zero-filled reconstruction.
+
+        Parameters:
+        idx (int): index of the nii.gz file containing the training data
+            in `self.filenames`.
+
+        Returns:
+        tuple (ndarray, ndarray): the reconstructed masked kspaces and the
+            images corresponding to the volume in NHWC format.
+        """
+        [kspaces_scaled, _], images_scaled = super(ZeroFilled2DSequence, self).__getitem__(idx)
+        im_z_reco = np.empty_like(images_scaled)
+        for i, kspace in enumerate(kspaces_scaled):
+            im_z_reco[i] = zero_filled_recon(np.squeeze(kspace))[..., None]
+            zero_filled_rec = zero_filled_rec[:, :, None]
+        return im_z_reco, images_scaled
