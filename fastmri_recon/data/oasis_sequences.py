@@ -90,7 +90,7 @@ class Masked2DSequence(Oasis2DSequence):
                 selected_slices = slice(slice_start, slice_start + self.inner_slices)
         images = images[selected_slices]
         k_shape = images[0].shape
-        kspaces = np.empty_like(images)
+        kspaces = np.empty_like(images, dtype=np.complex64)
         mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         fourier_op = FFT2(fourier_mask)
