@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.keras.utils import Sequence
 
 from .data_utils import from_file_to_kspace, from_test_file_to_mask_and_kspace, from_train_file_to_image_and_kspace
-from ..helpers.reconstruction import zero_filled_cropped_recon
+from ..helpers.reconstruction import zero_filled_cropped_recon, zero_filled_recon
 from ..helpers.utils import gen_mask, normalize, normalize_instance
 
 
@@ -300,3 +300,54 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
             return zero_img_batch, means, stddevs
         else:
             return zero_img_batch
+
+
+class KIKISequence(Untouched2DSequence):
+    def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, space='K', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inner_slices = inner_slices
+        self.rand = rand
+        self.scale_factor = scale_factor
+        self.space = space
+
+    def get_item_train(self, filename):
+        """Get a training triplet from the file at filename.
+
+        This method will get the kspaces and images at filename, create a mask
+        on-the-fly, mask the kspaces with it, select only the relevant slices,
+        and return a tuple ((kspaces, mask), images).
+
+        Parameters:
+        filename (str): the name of the h5 file containing the images and
+        the kspaces.
+
+        Returns:
+        tuple ((ndarray, ndarray), ndarray): the masked kspaces, mask and images
+        corresponding to the volume in NHWC format (mask is NHW).
+        """
+        _, kspaces = super(KIKISequence, self).get_item_train(filename)
+        k_shape = kspaces[0].shape
+        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
+        kspaces_masked = kspaces * mask_batch
+        mask_batch = mask_batch[..., 0]
+        if self.inner_slices is not None:
+            n_slices = len(kspaces)
+            slice_start = n_slices // 2 - self.inner_slices // 2
+            if self.rand:
+                i_slice = random.randint(slice_start, slice_start + self.inner_slices)
+                selected_slices = slice(i_slice, i_slice + 1)
+            else:
+                selected_slices = slice(slice_start, slice_start + self.inner_slices)
+            kspaces = kspaces[selected_slices]
+            kspaces_masked = kspaces_masked[selected_slices]
+            mask_batch = mask_batch[selected_slices]
+        scale_factor = self.scale_factor
+        kspaces_masked_scaled = kspaces_masked * scale_factor
+        kspaces_scaled = kspaces * scale_factor
+        if self.space == 'K':
+            return ([kspaces_masked_scaled, mask_batch], kspaces_scaled)
+        elif self.space == 'I':
+            images = zero_filled_recon(kspaces_scaled[..., 0])[..., None]
+            return ([kspaces_masked_scaled, mask_batch], images)
