@@ -1,11 +1,11 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras_tqdm import TQDMCallback
 
-from data import ZeroFilled2DSequence
-from unet import unet
+from fastmri_recon.data.fastmri_sequences import ZeroFilled2DSequence
+from fastmri_recon.models.unet import unet
 
 
 
@@ -44,17 +44,16 @@ run_params = {
     'pool': 'max',
     "layers_n_channels": [16, 32, 64, 128],
     'layers_n_non_lins': 2,
-#     'n_layers': 2,
 }
-n_epochs = 1
-run_id = f'unet_wo_lastrelu_af{AF}_{int(time.time())}'
+n_epochs = 300
+run_id = f'unet_af{AF}_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
 
 
 
 
-chkpt_cback = ModelCheckpoint(chkpt_path, period=50)
+chkpt_cback = ModelCheckpoint(chkpt_path, period=100)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
     log_dir=log_dir,
@@ -62,13 +61,7 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
-lr_on_plat_cback = ReduceLROnPlateau(monitor='val_loss', min_lr=5*1e-5, mode='auto', patience=3)
-# fix from https://github.com/bstriner/keras-tqdm/issues/31#issuecomment-516325065
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
-# tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
-# tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
-# tqdm_cb.on_test_begin = lambda x,y:None
-# tqdm_cb.on_test_end = lambda x,y:None
 
 
 
@@ -86,28 +79,10 @@ model.fit_generator(
     steps_per_epoch=n_volumes_train,
     epochs=n_epochs,
     validation_data=val_gen,
-    validation_steps=n_volumes_val,
+    validation_steps=1,
     verbose=0,
-    callbacks=[tqdm_cb, tboard_cback, chkpt_cback, lr_on_plat_cback],
-    max_queue_size=100,
+    callbacks=[tqdm_cb, tboard_cback, chkpt_cback],
+    # max_queue_size=100,
     use_multiprocessing=True,
     workers=35,
 )
-
-
-
-
-
-# # overfitting trials
-
-# data = train_gen[0]
-# val_data = val_gen[0]
-# model.fit(
-#     x=data[0],
-#     y=data[1],
-# #     validation_data=val_data,
-#     batch_size=data[0].shape[0],
-#     epochs=50,
-#     verbose=2,
-#     shuffle=False,
-# )
