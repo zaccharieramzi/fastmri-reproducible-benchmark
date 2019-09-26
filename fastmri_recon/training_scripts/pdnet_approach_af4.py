@@ -52,7 +52,6 @@ run_params = {
     'n_dual': 5,
     'n_iter': 10,
     'n_filters': 32,
-    'res_connection': False,
 }
 
 n_epochs = 300
@@ -78,9 +77,7 @@ tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
 
 
-model = pdnet(lr=1e-4, **run_params)
-if True:
-    model.load_weights('checkpoints/pdnet_af4_1568384763-200.hdf5')
+model = pdnet(lr=1e-3, **run_params)
 
 
 print(model.summary(line_length=150))
