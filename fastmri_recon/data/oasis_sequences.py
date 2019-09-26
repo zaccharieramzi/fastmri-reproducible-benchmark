@@ -45,10 +45,11 @@ class Oasis2DSequence(Sequence):
     Raises:
     ValueError: when no nii.gz files can be found in the path directory.
     """
-    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
+    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None, reorder=True):
         self.path = path
         self.mode = mode
         self.af = af
+        self.reorder = reorder
 
         if filenames is None:
             self.filenames = glob.glob(path + '**/*.nii.gz', recursive=True)
@@ -62,7 +63,7 @@ class Oasis2DSequence(Sequence):
                 val_sessions = sessions[:n_val]
                 val_filenames = [filename for filename in self.filenames if _get_session_from_filename(filename) in val_sessions]
                 self.filenames = [filename for filename in self.filenames if filename not in val_filenames]
-                self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
+                self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames, reorder=reorder)
             else:
                 self.val_sequence = None
         else:
@@ -85,6 +86,9 @@ class Oasis2DSequence(Sequence):
         filename = self.filenames[idx]
         images = nib.load(filename)
         images = images.get_fdata()
+        # this is necessary because the data is not necessarily ordered with slices first
+        if self.reorder and min(images.shape) != images.shape[0]:
+            images = np.moveaxis(images, -1, 0)
         images = images[..., None]
         images = images.astype(np.complex64)
         return images
