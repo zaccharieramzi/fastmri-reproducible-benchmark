@@ -125,7 +125,7 @@ class Masked2DSequence(Oasis2DSequence):
             slice_start = max(n_slices // 2 - self.inner_slices // 2, 0)
             slice_end = min(slice_start + self.inner_slices, n_slices)
             if self.rand:
-                i_slice = random.randint(slice_start, slice_end)
+                i_slice = random.randint(slice_start, slice_end - 1)
                 selected_slices = slice(i_slice, i_slice + 1)
             else:
                 selected_slices = slice(slice_start, slice_end)
