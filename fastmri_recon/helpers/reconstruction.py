@@ -108,10 +108,10 @@ def reco_iterative_from_test_file(filename, rec_type='wav', **kwargs):
         raise ValueError('{} not recognized as reconstruction type'.format(rec_type))
     return im_recos
 
-def reco_and_gt_zfilled_from_val_file(kspace_and_mask_batch, img_batch):
+def reco_and_gt_zfilled_from_val_file(kspace_and_mask_batch, img_batch, crop=True):
     kspaces, _ = kspace_and_mask_batch
     kspaces = np.squeeze(kspaces)
-    im_recos = zero_filled_recon(kspaces, crop=True)
+    im_recos = zero_filled_recon(kspaces, crop=crop)
     images = np.squeeze(img_batch)
     return im_recos, images
 
