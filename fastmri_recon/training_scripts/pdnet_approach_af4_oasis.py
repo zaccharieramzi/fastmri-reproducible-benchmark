@@ -53,7 +53,7 @@ tboard_cback = TensorBoard(
 )
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
 
-model = pdnet(lr=1e-3, **run_params)
+model = pdnet(input_size=(None, None, 1), fastmri=False, lr=1e-3, **run_params)
 
 print(model.summary(line_length=150))
 
