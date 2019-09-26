@@ -122,12 +122,13 @@ class Masked2DSequence(Oasis2DSequence):
         images = super(Masked2DSequence, self).__getitem__(idx)
         if self.inner_slices is not None:
             n_slices = len(images)
-            slice_start = n_slices // 2 - self.inner_slices // 2
+            slice_start = max(n_slices // 2 - self.inner_slices // 2, 0)
+            slice_end = min(slice_start + self.inner_slices, n_slices)
             if self.rand:
-                i_slice = random.randint(slice_start, slice_start + self.inner_slices)
+                i_slice = random.randint(slice_start, slice_end)
                 selected_slices = slice(i_slice, i_slice + 1)
             else:
-                selected_slices = slice(slice_start, slice_start + self.inner_slices)
+                selected_slices = slice(slice_start, slice_end)
         images = images[selected_slices]
         k_shape = images[0].shape
         kspaces = np.empty_like(images, dtype=np.complex64)
