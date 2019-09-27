@@ -1,4 +1,5 @@
 import os.path as op
+import random
 import time
 
 from keras.callbacks import TensorBoard, ModelCheckpoint
@@ -9,6 +10,7 @@ from fastmri_recon.data.oasis_sequences import Masked2DSequence
 from fastmri_recon.models.pdnet import pdnet
 
 
+random.seed(0)
 tf.logging.set_verbosity(tf.logging.INFO)
 
 # paths
@@ -29,8 +31,8 @@ val_gen = train_gen.val_sequence
 n_train = 1000
 n_val = 200
 
-train_gen.filenames = train_gen.filenames[:n_train]
-val_gen.filenames = val_gen.filenames[:n_val]
+train_gen.filenames = random.sample(train_gen.filenames, n_train)
+val_gen.filenames = random.sample(val_gen.filenames, n_val)
 
 run_params = {
     'n_primal': 5,
