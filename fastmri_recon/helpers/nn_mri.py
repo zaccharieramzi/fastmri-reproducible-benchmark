@@ -1,5 +1,6 @@
 """Module containing helpers for building NN for MRI reconstruction in pytorch and keras."""
 from keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
+from keras import regularizers
 import tensorflow as tf
 from tensorflow.signal import fft2d, ifft2d
 from tensorflow.python.ops import manip_ops
@@ -33,6 +34,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
             activation=activation,
             padding='same',
             kernel_initializer='glorot_uniform',
+            kernel_regularizer=regularizers.l2(0.01),
         )(x_real_imag)
     x_real_imag = Conv2D(
         2 * n_complex,
@@ -40,6 +42,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
         activation='linear',
         padding='same',
         kernel_initializer='glorot_uniform',
+        kernel_regularizer=regularizers.l2(0.01),
     )(x_real_imag)
     x_real_imag = _complex_from_half(x_real_imag, n_complex, output_shape)
     if res:
