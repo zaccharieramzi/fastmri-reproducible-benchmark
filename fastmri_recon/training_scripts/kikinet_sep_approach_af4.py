@@ -6,7 +6,7 @@ from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence, KIKISequence
-from fastmri_recon.helpers.nn_mri import MultiplyScalar
+from fastmri_recon.helpers.nn_mri import MultiplyScalar, lrelu
 from fastmri_recon.models.kiki_sep import kiki_sep_net
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -38,6 +38,7 @@ run_params = {
     'n_filters': 48,
     'noiseless': True,
     'lr': 1e-3,
+    'activation': lrelu,
 }
 multiply_scalar = MultiplyScalar()
 n_epochs = 100
