@@ -1,5 +1,5 @@
 """Module containing helpers for building NN for MRI reconstruction in pytorch and keras."""
-from keras.layers import Lambda, Conv2D, Layer, concatenate, Add
+from keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
 import tensorflow as tf
 from tensorflow.signal import fft2d, ifft2d
 from tensorflow.python.ops import manip_ops
@@ -19,6 +19,9 @@ def _concatenate_real_imag(x):
 
 def _complex_from_half(x, n, output_shape):
     return Lambda(lambda x: _to_complex([x[..., :n], x[..., n:]]), output_shape=output_shape)(x)
+
+def lrelu(x):
+    return LeakyReLU(alpha=0.1)(x)
 
 def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, res=False):
     x_real_imag = _concatenate_real_imag(x)
