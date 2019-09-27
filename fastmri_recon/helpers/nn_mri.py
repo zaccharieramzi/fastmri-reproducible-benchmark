@@ -34,7 +34,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
             activation=activation,
             padding='same',
             kernel_initializer='glorot_uniform',
-            kernel_regularizer=regularizers.l2(0.01),
+            kernel_regularizer=regularizers.l2(0.0001),
         )(x_real_imag)
     x_real_imag = Conv2D(
         2 * n_complex,
@@ -42,7 +42,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
         activation='linear',
         padding='same',
         kernel_initializer='glorot_uniform',
-        kernel_regularizer=regularizers.l2(0.01),
+        kernel_regularizer=regularizers.l2(0.0001),
     )(x_real_imag)
     x_real_imag = _complex_from_half(x_real_imag, n_complex, output_shape)
     if res:
