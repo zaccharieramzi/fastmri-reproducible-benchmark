@@ -76,7 +76,7 @@ def train_model(model, space='K', n=1):
         validation_steps=1,
         verbose=0,
         callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
-        max_queue_size=35,
+        # max_queue_size=35,
         use_multiprocessing=True,
         workers=35,
         shuffle=True,
