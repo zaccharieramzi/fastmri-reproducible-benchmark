@@ -1,9 +1,7 @@
 import numpy as np
 
 from modopt.opt.linear import Identity
-from mri.numerics.reconstruct import sparse_rec_fista
 from modopt.opt.proximity import SparseThreshold, LinearCompositionProx
-from mri.numerics.gradient import GradAnalysis2
 
 from ..data.data_utils import from_test_file_to_mask_and_kspace
 from .fourier import FFT2
@@ -34,13 +32,18 @@ def zero_filled_cropped_recon(kspace):
     return x_final
 
 
-def zero_filled_recon(kspaces):
+def zero_filled_recon(kspaces, crop=False):
     """Perform a zero-filled reconstruction on a volume"""
     fourier_op = FFT2(np.ones_like(kspaces[0]))
     x_final = np.empty_like(kspaces)
     for i, kspace in enumerate(kspaces):
         x_final[i] = fourier_op.adj_op(kspace)
     x_final = np.abs(x_final)
+    if crop:
+        x_final_cropped = np.empty((len(kspaces), 320, 320))
+        for i, x in enumerate(x_final):
+            x_final_cropped[i] = crop_center(x, 320)
+        x_final = x_final_cropped
     return x_final
 
 
@@ -50,6 +53,7 @@ def reco_wav(kspace, gradient_op, mu=1*1e-8, max_iter=10, nb_scales=4, wavelet_n
     # I will get it changed soon so that we don't need to ask for a specific
     # pysap-mri install
     from ..wavelets import WaveletDecimated
+    from mri.numerics.reconstruct import sparse_rec_fista
 
     linear_op = WaveletDecimated(
         nb_scale=nb_scales,
@@ -91,17 +95,25 @@ def reco_iterative_from_test_file(filename, rec_type='wav', **kwargs):
     fourier_mask = np.repeat(mask.astype(np.float)[None, :], fake_kspace.shape[0], axis=0)
     # op creation
     fourier_op_masked = FFT2(mask=fourier_mask)
-    gradient_op = GradAnalysis2(
-        data=fake_kspace,
-        fourier_op=fourier_op_masked,
-    )
     if rec_type == 'wav':
+        from mri.numerics.gradient import GradAnalysis2
+        gradient_op = GradAnalysis2(
+            data=fake_kspace,
+            fourier_op=fourier_op_masked,
+        )
         im_recos = np.array([reco_wav(kspace * fourier_mask, gradient_op, **kwargs) for kspace in kspaces])
     elif rec_type == 'z_filled':
         im_recos = np.array([reco_z_filled(kspace * fourier_mask, fourier_op_masked) for kspace in kspaces])
     else:
         raise ValueError('{} not recognized as reconstruction type'.format(rec_type))
     return im_recos
+
+def reco_and_gt_zfilled_from_val_file(kspace_and_mask_batch, img_batch, crop=True):
+    kspaces, _ = kspace_and_mask_batch
+    kspaces = np.squeeze(kspaces)
+    im_recos = zero_filled_recon(kspaces, crop=crop)
+    images = np.squeeze(img_batch)
+    return im_recos, images
 
 
 def reco_unet_from_test_file(zero_img_batch, means, stddevs, model):

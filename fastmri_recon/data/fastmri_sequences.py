@@ -175,7 +175,7 @@ class Masked2DSequence(Untouched2DSequence):
             n_slices = len(kspaces)
             slice_start = n_slices // 2 - self.inner_slices // 2
             if self.rand:
-                i_slice = random.randint(slice_start, slice_start + self.inner_slices)
+                i_slice = random.randint(slice_start, slice_start + self.inner_slices - 1)
                 selected_slices = slice(i_slice, i_slice + 1)
             else:
                 selected_slices = slice(slice_start, slice_start + self.inner_slices)

@@ -12,10 +12,10 @@ from ..helpers.reconstruction import zero_filled_recon
 from ..helpers.utils import gen_mask
 
 
-def _get_session_from_filename(filename):
+def _get_subject_from_filename(filename):
     base_name = op.basename(filename)
-    session_id = re.findall(r'ses-d\d{4}', base_name)[0]
-    return session_id
+    subject_id = re.findall(r'OAS3\d{4}', base_name)[0]
+    return subject_id
 
 class Oasis2DSequence(Sequence):
     """The base class for using the OASIS data in keras.
@@ -33,7 +33,7 @@ class Oasis2DSequence(Sequence):
     reconstruction steps used afterwards.
     af (int): the acceleration factor.
     val_split (float): the validation split, between 0 and 1. The split will be
-        made on the sessions rather than the files themselves to avoid having
+        made on the subjects rather than the files themselves to avoid having
         very similar looking images in the training and the validation sets.
         Defaults to 0.1
     filenames (list): list of the path to the files containing the data you
@@ -45,24 +45,25 @@ class Oasis2DSequence(Sequence):
     Raises:
     ValueError: when no nii.gz files can be found in the path directory.
     """
-    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None):
+    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None, reorder=True):
         self.path = path
         self.mode = mode
         self.af = af
+        self.reorder = reorder
 
         if filenames is None:
             self.filenames = glob.glob(path + '**/*.nii.gz', recursive=True)
             if not self.filenames:
                 raise ValueError('No compressed nifti files at path {}'.format(path))
             if val_split > 0:
-                sessions = [_get_session_from_filename(filename) for filename in self.filenames]
-                n_val = int(len(sessions) * val_split)
+                subjects = [_get_subject_from_filename(filename) for filename in self.filenames]
+                n_val = int(len(subjects) * val_split)
                 random.seed(seed)
-                random.shuffle(sessions)
-                val_sessions = sessions[:n_val]
-                val_filenames = [filename for filename in self.filenames if _get_session_from_filename(filename) in val_sessions]
+                random.shuffle(subjects)
+                val_subjects = subjects[:n_val]
+                val_filenames = [filename for filename in self.filenames if _get_subject_from_filename(filename) in val_subjects]
                 self.filenames = [filename for filename in self.filenames if filename not in val_filenames]
-                self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames)
+                self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames, reorder=reorder)
             else:
                 self.val_sequence = None
         else:
@@ -85,6 +86,9 @@ class Oasis2DSequence(Sequence):
         filename = self.filenames[idx]
         images = nib.load(filename)
         images = images.get_fdata()
+        # this is necessary because the data is not necessarily ordered with slices first
+        if self.reorder and min(images.shape) != images.shape[0]:
+            images = np.moveaxis(images, -1, 0)
         images = images[..., None]
         images = images.astype(np.complex64)
         return images
@@ -118,12 +122,13 @@ class Masked2DSequence(Oasis2DSequence):
         images = super(Masked2DSequence, self).__getitem__(idx)
         if self.inner_slices is not None:
             n_slices = len(images)
-            slice_start = n_slices // 2 - self.inner_slices // 2
+            slice_start = max(n_slices // 2 - self.inner_slices // 2, 0)
+            slice_end = min(slice_start + self.inner_slices, n_slices)
             if self.rand:
-                i_slice = random.randint(slice_start, slice_start + self.inner_slices)
+                i_slice = random.randint(slice_start, slice_end - 1)
                 selected_slices = slice(i_slice, i_slice + 1)
             else:
-                selected_slices = slice(slice_start, slice_start + self.inner_slices)
+                selected_slices = slice(slice_start, slice_end)
         images = images[selected_slices]
         k_shape = images[0].shape
         kspaces = np.empty_like(images, dtype=np.complex64)
