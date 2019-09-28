@@ -37,7 +37,7 @@ run_params = {
     'n_convs': 25,
     'n_filters': 48,
     'noiseless': True,
-    'lr': 1e-3,
+    'lr': 1e-4,
     'activation': lrelu,
 }
 multiply_scalar = MultiplyScalar()
