@@ -1,7 +1,7 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
@@ -41,7 +41,12 @@ run_params = {
     'activation': lrelu,
 }
 multiply_scalar = MultiplyScalar()
-n_epochs = 20
+n_epochs = 30
+
+def learning_rate_from_epoch(epoch):
+    return 10**(-(epoch // 10) - 2)
+
+
 
 def train_model(model, space='K', n=1):
     print(model.summary(line_length=150))
@@ -57,6 +62,7 @@ def train_model(model, space='K', n=1):
         write_graph=True,
         write_images=False,
     )
+    lrate_cback = LearningRateScheduler(learning_rate_from_epoch)
     tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
     if space == 'K':
         train_gen = train_gen_k
@@ -75,7 +81,7 @@ def train_model(model, space='K', n=1):
         validation_data=val_gen,
         validation_steps=1,
         verbose=0,
-        callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
+        callbacks=[tqdm_cb, tboard_cback, chkpt_cback, lrate_cback,],
         # max_queue_size=35,
         use_multiprocessing=True,
         workers=35,
