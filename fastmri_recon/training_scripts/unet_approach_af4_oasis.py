@@ -1,0 +1,75 @@
+import os.path as op
+import time
+
+from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras_tqdm import TQDMCallback
+
+from fastmri_recon.data.oasis_sequences import ZeroFilled2DSequence
+from fastmri_recon.models.unet import unet
+
+# paths
+train_path = '/media/Zaccharie/UHRes/OASIS_data/'
+
+
+# generators
+AF = 4
+train_gen = ZeroFilled2DSequence(
+    train_path,
+    af=AF,
+    inner_slices=32,
+    scale_factor=1e-2,
+    seed=0,
+    rand=False,
+    val_split=0.1,
+)
+val_gen = train_gen.val_sequence
+n_train = 1000
+n_val = 200
+
+run_params = {
+    'n_layers': 4,
+    'pool': 'max',
+    "layers_n_channels": [16, 32, 64, 128],
+    'layers_n_non_lins': 2,
+}
+n_epochs = 300
+run_id = f'unet_af{AF}_{int(time.time())}'
+chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+
+
+
+
+
+chkpt_cback = ModelCheckpoint(chkpt_path, period=100)
+log_dir = op.join('logs', run_id)
+tboard_cback = TensorBoard(
+    log_dir=log_dir,
+    histogram_freq=0,
+    write_graph=True,
+    write_images=False,
+)
+tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
+
+
+
+
+
+model = unet(input_size=(None, None, 1), lr=1e-3, **run_params)
+print(model.summary())
+
+
+
+
+
+model.fit_generator(
+    train_gen,
+    steps_per_epoch=n_train,
+    epochs=n_epochs,
+    validation_data=val_gen,
+    validation_steps=1,
+    verbose=0,
+    callbacks=[tqdm_cb, tboard_cback, chkpt_cback],
+    # max_queue_size=100,
+    use_multiprocessing=True,
+    workers=35,
+)
