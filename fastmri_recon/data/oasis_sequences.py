@@ -181,7 +181,7 @@ class ZeroFilled2DSequence(Masked2DSequence):
     def _pad_image(self, img):
         pool = self.n_pooling
         im_shape = np.array(img.shape[1:3])
-        to_pad = (int(im_shape / 2**pool) + 1) * 2**pool - im_shape
+        to_pad = ((im_shape / 2**pool).astype(int) + 1) * 2**pool - im_shape
         pad_seq = [(0, 0), (to_pad[0]//2, to_pad[0]//2), (to_pad[1]//2, to_pad[1]//2), (0, 0)]
         img_padded = np.pad(img, pad_seq, mode='constant')
         return img_padded
