@@ -149,6 +149,12 @@ class ZeroFilled2DSequence(Masked2DSequence):
     This sequence generates pre-reconstructed examples, with zero filling.
     """
 
+    def __init__(self, *args, n_pooling=3, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_pooling = n_pooling
+        if self.val_sequence is not None:
+            self.val_sequence.n_pooling = n_pooling
+
     def __getitem__(self, idx):
         """Get the reconstructed images and the images of the volume.
 
@@ -165,4 +171,17 @@ class ZeroFilled2DSequence(Masked2DSequence):
         """
         [kspaces_scaled, _], images_scaled = super(ZeroFilled2DSequence, self).__getitem__(idx)
         im_z_reco = zero_filled_recon(kspaces_scaled[..., 0])[..., None]
+        if self.n_pooling > 1:
+            im_shape = images_scaled.shape[1:3]
+            if any(image_dim % 2**self.n_pooling != 0 for image_dim in im_shape):
+                im_z_reco = self.pad_image(im_z_reco)
+                images_scaled = self.pad_image(images_scaled)
         return im_z_reco, images_scaled
+
+    def _pad_image(self, img):
+        pool = self.n_pooling
+        im_shape = np.array(img.shape[1:3])
+        to_pad = (int(im_shape / 2**pool) + 1) * 2**pool - im_shape
+        pad_seq = [(0, 0), (to_pad[0]//2, to_pad[0]//2), (to_pad[1]//2, to_pad[1]//2), (0, 0)]
+        img_padded = np.pad(img, pad_seq, mode='constant')
+        return img_padded
