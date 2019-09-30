@@ -21,6 +21,7 @@ train_gen = ZeroFilled2DSequence(
     seed=0,
     rand=False,
     val_split=0.1,
+    n_pooling=3,
 )
 val_gen = train_gen.val_sequence
 n_train = 1000
