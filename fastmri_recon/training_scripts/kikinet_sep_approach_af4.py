@@ -41,10 +41,10 @@ run_params = {
     'activation': lrelu,
 }
 multiply_scalar = MultiplyScalar()
-n_epochs = 30
+n_epochs = 50
 
 def learning_rate_from_epoch(epoch):
-    return 10**(-(epoch // 10) - 2)
+    return 10**(-(epoch // (n_epochs/3)) - 3)
 
 
 
@@ -54,7 +54,7 @@ def train_model(model, space='K', n=1):
     chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
     print(run_id)
 
-    chkpt_cback = ModelCheckpoint(chkpt_path, period=50)
+    chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs//2)
     log_dir = op.join('logs', run_id)
     tboard_cback = TensorBoard(
         log_dir=log_dir,
