@@ -36,7 +36,7 @@ run_params = {
 n_epochs = 300
 run_id = f'unet_af{AF}_oasis_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
-
+print(run_id)
 
 
 
