@@ -174,8 +174,8 @@ class ZeroFilled2DSequence(Masked2DSequence):
         if self.n_pooling > 1:
             im_shape = images_scaled.shape[1:3]
             if any(image_dim % 2**self.n_pooling != 0 for image_dim in im_shape):
-                im_z_reco = self.pad_image(im_z_reco)
-                images_scaled = self.pad_image(images_scaled)
+                im_z_reco = self._pad_image(im_z_reco)
+                images_scaled = self._pad_image(images_scaled)
         return im_z_reco, images_scaled
 
     def _pad_image(self, img):
