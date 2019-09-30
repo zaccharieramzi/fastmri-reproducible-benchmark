@@ -33,7 +33,7 @@ run_params = {
     'layers_n_non_lins': 2,
 }
 n_epochs = 300
-run_id = f'unet_af{AF}_{int(time.time())}'
+run_id = f'unet_af{AF}_oasis_{int(time.time())}'
 chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
 
