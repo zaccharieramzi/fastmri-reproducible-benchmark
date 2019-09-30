@@ -24,7 +24,7 @@ def _complex_from_half(x, n, output_shape):
 def lrelu(x):
     return LeakyReLU(alpha=0.1)(x)
 
-def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, res=False):
+def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, res=False, last_kernel_size=3):
     x_real_imag = _concatenate_real_imag(x)
     n_complex = output_shape[-1]
     for j in range(n_convs):
@@ -39,7 +39,7 @@ def conv2d_complex(x, n_filters, n_convs, activation='relu', output_shape=None, 
         )(x_real_imag)
     x_real_imag = Conv2D(
         2 * n_complex,
-        3,
+        last_kernel_size,
         activation='linear',
         padding='same',
         kernel_initializer='glorot_uniform',
