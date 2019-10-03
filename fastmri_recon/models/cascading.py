@@ -11,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True):
+def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True, activation='relu'):
     r"""This net cascades several convolution blocks followed by data consistency layers
 
     The original network is described in [S2017]. Its implementation is
@@ -28,6 +28,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     lr (float): learning rate, defaults to 1e-3
     fastmri (bool): whether to put the final image in fastMRI format, defaults
         to True (i.e. image will be cropped to 320, 320)
+    activation (str or function): see https://keras.io/activations/ for info
 
     Returns:
     keras.models.Model: the deep cascade net model, compiled
@@ -43,7 +44,7 @@ def cascade_net(input_size=(640, None, 1), n_cascade=5, n_convs=5, n_filters=16,
     multiply_scalar = MultiplyScalar()
     for i in range(n_cascade):
         # residual convolution
-        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True)
+        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True, activation=activation)
         # data consistency layer
         kspace = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
         kspace = enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, multiply_scalar, noiseless)

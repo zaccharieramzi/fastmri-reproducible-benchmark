@@ -11,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False, fastmri=True):
+def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5, n_iter=10, primal_only=False, fastmri=True, activation='relu'):
     r"""This net unrolls the PDHG algorithm in the context of MRI
 
     The original network is described in [A2017]. Its implementation is
@@ -40,6 +40,7 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
         use the residual, defaults to False
     fastmri (bool): whether to put the final image in fastMRI format, defaults
         to True (i.e. image will be cropped to 320, 320)
+    activation (str or function): see https://keras.io/activations/ for info
 
     Returns:
     keras.models.Model: the primal dual net model, compiled
@@ -68,14 +69,14 @@ def pdnet(input_size=(640, None, 1), n_filters=32, lr=1e-3, n_primal=5, n_dual=5
             dual = Lambda(lambda x: x[0] - x[1], output_shape=input_size, name='dual_residual_{i}'.format(i=i+1))([dual_eval_exp, kspace_input])
         else:
             update = concatenate([dual, dual_eval_exp, kspace_input], axis=-1)
-            update = conv2d_complex(update, n_filters, 2, output_shape=dual_shape, res=False)
+            update = conv2d_complex(update, n_filters, 2, output_shape=dual_shape, res=False, activation=activation)
             dual = Add()([dual, update])
 
 
         # Then work in image space (primal space)
         primal_exp = Lambda(tf_adj_op, output_shape=input_size, name='ifft_masked_{i}'.format(i=i+1))([dual, mask])
         update = concatenate([primal, primal_exp], axis=-1)
-        update = conv2d_complex(update, n_filters, 2, output_shape=primal_shape, res=False)
+        update = conv2d_complex(update, n_filters, 2, output_shape=primal_shape, res=False, activation=activation)
         primal = Add()([primal, update])
 
     # formatting the image and finalizing the model definition
