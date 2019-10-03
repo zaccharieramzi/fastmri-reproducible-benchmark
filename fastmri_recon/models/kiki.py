@@ -11,7 +11,7 @@ from ..helpers.torch_utils import ConvBlock
 from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
 
 
-def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True):
+def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True, activation='relu'):
     r"""This net is a sequence of of convolution blocks in both the direct and indirect space
 
     The original network is described in [E2017]. It also features a data consistency
@@ -36,20 +36,19 @@ def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, no
     kspace_input = Input(input_size, dtype='complex64', name='kspace_input')
     mask = Input(mask_shape, dtype='complex64', name='mask_input')
 
-    zero_filled = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple')(kspace_input)
-
-    image = zero_filled
+    kspace = kspace_input
     multiply_scalar = MultiplyScalar()
     for i in range(n_cascade):
+        # K-net
+        kspace = conv2d_complex(kspace, n_filters, n_convs, output_shape=input_size, res=False, activation=activation, last_kernel_size=1)
+        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
         # residual convolution (I-net)
-        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True)
+        image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True, activation=activation, last_kernel_size=1)
         # data consistency layer
         kspace = Lambda(tf_unmasked_op, output_shape=input_size, name='fft_simple_{i}'.format(i=i+1))(image)
         kspace = enforce_kspace_data_consistency(kspace, kspace_input, mask, input_size, multiply_scalar, noiseless)
-        # K-net
-        kspace = conv2d_complex(kspace, n_filters, n_convs, output_shape=input_size, res=False)
-        image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple_{i}'.format(i=i+1))(kspace)
 
+    image = Lambda(tf_unmasked_adj_op, output_shape=input_size, name='ifft_simple')(kspace)
     # module and crop of image
     if fastmri:
         image = tf_fastmri_format(image)
