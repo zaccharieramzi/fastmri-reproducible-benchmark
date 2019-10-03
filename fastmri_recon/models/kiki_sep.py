@@ -2,7 +2,7 @@ from keras.layers import Input, Lambda
 from keras.models import Model
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, conv2d_complex, enforce_kspace_data_consistency
+from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, conv2d_complex, enforce_kspace_data_consistency, MultiplyScalar
 
 
 def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_convs=5, n_filters=16, noiseless=True, lr=1e-3, to_add='I', last=False, activation='relu'):
@@ -30,4 +30,13 @@ def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_con
             output = kspace
     model = Model(inputs=[kspace_input, mask], outputs=output)
     default_model_compile(model, lr)
+    return model
+
+
+def full_kiki_net(input_size=(640, None, 1), **run_params):
+    multiply_scalar = MultiplyScalar()
+    model = kiki_sep_net(None, multiply_scalar, input_size=input_size, to_add='K', last=False, **run_params)
+    model = kiki_sep_net(model, multiply_scalar, input_size=input_size, to_add='I', last=False, **run_params)
+    model = kiki_sep_net(model, multiply_scalar, input_size=input_size, to_add='K', last=False, **run_params)
+    model = kiki_sep_net(model, multiply_scalar, input_size=input_size, to_add='I', last=True, **run_params)
     return model
