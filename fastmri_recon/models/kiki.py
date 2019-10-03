@@ -28,6 +28,7 @@ def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, no
     lr (float): learning rate, defaults to 1e-3
     fastmri (bool): whether to put the final image in fastMRI format, defaults
         to True (i.e. image will be cropped to 320, 320)
+    activation (str or function): see https://keras.io/activations/ for info
 
     Returns:
     keras.models.Model: the KIKI net model, compiled
