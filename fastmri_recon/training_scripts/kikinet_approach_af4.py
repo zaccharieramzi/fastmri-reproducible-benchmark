@@ -1,14 +1,12 @@
 import os.path as op
 import time
 
-from keras.backend.tensorflow_backend import set_session
 from keras.callbacks import TensorBoard, ModelCheckpoint
-from keras.models import load_model
-from keras.utils.vis_utils import model_to_dot
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence
+from fastmri_recon.helpers.nn_mri import lrelu
 from fastmri_recon.models.kiki import kiki_net
 
 
@@ -55,6 +53,7 @@ run_params = {
     'n_convs': 25,
     'n_filters': 32,
     'noiseless': True,
+    'activation': lrelu,
 }
 
 n_epochs = 300
@@ -96,7 +95,7 @@ model.fit_generator(
     validation_steps=1,
     verbose=0,
     callbacks=[tqdm_cb, tboard_cback, chkpt_cback,],
-    max_queue_size=35,
+    # max_queue_size=35,
     use_multiprocessing=True,
     workers=35,
     shuffle=True,

@@ -1,6 +1,4 @@
 """Utilities to get the data from the h5 files"""
-from functools import lru_cache
-
 import h5py
 
 
@@ -13,7 +11,6 @@ def from_test_file_to_mask_and_kspace(filename):
     return masks, kspaces
 
 
-@lru_cache(maxsize=128)
 def from_train_file_to_image_and_kspace(filename):
     """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.
