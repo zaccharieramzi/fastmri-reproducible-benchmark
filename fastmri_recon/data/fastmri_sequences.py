@@ -303,6 +303,23 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
 
 
 class KIKISequence(Untouched2DSequence):
+    """This sequence allows to generate a mask on-the-fly when enumerating
+    training or validation examples. It also allows you to restrict the
+    training to only innermost parts of the volumes, and select randomly
+    a slice when training. Finally, you can scale the values of the
+    kspaces and images by a factor.
+    The target values are not cropped or in magnitude, but the actual ones.
+
+    Parameters:
+    inner_slices (int): the number of inner slices you want to consider when
+    enumerating the volumes.
+    rand (bool): whether you want to only pick one random slice from the
+    considered slices when enumerating the volumes.
+    scale_factor (float): the factor by which to multiply the kspaces and the
+    images, if scaling is needed
+    space (str): the space of the sequence, i.e. whether the target value is
+    the ground truth k-space (K) or the ground-truth image (I).
+    """
     def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, space='K', **kwargs):
         super().__init__(*args, **kwargs)
         self.inner_slices = inner_slices
