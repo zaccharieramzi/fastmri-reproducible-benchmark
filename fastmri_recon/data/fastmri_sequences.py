@@ -143,11 +143,12 @@ class Masked2DSequence(Untouched2DSequence):
     scale_factor (float): the factor by which to multiply the kspaces and the
     images, if scaling is needed
     """
-    def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, **kwargs):
+    def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, mask_seed=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.inner_slices = inner_slices
         self.rand = rand
         self.scale_factor = scale_factor
+        self.mask_seed = mask_seed
 
     def get_item_train(self, filename):
         """Get a training triplet from the file at filename.
@@ -166,7 +167,7 @@ class Masked2DSequence(Untouched2DSequence):
         """
         images, kspaces = super(Masked2DSequence, self).get_item_train(filename)
         k_shape = kspaces[0].shape
-        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
+        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af, seed=self.mask_seed)
         fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
         kspaces *= mask_batch
@@ -216,9 +217,10 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
     in 'validation' mode, the `get_item_train` method will return the mean
     and standard deviation used for normalization as well.
     """
-    def __init__(self, *args, norm=False, **kwargs):
+    def __init__(self, *args, norm=False, mask_seed=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.norm = norm
+        self.mask_seed = mask_seed
 
 
     def get_item_train(self, filename):
@@ -240,7 +242,7 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
         mean and stddev are also returned.
         """
         images, kspaces = from_train_file_to_image_and_kspace(filename)
-        mask = gen_mask(kspaces[0], accel_factor=self.af)
+        mask = gen_mask(kspaces[0], accel_factor=self.af, seed=self.mask_seed)
         fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
         img_batch = list()
         zero_img_batch = list()
