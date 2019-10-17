@@ -211,6 +211,9 @@ class KIKISequence(Oasis2DSequence):
         self.rand = rand
         self.scale_factor = scale_factor
         self.space = space
+        if self.val_sequence is not None:
+            self.val_sequence.inner_slices = inner_slices
+            self.val_sequence.scale_factor = scale_factor
 
     def __getitem__(self, idx):
         """Get a training triplet from the file at filename.
