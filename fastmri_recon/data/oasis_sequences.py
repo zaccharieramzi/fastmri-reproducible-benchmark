@@ -249,7 +249,7 @@ class KIKISequence(Oasis2DSequence):
         fourier_op = FFT2(np.array([1]))
         for i, image in enumerate(images):
             kspaces[i] = fourier_op.op(image[..., 0])[..., None]
-            kspaces_masked[i] = kspaces[i] * fourier_mask
+            kspaces_masked[i] = kspaces[i] * fourier_mask[..., None]
         mask_batch = np.repeat(fourier_mask[None, ...], len(images), axis=0)
         scale_factor = self.scale_factor
         kspaces_scaled = kspaces * scale_factor
