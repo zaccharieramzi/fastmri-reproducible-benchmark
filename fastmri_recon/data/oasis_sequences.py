@@ -185,3 +185,76 @@ class ZeroFilled2DSequence(Masked2DSequence):
         pad_seq = [(0, 0), (to_pad[0]//2, to_pad[0]//2), (to_pad[1]//2, to_pad[1]//2), (0, 0)]
         img_padded = np.pad(img, pad_seq, mode='constant')
         return img_padded
+
+
+class KIKISequence(Oasis2DSequence):
+    """This sequence allows to generate a mask on-the-fly when enumerating
+    training or validation examples. It also allows you to restrict the
+    training to only innermost parts of the volumes, and select randomly
+    a slice when training. Finally, you can scale the values of the
+    kspaces and images by a factor.
+    The target values are not cropped or in magnitude, but the actual ones.
+
+    Parameters:
+    inner_slices (int): the number of inner slices you want to consider when
+    enumerating the volumes.
+    rand (bool): whether you want to only pick one random slice from the
+    considered slices when enumerating the volumes.
+    scale_factor (float): the factor by which to multiply the kspaces and the
+    images, if scaling is needed
+    space (str): the space of the sequence, i.e. whether the target value is
+    the ground truth k-space (K) or the ground-truth image (I).
+    """
+    def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, space='K', **kwargs):
+        super().__init__(*args, **kwargs)
+        self.inner_slices = inner_slices
+        self.rand = rand
+        self.scale_factor = scale_factor
+        self.space = space
+
+    def __getitem__(self, idx):
+        """Get a training triplet from the file at filename.
+
+        This method will get the kspaces and images at filename, create a mask
+        on-the-fly, mask the kspaces with it, select only the relevant slices,
+        and return a tuple ((kspaces, mask), images).
+
+        Parameters:
+        filename (str): the name of the h5 file containing the images and
+        the kspaces.
+
+        Returns:
+        tuple ((ndarray, ndarray), ndarray): the masked kspaces, mask and images
+        corresponding to the volume in NHWC format (mask is NHW).
+        """
+        images = super(KIKISequence, self).__getitem__(idx)
+        if self.inner_slices is not None:
+            n_slices = len(images)
+            slice_start = max(n_slices // 2 - self.inner_slices // 2, 0)
+            slice_end = min(slice_start + self.inner_slices, n_slices)
+            if self.rand:
+                i_slice = random.randint(slice_start, slice_end - 1)
+                selected_slices = slice(i_slice, i_slice + 1)
+            else:
+                selected_slices = slice(slice_start, slice_end)
+        images = images[selected_slices]
+        k_shape = images[0].shape
+        kspaces = np.empty_like(images, dtype=np.complex64)
+        kspaces_masked = np.empty_like(images, dtype=np.complex64)
+        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
+        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        fourier_op = FFT2(np.array([1]))
+        for i, image in enumerate(images):
+            kspaces[i] = fourier_op.op(image[..., 0])[..., None]
+            kspaces_masked[i] = kspaces[i] * fourier_mask
+        mask_batch = np.repeat(fourier_mask[None, ...], len(images), axis=0)
+        scale_factor = self.scale_factor
+        kspaces_scaled = kspaces * scale_factor
+        kspaces_masked_scaled = kspaces_masked * scale_factor
+        images_scaled = images * scale_factor
+        images_scaled = images_scaled.astype(np.float32)
+        if self.space == 'K':
+            return ([kspaces_masked_scaled, mask_batch], kspaces_scaled)
+        elif self.space == 'I':
+            images = zero_filled_recon(kspaces_scaled[..., 0])[..., None]
+            return ([kspaces_masked_scaled, mask_batch], images)
