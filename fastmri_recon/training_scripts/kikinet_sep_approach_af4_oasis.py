@@ -60,7 +60,7 @@ def learning_rate_from_epoch(epoch):
 
 def train_model(model, space='K', n=1):
     print(model.summary(line_length=150))
-    run_id = f'kikinet_sep_{space}{n}_af{AF}_{int(time.time())}'
+    run_id = f'kikinet_sep_{space}{n}_af{AF}_oasis_{int(time.time())}'
     chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
     print(run_id)
 
