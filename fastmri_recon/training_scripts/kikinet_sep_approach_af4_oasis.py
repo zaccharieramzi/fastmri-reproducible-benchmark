@@ -48,6 +48,7 @@ run_params = {
     'noiseless': True,
     'lr': 1e-3,
     'activation': lrelu,
+    'input_size': (None, None, 1),
 }
 multiply_scalar = MultiplyScalar()
 n_epochs = 50
