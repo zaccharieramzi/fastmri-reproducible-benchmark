@@ -106,5 +106,5 @@ model = kiki_sep_net(model, multiply_scalar, to_add='I', last=False, **run_param
 train_model(model, space='I', n=1)
 model = kiki_sep_net(model, multiply_scalar, to_add='K', last=False, **run_params)
 train_model(model, space='K', n=2)
-model = kiki_sep_net(model, multiply_scalar, to_add='I', last=True, **run_params)
+model = kiki_sep_net(model, multiply_scalar, to_add='I', last=True, fastmri=False, **run_params)
 train_model(model, space='I', n=2)
