@@ -43,7 +43,7 @@ val_gen_k.filenames = random.sample(val_gen_k.filenames, n_val)
 random.seed(0)
 
 run_params = {
-    'n_convs': 25,
+    'n_convs': 16,
     'n_filters': 48,
     'noiseless': True,
     'lr': 1e-3,
