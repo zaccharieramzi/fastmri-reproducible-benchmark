@@ -96,10 +96,6 @@ class SingleSliceSequence(fastMRI2DSequence):
 
 
 class Untouched2DSequence(fastMRI2DSequence):
-    def __init__(self, *args, with_batch=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.with_batch = with_batch
-
     def get_item_train(self, filename):
         """Get the images and the kspaces of the volume at filename.
 
@@ -114,9 +110,6 @@ class Untouched2DSequence(fastMRI2DSequence):
         images, kspaces = from_train_file_to_image_and_kspace(filename)
         images = images[..., None]
         kspaces = kspaces[..., None]
-        if self.with_batch:
-            images = images[None, ...]
-            kspaces = kspaces[None, ...]
         return images, kspaces
 
     def get_item_test(self, filename):
@@ -132,9 +125,6 @@ class Untouched2DSequence(fastMRI2DSequence):
         """
         mask, kspaces = from_test_file_to_mask_and_kspace(filename)
         kspaces = kspaces[..., None]
-        if self.with_batch:
-            kspaces = kspaces[None, ...]
-            # NOTE: maybe also have batch format for mask
         return mask, kspaces
 
 
