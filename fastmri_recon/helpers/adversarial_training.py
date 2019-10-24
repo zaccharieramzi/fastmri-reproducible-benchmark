@@ -30,6 +30,10 @@ def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=10
     # this because we want to evaluate only the output of the generator, and therefore will evaluate with it
     g.compile(optimizer=g_opt, loss=perceptual_loss, metrics=generator_metrics)
 
+def _replace_label_first_underscore(label):
+    label = label.replace('_', '/', 1)
+    return label
+
 def adversarial_training_loop(
         g,
         d,
@@ -50,13 +54,13 @@ def adversarial_training_loop(
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
     out_labels = d_on_g.metrics_names
+    out_labels = [_replace_label_first_underscore(l) for l in out_labels]
     # we only want to validate on the output of g
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
     callback_metrics = out_labels + val_out_labels
     if include_d_metrics:
         d_metrics_names = ['d_loss/fake', 'd_loss/real']
         callback_metrics += d_metrics_names
-
     # prepare callbacks
     # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     d_on_g.history = cbks.History()
