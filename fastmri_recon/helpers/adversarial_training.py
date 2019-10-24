@@ -3,8 +3,8 @@ from keras.optimizers import Adam
 from keras.utils.metrics_utils import to_list
 import numpy as np
 
-from .evaluate import keras_ssim, keras_psnr
 from .keras_utils import wasserstein_loss
+from .utils import keras_ssim, keras_psnr
 
 
 def compile_models(d, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
