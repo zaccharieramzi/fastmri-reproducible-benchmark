@@ -7,8 +7,9 @@ from .keras_utils import wasserstein_loss
 from .utils import keras_ssim, keras_psnr
 
 
-def compile_models(d, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
+def compile_models(d, g, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
     d_opt = Adam(lr=lr, clipnorm=1.)
+    g_opt = Adam(lr=lr, clipnorm=1.)
     d_on_g_opt = Adam(lr=lr, clipnorm=1.)
 
     d.trainable = True
@@ -23,12 +24,16 @@ def compile_models(d, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='m
     discriminator_metrics = []
     d_on_g.compile(optimizer=d_on_g_opt, loss=loss, loss_weights=loss_weights, metrics=[generator_metrics, discriminator_metrics])
     d.trainable = True
+    # this because we want to evaluate only the output of the generator, and therefore will evaluate with it
+    g.compile(optimizer=g_opt, loss=perceptual_loss, metrics=generator_metrics)
 
-def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None):
+def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_steps=1, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None):
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
     out_labels = d_on_g.metrics_names
-    callback_metrics = out_labels + ['val_' + n for n in out_labels]
+    # we only want to validate on the output of g
+    val_out_labels = ['val_' + n for n in out_labels if g.name in n]
+    callback_metrics = out_labels + val_out_labels
 
     # prepare callbacks
     # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
@@ -86,27 +91,18 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
             d.trainable = True
 
             callbacks._call_batch_hook('train', 'end', batch_index, batch_logs)
-        # TODO: perform validation
-        # this will be the validation
-        # if val_gen:
-        #     val_outs = model.evaluate_generator(
-        #         val_enqueuer_gen,
-        #         validation_steps,
-        #         callbacks=callbacks,
-        #         workers=0)
-        # else:
-        #     # No need for try/except because
-        #     # data has already been validated.
-        #     val_outs = model.evaluate(
-        #         val_x, val_y,
-        #         batch_size=batch_size,
-        #         sample_weight=val_sample_weights,
-        #         callbacks=callbacks,
-        #         verbose=0)
-        # val_outs = to_list(val_outs)
-        # # Same labels assumed.
-        # for l, o in zip(out_labels, val_outs):
-        #     epoch_logs['val_' + l] = o
+
+        if val_gen:
+            import ipdb; ipdb.set_trace()
+            val_outs = g.evaluate_generator(
+                val_gen,
+                validation_steps,
+                callbacks=callbacks,
+                workers=0)
+            val_outs = to_list(val_outs)
+            # Same labels assumed.
+            for l, o in zip(val_out_labels, val_outs):
+                epoch_logs[l] = o
         callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
     return d_losses
