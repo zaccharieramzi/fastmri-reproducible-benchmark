@@ -1,5 +1,7 @@
 import keras.callbacks as cbks
+from keras.engine.training_utils import iter_sequence_infinite
 from keras.optimizers import Adam
+from keras.utils.data_utils import OrderedEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
 
@@ -8,6 +10,7 @@ from .utils import keras_ssim, keras_psnr
 
 
 def compile_models(d, g, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
+    # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     d_opt = Adam(lr=lr, clipnorm=1.)
     g_opt = Adam(lr=lr, clipnorm=1.)
     d_on_g_opt = Adam(lr=lr, clipnorm=1.)
@@ -27,7 +30,8 @@ def compile_models(d, g, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss
     # this because we want to evaluate only the output of the generator, and therefore will evaluate with it
     g.compile(optimizer=g_opt, loss=perceptual_loss, metrics=generator_metrics)
 
-def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_steps=1, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None):
+def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_steps=1, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None, workers=1, use_multiprocessing=False, max_queue_size=10):
+    # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
     out_labels = d_on_g.metrics_names
@@ -55,23 +59,36 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
         'metrics': callback_metrics,
     })
     callbacks._call_begin_hook('train')
+
+    # all the queue stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
+    if workers > 0:
+        enqueuer = OrderedEnqueuer(
+            train_gen,
+            use_multiprocessing=use_multiprocessing,
+            # TODO: add a parameter to control this
+            shuffle=False,
+        )
+        enqueuer.start(workers=workers, max_queue_size=max_queue_size)
+        train_generator = enqueuer.get()
+    else:
+        train_generator = iter_sequence_infinite(train_gen)
+
     epoch_logs = {}
     d_losses = []
     for epoch in range(n_epochs):
         callbacks.on_epoch_begin(epoch)
         for batch_index in range(n_batches):
-            # NOTE: add randomness in index
-            # NOTE: when moving to cross domain, we need to add mask everywhere
-            # and switch to kspace rather than z_filled images
-    #         (kspace, mask), image = seq[index]
-            z_filled_image, image = train_gen[batch_index]
-            batch_size = len(z_filled_image)
+            x, image = next(train_generator)
+            if isinstance(x, list):
+                batch_size = len(x[0])
+            else:
+                batch_size = len(x)
             # build batch logs
             batch_logs = {'batch': batch_index, 'size': batch_size}
             callbacks.on_batch_begin(batch_index, batch_logs)
             output_true_batch, output_false_batch = np.ones((batch_size, 1)), -np.ones((batch_size, 1))
 
-            generated_image = g.predict_on_batch(z_filled_image)
+            generated_image = g.predict_on_batch(x)
 
             for _ in range(n_critic_updates):
                 d_loss_real = d.train_on_batch(image, output_true_batch)
@@ -83,7 +100,7 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
 
             d.trainable = False
 
-            outs = d_on_g.train_on_batch(z_filled_image, [image, output_true_batch], reset_metrics=False)
+            outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=False)
             outs = to_list(outs)
             for l, o in zip(out_labels, outs):
                 batch_logs[l] = o
