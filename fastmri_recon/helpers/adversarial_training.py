@@ -3,6 +3,7 @@ from keras.optimizers import Adam
 from keras.utils.metrics_utils import to_list
 import numpy as np
 
+from .evaluate import keras_ssim, keras_psnr
 from .keras_utils import wasserstein_loss
 
 
@@ -16,7 +17,11 @@ def compile_models(d, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='m
     loss = [perceptual_loss, wasserstein_loss]
     # to adjust with the typical mse (probably changing when dealing with normalized z_filled and kspaces scaled)
     loss_weights = [perceptual_weight, 1]
-    d_on_g.compile(optimizer=d_on_g_opt, loss=loss, loss_weights=loss_weights)
+    generator_metrics = [keras_psnr, keras_ssim]
+    if perceptual_loss != 'mse':
+        generator_metrics.append('mse')
+    discriminator_metrics = []
+    d_on_g.compile(optimizer=d_on_g_opt, loss=loss, loss_weights=loss_weights, metrics=[generator_metrics, discriminator_metrics])
     d.trainable = True
 
 def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None):
