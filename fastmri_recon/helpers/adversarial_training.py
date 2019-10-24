@@ -1,5 +1,6 @@
 import keras.callbacks as cbks
 from keras.optimizers import Adam
+from keras.utils.metrics_utils import to_list
 import numpy as np
 
 from .keras_utils import wasserstein_loss
@@ -71,7 +72,10 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
 
             d.trainable = False
 
-            d_on_g.train_on_batch(z_filled_image, [image, output_true_batch])
+            outs = d_on_g.train_on_batch(z_filled_image, [image, output_true_batch], reset_metrics=False)
+            outs = to_list(outs)
+            for l, o in zip(out_labels, outs):
+                batch_logs[l] = o
 
             d.trainable = True
 
