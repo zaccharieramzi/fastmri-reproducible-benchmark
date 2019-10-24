@@ -46,6 +46,7 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
     })
     callbacks._call_begin_hook('train')
     epoch_logs = {}
+    d_losses = []
     for epoch in range(n_epochs):
         callbacks.on_epoch_begin(epoch+1)
         for batch_index in range(n_batches):
@@ -63,12 +64,12 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
             generated_image = g.predict_on_batch(z_filled_image)
 
             for _ in range(n_critic_updates):
-                d.train_on_batch(image, output_true_batch)
-                d.train_on_batch(generated_image, output_false_batch)
+                d_loss_real = d.train_on_batch(image, output_true_batch)
+                d_loss_fake = d.train_on_batch(generated_image, output_false_batch)
                 # NOTE: this will not give a great loss unless we use what's underneath, we need to see
                 # how to deal with this (maybe tensorboard won't be used, maybe we can use a custom callback)
-    #             d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
-    #             d_losses.append(d_loss)
+                d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
+                d_losses.append(d_loss)
 
             d.trainable = False
 
@@ -103,3 +104,4 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
         #     epoch_logs['val_' + l] = o
         callbacks.on_epoch_end(epoch+1, epoch_logs)
     callbacks._call_end_hook('train')
+    return d_losses
