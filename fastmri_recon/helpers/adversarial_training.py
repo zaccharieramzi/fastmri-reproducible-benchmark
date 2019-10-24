@@ -48,7 +48,7 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
     epoch_logs = {}
     d_losses = []
     for epoch in range(n_epochs):
-        callbacks.on_epoch_begin(epoch+1)
+        callbacks.on_epoch_begin(epoch)
         for batch_index in range(n_batches):
             # NOTE: add randomness in index
             # NOTE: when moving to cross domain, we need to add mask everywhere
@@ -102,6 +102,6 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, n_epochs=1, n_batches=1, 
         # # Same labels assumed.
         # for l, o in zip(out_labels, val_outs):
         #     epoch_logs['val_' + l] = o
-        callbacks.on_epoch_end(epoch+1, epoch_logs)
+        callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
     return d_losses
