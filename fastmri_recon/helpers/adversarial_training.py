@@ -9,11 +9,11 @@ from .keras_utils import wasserstein_loss
 from .utils import keras_ssim, keras_psnr
 
 
-def compile_models(d, g, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
+def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
     # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
-    d_opt = Adam(lr=lr, clipnorm=1.)
-    g_opt = Adam(lr=lr, clipnorm=1.)
-    d_on_g_opt = Adam(lr=lr, clipnorm=1.)
+    d_opt = Adam(lr=d_lr, clipnorm=1.)
+    g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
+    d_on_g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
 
     d.trainable = True
     d.compile(optimizer=d_opt, loss=wasserstein_loss)
@@ -30,7 +30,22 @@ def compile_models(d, g, d_on_g, lr=1e-3, perceptual_weight=100, perceptual_loss
     # this because we want to evaluate only the output of the generator, and therefore will evaluate with it
     g.compile(optimizer=g_opt, loss=perceptual_loss, metrics=generator_metrics)
 
-def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_steps=1, n_epochs=1, n_batches=1, n_critic_updates=5, callbacks=None, workers=1, use_multiprocessing=False, max_queue_size=10):
+def adversarial_training_loop(
+        g,
+        d,
+        d_on_g,
+        train_gen,
+        val_gen=None,
+        validation_steps=1,
+        n_epochs=1,
+        n_batches=1,
+        n_critic_updates=5,
+        callbacks=None,
+        workers=1,
+        use_multiprocessing=False,
+        max_queue_size=10,
+        include_d_metrics=False,
+    ):
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
@@ -38,6 +53,9 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
     # we only want to validate on the output of g
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
     callback_metrics = out_labels + val_out_labels
+    if include_d_metrics:
+        d_metrics_names = ['d_loss/fake', 'd_loss/real']
+        callback_metrics += d_metrics_names
 
     # prepare callbacks
     # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
@@ -74,7 +92,6 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
         train_generator = iter_sequence_infinite(train_gen)
 
     epoch_logs = {}
-    d_losses = []
     for epoch in range(n_epochs):
         callbacks.on_epoch_begin(epoch)
         for batch_index in range(n_batches):
@@ -89,14 +106,18 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
             output_true_batch, output_false_batch = np.ones((batch_size, 1)), -np.ones((batch_size, 1))
 
             generated_image = g.predict_on_batch(x)
-
+            d_losses_fake = []
+            d_losses_real = []
             for _ in range(n_critic_updates):
                 d_loss_real = d.train_on_batch(image, output_true_batch)
                 d_loss_fake = d.train_on_batch(generated_image, output_false_batch)
                 # NOTE: this will not give a great loss unless we use what's underneath, we need to see
                 # how to deal with this (maybe tensorboard won't be used, maybe we can use a custom callback)
-                d_loss = 0.5 * np.add(d_loss_fake, d_loss_real)
-                d_losses.append(d_loss)
+                d_losses_fake.append(d_loss_fake)
+                d_losses_real.append(d_loss_real)
+
+            batch_logs['d_loss/fake'] = np.mean(d_losses_fake)
+            batch_logs['d_loss/real'] = np.mean(d_losses_real)
 
             d.trainable = False
 
@@ -121,4 +142,3 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
                 epoch_logs[l] = o
         callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
-    return d_losses
