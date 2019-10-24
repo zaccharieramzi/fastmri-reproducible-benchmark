@@ -93,7 +93,6 @@ def adversarial_training_loop(g, d, d_on_g, train_gen, val_gen=None, validation_
             callbacks._call_batch_hook('train', 'end', batch_index, batch_logs)
 
         if val_gen:
-            import ipdb; ipdb.set_trace()
             val_outs = g.evaluate_generator(
                 val_gen,
                 validation_steps,
