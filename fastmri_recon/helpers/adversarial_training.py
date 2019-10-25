@@ -1,6 +1,6 @@
 import keras.callbacks as cbks
 from keras.engine.training_utils import iter_sequence_infinite
-from keras.optimizers import Adam
+from keras.optimizers import Adam, RMSprop
 from keras.utils.data_utils import OrderedEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
@@ -11,7 +11,8 @@ from .utils import keras_ssim, keras_psnr
 
 def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
     # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
-    d_opt = Adam(lr=d_lr, clipnorm=1.)
+    # d_opt = Adam(lr=d_lr, clipnorm=1.)
+    d_opt = RMSprop(lr=d_lr, clipnorm=1.)
     g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
     d_on_g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
 
@@ -132,7 +133,7 @@ def adversarial_training_loop(
 
             d.trainable = False
 
-            outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=False)
+            outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=True)
             outs = to_list(outs)
             for l, o in zip(out_labels, outs):
                 batch_logs[l] = o
