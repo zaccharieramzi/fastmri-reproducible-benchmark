@@ -5,7 +5,7 @@ from keras.utils.data_utils import OrderedEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
 
-from .keras_utils import wasserstein_loss
+from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
 from .utils import keras_ssim, keras_psnr
 
 
@@ -16,7 +16,7 @@ def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=10
     d_on_g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
 
     d.trainable = True
-    d.compile(optimizer=d_opt, loss=wasserstein_loss, metrics=['accuracy'])
+    d.compile(optimizer=d_opt, loss=wasserstein_loss, metrics=[mean_output, discriminator_accuracy])
     d.trainable = False
     loss = [perceptual_loss, wasserstein_loss]
     # to adjust with the typical mse (probably changing when dealing with normalized z_filled and kspaces scaled)
@@ -60,9 +60,8 @@ def adversarial_training_loop(
     callback_metrics = out_labels + val_out_labels
     if include_d_metrics:
         d_metrics_names = d.metrics_names
-        d_metrics_names = [_replace_label_first_underscore(l) for l in d_metrics_names]
-        d_metrics_fake = [l + '_fake' for l in d_metrics_names]
-        d_metrics_real = [l + '_real' for l in d_metrics_names]
+        d_metrics_fake = ['d_training/' + l + '_fake' for l in d_metrics_names]
+        d_metrics_real = ['d_training/' + l + '_real' for l in d_metrics_names]
         d_metrics_names = d_metrics_fake + d_metrics_real
         callback_metrics += d_metrics_names
     # prepare callbacks
