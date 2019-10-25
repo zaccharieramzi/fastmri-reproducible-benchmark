@@ -6,3 +6,4 @@ keras
 torch
 torchvision
 nibabel
+Pillow
