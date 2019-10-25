@@ -113,19 +113,22 @@ def adversarial_training_loop(
             output_true_batch, output_false_batch = np.ones((batch_size, 1)), -np.ones((batch_size, 1))
 
             generated_image = g.predict_on_batch(x)
-            d_outs_fake = []
-            d_outs_real = []
+            if include_d_metrics:
+                d_outs_fake = []
+                d_outs_real = []
             for _ in range(n_critic_updates):
                 d_out_real = d.train_on_batch(image, output_true_batch, reset_metrics=False)
                 d_out_fake = d.train_on_batch(generated_image, output_false_batch, reset_metrics=False)
-                d_outs_fake.append(d_out_fake)
-                d_outs_real.append(d_out_real)
-            d_outs_fake = np.array(d_outs_fake)
-            d_outs_real = np.array(d_outs_real)
-            for i, l in enumerate(d_metrics_fake):
-                batch_logs[l] = np.mean(d_outs_fake[:, i])
-            for i, l in enumerate(d_metrics_real):
-                batch_logs[l] = np.mean(d_outs_real[:, i])
+                if include_d_metrics:
+                    d_outs_fake.append(d_out_fake)
+                    d_outs_real.append(d_out_real)
+            if include_d_metrics:
+                d_outs_fake = np.array(d_outs_fake)
+                d_outs_real = np.array(d_outs_real)
+                for i, l in enumerate(d_metrics_fake):
+                    batch_logs[l] = np.mean(d_outs_fake[:, i])
+                    for i, l in enumerate(d_metrics_real):
+                        batch_logs[l] = np.mean(d_outs_real[:, i])
 
             d.trainable = False
 
