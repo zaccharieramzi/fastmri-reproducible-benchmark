@@ -128,8 +128,8 @@ def adversarial_training_loop(
                 d_outs_real = np.array(d_outs_real)
                 for i, l in enumerate(d_metrics_fake):
                     batch_logs[l] = np.mean(d_outs_fake[:, i])
-                    for i, l in enumerate(d_metrics_real):
-                        batch_logs[l] = np.mean(d_outs_real[:, i])
+                for i, l in enumerate(d_metrics_real):
+                    batch_logs[l] = np.mean(d_outs_real[:, i])
 
             d.trainable = False
 
