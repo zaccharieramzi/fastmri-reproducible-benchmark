@@ -117,8 +117,8 @@ def adversarial_training_loop(
                 d_outs_fake = []
                 d_outs_real = []
             for _ in range(n_critic_updates):
-                d_out_real = d.train_on_batch(image, output_true_batch, reset_metrics=False)
-                d_out_fake = d.train_on_batch(generated_image, output_false_batch, reset_metrics=False)
+                d_out_real = d.train_on_batch(image, output_true_batch, reset_metrics=True)
+                d_out_fake = d.train_on_batch(generated_image, output_false_batch, reset_metrics=True)
                 if include_d_metrics:
                     d_outs_fake.append(d_out_fake)
                     d_outs_real.append(d_out_real)
