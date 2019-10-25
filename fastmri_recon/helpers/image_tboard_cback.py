@@ -55,5 +55,7 @@ class TensorBoardImage(Callback):
         self.writer.flush()
 
     def on_epoch_end(self, epoch, logs={}):
-        [reconstructed_image, _] = self.model.predict_on_batch(self.model_input)
+        reconstructed_image = self.model.predict_on_batch(self.model_input)
+        if isinstance(reconstructed_image, list):
+            reconstructed_image = reconstructed_image[0]
         self.write_image(reconstructed_image, 'Reconstructed Image', epoch)
