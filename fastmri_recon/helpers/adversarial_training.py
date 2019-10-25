@@ -16,7 +16,7 @@ def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=10
     d_on_g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
 
     d.trainable = True
-    d.compile(optimizer=d_opt, loss=wasserstein_loss)
+    d.compile(optimizer=d_opt, loss=wasserstein_loss, metrics=['accuracy'])
     d.trainable = False
     loss = [perceptual_loss, wasserstein_loss]
     # to adjust with the typical mse (probably changing when dealing with normalized z_filled and kspaces scaled)
@@ -59,7 +59,11 @@ def adversarial_training_loop(
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
     callback_metrics = out_labels + val_out_labels
     if include_d_metrics:
-        d_metrics_names = ['d_loss/fake', 'd_loss/real']
+        d_metrics_names = d.metrics_names
+        d_metrics_names = [_replace_label_first_underscore(l) for l in d_metrics_names]
+        d_metrics_fake = [l + '_fake' for l in d_metrics_names]
+        d_metrics_real = [l + '_real' for l in d_metrics_names]
+        d_metrics_names = d_metrics_fake + d_metrics_real
         callback_metrics += d_metrics_names
     # prepare callbacks
     # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
@@ -110,18 +114,19 @@ def adversarial_training_loop(
             output_true_batch, output_false_batch = np.ones((batch_size, 1)), -np.ones((batch_size, 1))
 
             generated_image = g.predict_on_batch(x)
-            d_losses_fake = []
-            d_losses_real = []
+            d_outs_fake = []
+            d_outs_real = []
             for _ in range(n_critic_updates):
-                d_loss_real = d.train_on_batch(image, output_true_batch)
-                d_loss_fake = d.train_on_batch(generated_image, output_false_batch)
-                # NOTE: this will not give a great loss unless we use what's underneath, we need to see
-                # how to deal with this (maybe tensorboard won't be used, maybe we can use a custom callback)
-                d_losses_fake.append(d_loss_fake)
-                d_losses_real.append(d_loss_real)
-
-            batch_logs['d_loss/fake'] = np.mean(d_losses_fake)
-            batch_logs['d_loss/real'] = np.mean(d_losses_real)
+                d_out_real = d.train_on_batch(image, output_true_batch, reset_metrics=False)
+                d_out_fake = d.train_on_batch(generated_image, output_false_batch, reset_metrics=False)
+                d_outs_fake.append(d_out_fake)
+                d_outs_real.append(d_out_real)
+            d_outs_fake = np.array(d_outs_fake)
+            d_outs_real = np.array(d_outs_real)
+            for i, l in enumerate(d_metrics_fake):
+                batch_logs[l] = np.mean(d_outs_fake[:, i])
+            for i, l in enumerate(d_metrics_real):
+                batch_logs[l] = np.mean(d_outs_real[:, i])
 
             d.trainable = False
 
