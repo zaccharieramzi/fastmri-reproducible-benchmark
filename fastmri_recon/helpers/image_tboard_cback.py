@@ -30,11 +30,11 @@ def make_image(tensor):
     return summary
 
 class TensorBoardImage(Callback):
-    def __init__(self, log_dir, image, noisy_image):
+    def __init__(self, log_dir, image, model_input):
         super().__init__()
         self.log_dir = log_dir
         self.image = image
-        self.noisy_image = noisy_image
+        self.model_input = model_input
 
     def set_model(self, model):
         self.model = model
@@ -53,5 +53,5 @@ class TensorBoardImage(Callback):
         self.writer.flush()
 
     def on_epoch_end(self, epoch, logs={}):
-        denoised_image = self.model.predict_on_batch(self.noisy_image)
-        self.write_image(denoised_image, 'Denoised Image', epoch)
+        reconstructed_image = self.model.predict_on_batch(self.model_input)
+        self.write_image(reconstructed_image, 'Denoised Image', epoch)
