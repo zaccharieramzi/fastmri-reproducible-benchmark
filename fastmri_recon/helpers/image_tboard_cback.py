@@ -56,4 +56,4 @@ class TensorBoardImage(Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         [reconstructed_image, _] = self.model.predict_on_batch(self.model_input)
-        self.write_image(reconstructed_image, 'Denoised Image', epoch)
+        self.write_image(reconstructed_image, 'Reconstructed Image', epoch)
