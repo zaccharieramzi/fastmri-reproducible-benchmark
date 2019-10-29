@@ -35,23 +35,8 @@ def _replace_label_first_underscore(label):
     label = label.replace('_', '/', 1)
     return label
 
-def adversarial_training_loop(
-        g,
-        d,
-        d_on_g,
-        train_gen,
-        val_gen=None,
-        validation_steps=1,
-        n_epochs=1,
-        n_batches=1,
-        n_critic_updates=5,
-        callbacks=None,
-        workers=1,
-        use_multiprocessing=False,
-        max_queue_size=10,
-        include_d_metrics=False,
-    ):
-    # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
+def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_d_metrics=False):
+    # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
     out_labels = d_on_g.metrics_names
@@ -66,7 +51,6 @@ def adversarial_training_loop(
         d_metrics_names = d_metrics_fake + d_metrics_real
         callback_metrics += d_metrics_names
     # prepare callbacks
-    # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     d_on_g.history = cbks.History()
     _callbacks = [cbks.BaseLogger(
         stateful_metrics=d_on_g.metrics_names[1:])]
@@ -84,8 +68,9 @@ def adversarial_training_loop(
         # 'do_validation': do_validation, to set when using validation data
         'metrics': callback_metrics,
     })
-    callbacks._call_begin_hook('train')
+    return callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real
 
+def queue_train_generator(train_gen, workers=1, use_multiprocessing=False, max_queue_size=10):
     # all the queue stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     if workers > 0:
         enqueuer = OrderedEnqueuer(
@@ -98,6 +83,50 @@ def adversarial_training_loop(
         train_generator = enqueuer.get()
     else:
         train_generator = iter_sequence_infinite(train_gen)
+    return train_generator
+
+def fill_batch_logs_w_d_metrics(batch_logs, d_outs_fake, d_outs_real, d_metrics_fake, d_metrics_real):
+    d_outs_fake = np.array(d_outs_fake)
+    d_outs_real = np.array(d_outs_real)
+    for i, l in enumerate(d_metrics_fake):
+        batch_logs[l] = np.mean(d_outs_fake[:, i])
+    for i, l in enumerate(d_metrics_real):
+        batch_logs[l] = np.mean(d_outs_real[:, i])
+
+def adversarial_training_loop(
+        g,
+        d,
+        d_on_g,
+        train_gen,
+        val_gen=None,
+        validation_steps=1,
+        n_epochs=1,
+        n_batches=1,
+        n_critic_updates=5,
+        callbacks=None,
+        workers=1,
+        use_multiprocessing=False,
+        max_queue_size=10,
+        include_d_metrics=False,
+    ):
+    # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
+    callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real = prepare_callbacks(
+        g,
+        d,
+        d_on_g,
+        callbacks,
+        n_epochs=n_epochs,
+        n_batches=n_batches,
+        include_d_metrics=include_d_metrics,
+    )
+    callbacks._call_begin_hook('train')
+
+    train_generator = queue_train_generator(
+        train_gen,
+        workers=workers,
+        use_multiprocessing=use_multiprocessing,
+        max_queue_size=max_queue_size,
+    )
 
     epoch_logs = {}
     for epoch in range(n_epochs):
@@ -124,12 +153,13 @@ def adversarial_training_loop(
                     d_outs_fake.append(d_out_fake)
                     d_outs_real.append(d_out_real)
             if include_d_metrics:
-                d_outs_fake = np.array(d_outs_fake)
-                d_outs_real = np.array(d_outs_real)
-                for i, l in enumerate(d_metrics_fake):
-                    batch_logs[l] = np.mean(d_outs_fake[:, i])
-                for i, l in enumerate(d_metrics_real):
-                    batch_logs[l] = np.mean(d_outs_real[:, i])
+                fill_batch_logs_w_d_metrics(
+                    batch_logs,
+                    d_outs_fake,
+                    d_outs_real,
+                    d_metrics_fake,
+                    d_metrics_real,
+                )
 
             d.trainable = False
 
