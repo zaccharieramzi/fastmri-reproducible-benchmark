@@ -3,12 +3,12 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import Model
 
 
-def discriminator_model():
+def discriminator_model(im_size=320):
     """Build discriminator architecture.
     from https://github.com/RaphaelMeudec/deblur-gan/blob/master/deblurgan/model.py
     """
     ndf, n_layers, k_size = 64, 3, 3
-    inputs = Input(shape=(320, 320, 1))
+    inputs = Input(shape=(im_size, im_size, 1))
 
     x = Conv2D(filters=ndf, kernel_size=k_size, strides=2, padding='same')(inputs)
     x = LeakyReLU(0.2)(x)
@@ -32,11 +32,11 @@ def discriminator_model():
     model = Model(inputs=inputs, outputs=x, name='Discriminator')
     return model
 
-def generator_containing_discriminator_multiple_outputs(generator, discriminator):
+def generator_containing_discriminator_multiple_outputs(generator, discriminator, im_size=320):
     """From https://github.com/RaphaelMeudec/deblur-gan/blob/master/deblurgan/model.py"""
     # to correct when going to cross domain learning.
     # The size of the input of the gen will be different, and we will need 2 inputs
-    inputs = Input(shape=(320, 320, 1))
+    inputs = Input(shape=(im_size, im_size, 1))
     generated_image = generator(inputs)
     outputs = discriminator(generated_image)
     model = Model(inputs=inputs, outputs=[generated_image, outputs])
