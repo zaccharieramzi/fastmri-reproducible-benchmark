@@ -1,7 +1,7 @@
 import keras.callbacks as cbks
-from keras.engine.training_utils import iter_sequence_infinite
+from keras.engine.training_utils import iter_sequence_infinite, is_sequence
 from keras.optimizers import Adam, RMSprop
-from keras.utils.data_utils import OrderedEnqueuer
+from keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
 
@@ -70,19 +70,28 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
     })
     return callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real
 
-def queue_train_generator(train_gen, workers=1, use_multiprocessing=False, max_queue_size=10):
+def queue_train_generator(train_gen, workers=1, use_multiprocessing=False, max_queue_size=10, use_sequence_api=True):
     # all the queue stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     if workers > 0:
-        enqueuer = OrderedEnqueuer(
-            train_gen,
-            use_multiprocessing=use_multiprocessing,
-            # TODO: add a parameter to control this
-            shuffle=False,
-        )
+        if use_sequence_api:
+            enqueuer = OrderedEnqueuer(
+                train_gen,
+                use_multiprocessing=use_multiprocessing,
+                # TODO: add a parameter to control this
+                shuffle=False,
+            )
+        else:
+            enqueuer = GeneratorEnqueuer(
+                train_gen,
+                use_multiprocessing=use_multiprocessing,
+            )
         enqueuer.start(workers=workers, max_queue_size=max_queue_size)
         train_generator = enqueuer.get()
     else:
-        train_generator = iter_sequence_infinite(train_gen)
+        if use_sequence_api:
+            train_generator = iter_sequence_infinite(train_gen)
+        else:
+            train_generator = train_gen
     return train_generator
 
 def fill_batch_logs_w_d_metrics(batch_logs, d_outs_fake, d_outs_real, d_metrics_fake, d_metrics_real):
@@ -120,12 +129,13 @@ def adversarial_training_loop(
         include_d_metrics=include_d_metrics,
     )
     callbacks._call_begin_hook('train')
-
+    use_sequence_api = is_sequence(train_gen)
     train_generator = queue_train_generator(
         train_gen,
         workers=workers,
         use_multiprocessing=use_multiprocessing,
         max_queue_size=max_queue_size,
+        use_sequence_api=use_sequence_api,
     )
 
     epoch_logs = {}
