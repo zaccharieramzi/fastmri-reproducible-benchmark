@@ -15,27 +15,28 @@ class RandomShapeGenerator:
         self.im_shape = (batch_size, size, size, 1)
 
     def flow_random_shapes(self,):
-        images = np.empty(self.im_shape)
-        kspaces = np.empty(self.im_shape)
-        for i in range(self.batch_size):
-            image, _ = random_shapes(
-                (self.size, self.size),
-                max_shapes=self.n_shapes,
-                multichannel=False,
-                allow_overlap=True,
-                max_size=self.size,
-            )
-            image = image.astype('float32')
-            image /= 255
-            kspace = fft(image)
-            images[i, ..., 0] = image
-            kspaces[i, ..., 0] = kspace
-        mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float), self.size, axis=0)
-        mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
-        kspaces *= mask_batch
-        mask_batch = mask_batch[..., 0]
-        yield (kspaces, mask_batch), images
+        while True:
+            images = np.empty(self.im_shape)
+            kspaces = np.empty(self.im_shape)
+            for i in range(self.batch_size):
+                image, _ = random_shapes(
+                    (self.size, self.size),
+                    max_shapes=self.n_shapes,
+                    multichannel=False,
+                    allow_overlap=True,
+                    max_size=self.size,
+                )
+                image = image.astype('float32')
+                image /= 255
+                kspace = fft(image)
+                images[i, ..., 0] = image
+                kspaces[i, ..., 0] = kspace
+            mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
+            fourier_mask = np.repeat(mask.astype(np.float), self.size, axis=0)
+            mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
+            kspaces *= mask_batch
+            mask_batch = mask_batch[..., 0]
+            yield (kspaces, mask_batch), images
 
     def flow_z_filled_random_shapes(self,):
         random_shapes_gen = self.flow_random_shapes()
