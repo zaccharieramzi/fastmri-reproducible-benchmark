@@ -4,6 +4,7 @@ from skimage.draw import random_shapes
 from ..helpers.fourier import fft
 from ..helpers.reconstruction import zero_filled_recon
 from ..helpers.utils import gen_mask
+from ..helpers.threadsafe_gen import threadsafe_generator
 
 
 class RandomShapeGenerator:
@@ -14,6 +15,8 @@ class RandomShapeGenerator:
         self.batch_size = batch_size
         self.im_shape = (batch_size, size, size, 1)
 
+
+    @threadsafe_generator
     def flow_random_shapes(self,):
         while True:
             images = np.empty(self.im_shape)
@@ -38,6 +41,7 @@ class RandomShapeGenerator:
             mask_batch = mask_batch[..., 0]
             yield (kspaces, mask_batch), images
 
+    @threadsafe_generator
     def flow_z_filled_random_shapes(self,):
         random_shapes_gen = self.flow_random_shapes()
         for (kspaces, _), images in random_shapes_gen:

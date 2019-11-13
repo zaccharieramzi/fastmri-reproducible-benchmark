@@ -1,3 +1,4 @@
+import tensorflow as tf
 import keras.callbacks as cbks
 from keras.engine.training_utils import iter_sequence_infinite, is_sequence
 from keras.optimizers import Adam, RMSprop
@@ -7,7 +8,6 @@ import numpy as np
 
 from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
 from .utils import keras_ssim, keras_psnr
-
 
 def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
     # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
@@ -44,6 +44,7 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
     # we only want to validate on the output of g
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
     callback_metrics = out_labels + val_out_labels
+
     if include_d_metrics:
         d_metrics_names = d.metrics_names
         d_metrics_fake = ['d_training/' + l + '_fake' for l in d_metrics_names]
@@ -117,7 +118,11 @@ def adversarial_training_loop(
         use_multiprocessing=False,
         max_queue_size=10,
         include_d_metrics=False,
+        gen_pre_training_steps=0,
+        pre_training_callbacks=None,
+        # inner_training_gen=1
     ):
+    
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real = prepare_callbacks(
         g,
@@ -126,7 +131,7 @@ def adversarial_training_loop(
         callbacks,
         n_epochs=n_epochs,
         n_batches=n_batches,
-        include_d_metrics=include_d_metrics,
+        include_d_metrics=include_d_metrics
     )
     callbacks._call_begin_hook('train')
     use_sequence_api = is_sequence(train_gen)
@@ -137,6 +142,14 @@ def adversarial_training_loop(
         max_queue_size=max_queue_size,
         use_sequence_api=use_sequence_api,
     )
+
+    # generator pre-training
+    pretraining_history = g.fit_generator(
+                                train_gen,
+                                steps_per_epoch=n_batches,
+                                verbose=0,
+                                epochs=gen_pre_training_steps,
+                                callbacks=pre_training_callbacks)
 
     epoch_logs = {}
     for epoch in range(n_epochs):
@@ -172,7 +185,7 @@ def adversarial_training_loop(
                 )
 
             d.trainable = False
-
+        
             outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=True)
             outs = to_list(outs)
             for l, o in zip(out_labels, outs):
@@ -194,3 +207,27 @@ def adversarial_training_loop(
                 epoch_logs[l] = o
         callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
+
+def training_generator(g,
+                    train_gen,
+                    gen_pre_training_steps=0,
+                    callbacks=None,
+                    n_epochs=1,
+                    n_batches=1,
+                    workers=1,
+                    use_multiprocessing=False,
+                    max_queue_size=10,
+                    ):
+
+    for i in range(gen_pre_training_steps):
+        aliased = []
+        image = []
+        for i in range(n_batches*n_epochs):
+            x, im = next(train_gen) 
+            aliased.append(x)
+            image.append(im)
+        g.fit(x=np.squeeze(aliased, axis=1),
+              y=np.squeeze(image, axis=1),
+              epochs=1,
+              callbacks=callbacks,
+              use_multiprocessing=use_multiprocessing)
