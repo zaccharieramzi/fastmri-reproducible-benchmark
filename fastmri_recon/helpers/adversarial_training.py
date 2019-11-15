@@ -207,27 +207,4 @@ def adversarial_training_loop(
                 epoch_logs[l] = o
         callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
-
-def training_generator(g,
-                    train_gen,
-                    gen_pre_training_steps=0,
-                    callbacks=None,
-                    n_epochs=1,
-                    n_batches=1,
-                    workers=1,
-                    use_multiprocessing=False,
-                    max_queue_size=10,
-                    ):
-
-    for i in range(gen_pre_training_steps):
-        aliased = []
-        image = []
-        for i in range(n_batches*n_epochs):
-            x, im = next(train_gen) 
-            aliased.append(x)
-            image.append(im)
-        g.fit(x=np.squeeze(aliased, axis=1),
-              y=np.squeeze(image, axis=1),
-              epochs=1,
-              callbacks=callbacks,
-              use_multiprocessing=use_multiprocessing)
+    return pretraining_history
