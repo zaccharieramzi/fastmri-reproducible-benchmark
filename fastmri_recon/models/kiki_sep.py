@@ -1,11 +1,12 @@
 from keras.layers import Input, Lambda
 from keras.models import Model
+import tensorflow as tf
 
 from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, conv2d_complex, enforce_kspace_data_consistency, MultiplyScalar
 
 
-def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_convs=5, n_filters=16, noiseless=True, lr=1e-3, to_add='I', last=False, activation='relu'):
+def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_convs=5, n_filters=16, noiseless=True, lr=1e-3, to_add='I', last=False, activation='relu', fastmri=True):
     r"""This net is a sequence of convolution blocks in either image or k-space
         performed on top of a previous model whose weights will be frozen
 
@@ -30,7 +31,9 @@ def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_con
     to_add (str): whether the convolutions happen in the image (I) or the k-space
         (K). This allows to apply the correct transformation and potentially
         data consistency.
-    last (bool): whether to put the final image in fastMRI format, defaults
+    last (bool): whether to put the final image in real-valued, by taking its
+        complex module, defaults to False
+    fastmri (bool): whether to put the final image in fastMRI format, defaults
         to True (i.e. image will be cropped to 320, 320)
     activation (str or function): see https://keras.io/activations/ for info
 
@@ -51,7 +54,10 @@ def kiki_sep_net(previous_net, multiply_scalar, input_size=(640, None, 1), n_con
             image = conv2d_complex(image, n_filters, n_convs, output_shape=input_size, res=True, activation=activation, last_kernel_size=1)
             output = image
             if last:
-                output = tf_fastmri_format(output)
+                if fastmri:
+                    output = tf_fastmri_format(output)
+                else:
+                    output = Lambda(lambda x: tf.math.abs(x), name='module')(output)
         elif to_add == 'K':
             image = previous_net([kspace_input, mask])
             kspace = Lambda(tf_unmasked_op, output_shape=input_size)(image)
