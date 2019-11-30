@@ -1,9 +1,9 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence, KIKISequence
 from fastmri_recon.helpers.nn_mri import MultiplyScalar, lrelu
@@ -64,6 +64,8 @@ def train_model(model, space='K', n=1):
     )
     lrate_cback = LearningRateScheduler(learning_rate_from_epoch)
     tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
+    tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
+    tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
     if space == 'K':
         train_gen = train_gen_k
         val_gen = val_gen_k
