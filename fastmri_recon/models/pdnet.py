@@ -1,7 +1,7 @@
 """Learned Primal-dual network adapted to MRI."""
-from keras.layers import Input, Lambda, concatenate, Add
-from keras.models import Model
 import tensorflow as tf
+from tensorflow.keras.layers import Input, Lambda, concatenate, Add
+from tensorflow.keras.models import Model
 import torch
 from torch import nn
 
