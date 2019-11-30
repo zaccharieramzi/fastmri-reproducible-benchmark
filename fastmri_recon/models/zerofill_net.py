@@ -1,6 +1,6 @@
 """Simple example-debug net."""
-from keras.layers import Input, Lambda
-from keras.models import Model
+from tensorflow.keras.layers import Input, Lambda
+from tensorflow.keras.models import Model
 
 from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri import tf_fastmri_format, tf_adj_op
