@@ -1,6 +1,6 @@
-from keras.layers import Input, Lambda
-from keras.models import Model
 import tensorflow as tf
+from tensorflow.keras.layers import Input, Lambda
+from tensorflow.keras.models import Model
 
 from ..helpers.keras_utils import default_model_compile
 from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, conv2d_complex, enforce_kspace_data_consistency, MultiplyScalar
