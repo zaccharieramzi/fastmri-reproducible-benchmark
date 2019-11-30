@@ -1,12 +1,9 @@
 import os.path as op
 import time
 
-from keras.backend.tensorflow_backend import set_session
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
-from keras.models import load_model
-from keras.utils.vis_utils import model_to_dot
-from keras_tqdm import TQDMCallback
 import tensorflow as tf
+from keras_tqdm import TQDMCallback
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.models.cascading import cascade_net
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence
@@ -74,9 +71,9 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
-lr_on_plat_cback = ReduceLROnPlateau(monitor='val_keras_psnr', min_lr=5*1e-5, mode='max', patience=5)
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
-
+tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
+tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
 
 
 
