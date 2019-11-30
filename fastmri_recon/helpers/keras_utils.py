@@ -1,5 +1,5 @@
-import keras.backend as K
-from keras.optimizers import Adam
+import tensorflow.keras.backend as K
+from tensorflow.keras.optimizers import Adam
 
 from .utils import keras_psnr, keras_ssim
 
