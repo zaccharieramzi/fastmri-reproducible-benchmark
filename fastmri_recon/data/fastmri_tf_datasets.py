@@ -3,7 +3,7 @@ import glob
 import tensorflow as tf
 
 from .data_utils import from_train_file_to_image_and_kspace
-from ..helpers.nn_mri import tf_unmasked_ifft, tf_fastmri_format
+from ..helpers.nn_mri import tf_unmasked_ifft, _tf_crop
 from ..helpers.utils import gen_mask_tf
 
 # TODO: add datasets for kiki-sep and u-net
@@ -76,14 +76,15 @@ def zero_filled(kspace_mask, images):
         back_prop=False,
         infer_shape=False,
     )
-    zero_filled_cropped_recon = tf.map_fn(
-        tf_fastmri_format,
+    zero_filled_recon_abs = tf.map_fn(
+        tf.math.abs,
         zero_filled_recon,
         dtype=tf.float32,
         parallel_iterations=35,
         back_prop=False,
         infer_shape=False,
     )
+    zero_filled_cropped_recon = _tf_crop(zero_filled_recon_abs)
     return zero_filled_cropped_recon, images
 
 # TODO: have a validation setting to allow for proper inference
