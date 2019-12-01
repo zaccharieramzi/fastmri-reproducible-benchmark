@@ -46,7 +46,7 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
     masked_kspace_ds = tf.data.Dataset.from_generator(
         image_and_kspace_generator,
         (tf.float32, tf.complex64),
-        (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, None, None])),
+        (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
         args=(path,),
     ).map(
         from_kspace_to_masked_kspace_and_mask, num_parallel_calls=tf.data.experimental.AUTOTUNE
