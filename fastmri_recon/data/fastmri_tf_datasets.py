@@ -5,6 +5,8 @@ import tensorflow as tf
 from .data_utils import from_train_file_to_image_and_kspace
 from ..helpers.utils import gen_mask_tf
 
+# TODO: add datasets for kiki-sep and u-net
+
 def image_and_kspace_generator(path):
     filenames = glob.glob(path.decode("utf-8") + '*.h5')
     return (from_train_file_to_image_and_kspace(filename) for filename in filenames)
