@@ -66,8 +66,8 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
     return masked_kspace_ds
 
 # zero-filled specific utils
-def zero_filled(kspace_mask_and_image):
-    (kspaces, _), images = kspace_mask_and_image
+def zero_filled(kspace_mask, images):
+    kspaces, _ = kspace_mask
     zero_filled_recon = tf.map_fn(
         tf_adj_op,
         kspaces,
