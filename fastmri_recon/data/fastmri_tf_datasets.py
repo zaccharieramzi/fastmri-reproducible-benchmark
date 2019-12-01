@@ -2,7 +2,7 @@ import glob
 
 import tensorflow as tf
 
-from .data_utils import from_train_file_to_image_and_kspace
+from .data_utils import from_train_file_to_image_and_kspace, from_file_to_kspace
 from ..helpers.nn_mri import tf_unmasked_ifft, _tf_crop
 from ..helpers.utils import gen_mask_tf
 
@@ -135,3 +135,46 @@ def train_zero_filled_dataset(path, AF=4, norm=False):
         )
     zero_filled_ds = zero_filled_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     return zero_filled_ds
+
+# kiki-specific utils
+def inv_fourier(kspaces_and_masks, kspaces_orig):
+    images = tf.map_fn(
+        tf_unmasked_ifft,
+        kspaces_orig,
+        dtype=tf.complex64,
+        parallel_iterations=35,
+        back_prop=False,
+        infer_shape=False,
+    )
+    return kspaces_and_masks, images
+
+def double_kspace_generator(path):
+    filenames = glob.glob(path.decode("utf-8") + '*.h5')
+    def _gen():
+        for filename in filenames:
+            kspace = from_file_to_kspace(filename)
+            yield (kspace, kspace)
+    return _gen()
+
+def train_masked_kspace_kiki(path, AF=4, inner_slices=None, rand=False, scale_factor=1, space='K'):
+    masked_kspace_ds = tf.data.Dataset.from_generator(
+        double_kspace_generator,
+        (tf.complex64, tf.complex64),
+        (tf.TensorShape([None, 640, None]), tf.TensorShape([None, 640, None])),
+        args=(path,),
+    ).map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    if space == 'I':
+        masked_kspace_ds = masked_kspace_ds.map(
+            inv_fourier,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
+    masked_kspace_ds = masked_kspace_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    return masked_kspace_ds
