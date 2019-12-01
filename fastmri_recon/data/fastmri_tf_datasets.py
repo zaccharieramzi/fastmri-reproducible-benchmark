@@ -66,6 +66,16 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
     return masked_kspace_ds
 
 # zero-filled specific utils
+@tf.function(input_signature=[
+    (
+        # kspace spec
+        tf.TensorSpec(shape=[None, 640, None, 1], dtype=tf.complex64),
+        # mask spec
+        tf.TensorSpec(shape=[None, 640, None, 1], dtype=tf.float32)
+    ),
+    # image spec
+    tf.TensorSpec(shape=[None, 320, 320, 1], dtype=tf.float32),
+])
 def zero_filled(kspace_mask, images):
     kspaces, _ = kspace_mask
     zero_filled_recon = tf.map_fn(
@@ -95,6 +105,12 @@ def normalize_instance(zero_filled_and_image):
     normalized_image = (image - mean) / stddev
     return normalized_zero_filled_recon, normalized_image
 
+@tf.function(input_signature=[
+    # zero-filled spec
+    tf.TensorSpec(shape=[None, 640, None, 1], dtype=tf.complex64),
+    # image spec
+    tf.TensorSpec(shape=[None, 320, 320, 1], dtype=tf.float32),
+])
 def normalize_images(zero_filled_and_images):
     normalized_zero_filled_and_images = tf.map_fn(
         normalize_instance,
