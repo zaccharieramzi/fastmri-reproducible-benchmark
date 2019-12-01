@@ -85,6 +85,7 @@ def zero_filled(kspace_mask, images):
         infer_shape=False,
     )
     zero_filled_cropped_recon = _tf_crop(zero_filled_recon_abs)
+    zero_filled_cropped_recon.set_shape((None, 320, 320, 1))
     return zero_filled_cropped_recon, images
 
 # TODO: have a validation setting to allow for proper inference
@@ -105,6 +106,8 @@ def normalize_images(zero_filled_recon, images):
         back_prop=False,
         infer_shape=False,
     )
+    normalized_zero_filled_and_images[0].set_shape((None, 320, 320, 1))
+    normalized_zero_filled_and_images[1].set_shape((None, 320, 320, 1))
     return normalized_zero_filled_and_images
 
 def train_zero_filled_dataset(path, AF=4, norm=False):
