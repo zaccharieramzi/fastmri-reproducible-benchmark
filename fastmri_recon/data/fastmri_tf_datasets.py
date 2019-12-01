@@ -87,18 +87,17 @@ def zero_filled(kspace_mask, images):
     return zero_filled_cropped_recon, images
 
 # TODO: have a validation setting to allow for proper inference
-def normalize_instance(zero_filled_and_image):
-    zero_filled_recon, image = zero_filled_and_image
+def normalize_instance(zero_filled_recon, image):
     mean = tf.reduce_mean(zero_filled_recon)
     stddev = tf.math.reduce_std(zero_filled_recon)
     normalized_zero_filled_recon = (zero_filled_recon - mean) / stddev
     normalized_image = (image - mean) / stddev
     return normalized_zero_filled_recon, normalized_image
 
-def normalize_images(zero_filled_and_images):
+def normalize_images(zero_filled, images):
     normalized_zero_filled_and_images = tf.map_fn(
         normalize_instance,
-        zero_filled_and_images,
+        (zero_filled, images),
         dtype=(tf.float32, tf.float32),
         parallel_iterations=35,
         back_prop=False,
@@ -130,4 +129,4 @@ def train_zero_filled_dataset(path, AF=4, norm=False):
             num_parallel_calls=tf.data.experimental.AUTOTUNE,
         )
     zero_filled_ds = zero_filled_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    return
+    return zero_filled_ds
