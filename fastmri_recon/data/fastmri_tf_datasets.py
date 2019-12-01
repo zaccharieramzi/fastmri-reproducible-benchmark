@@ -3,6 +3,7 @@ import glob
 import tensorflow as tf
 
 from .data_utils import from_train_file_to_image_and_kspace
+from ..helpers.nn_mri import tf_adj_op, tf_fastmri_format
 from ..helpers.utils import gen_mask_tf
 
 # TODO: add datasets for kiki-sep and u-net
@@ -26,7 +27,7 @@ def selected_slices(kspaces, inner_slices=8, rand=True):
         slices = (slice_start, slice_start + inner_slices)
     return slices
 
-def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
+def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=False, scale_factor=1):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         mask = gen_mask_tf(kspaces, accel_factor=AF)
         kspaces_masked = mask * kspaces
@@ -44,14 +45,89 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
         return (kspaces_channeled, mask_sliced), images_channeled
+    return from_kspace_to_masked_kspace_and_mask
 
+def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
     masked_kspace_ds = tf.data.Dataset.from_generator(
         image_and_kspace_generator,
         (tf.float32, tf.complex64),
         (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
         args=(path,),
     ).map(
-        from_kspace_to_masked_kspace_and_mask, num_parallel_calls=tf.data.experimental.AUTOTUNE
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return masked_kspace_ds
+
+# zero-filled specific utils
+def zero_filled(kspace_mask_and_image):
+    (kspaces, _), images = kspace_mask_and_image
+    zero_filled_recon = tf.map_fn(
+        tf_adj_op,
+        kspaces,
+        dtype=tf.complex64,
+        parallel_iterations=35,
+        back_prop=False,
+        infer_shape=False,
+    )
+    zero_filled_cropped_recon = tf.map_fn(
+        tf_fastmri_format,
+        zero_filled_recon,
+        dtype=tf.float32,
+        parallel_iterations=35,
+        back_prop=False,
+        infer_shape=False,
+    )
+    return zero_filled_cropped_recon, images
+
+# TODO: have a validation setting to allow for proper inference
+def normalize_instance(zero_filled_and_image):
+    zero_filled_recon, image = zero_filled_and_image
+    mean = tf.reduce_mean(zero_filled_recon)
+    stddev = tf.math.reduce_std(zero_filled_recon)
+    normalized_zero_filled_recon = (zero_filled_recon - mean) / stddev
+    normalized_image = (image - mean) / stddev
+    return normalized_zero_filled_recon, normalized_image
+
+def normalize_images(zero_filled_and_images):
+    normalized_zero_filled_and_images = tf.map_fn(
+        normalize_instance,
+        zero_filled_and_images,
+        dtype=(tf.float32, tf.float32),
+        parallel_iterations=35,
+        back_prop=False,
+        infer_shape=False,
+    )
+    return normalized_zero_filled_and_images
+
+def train_zero_filled_dataset(path, AF=4, norm=False):
+    zero_filled_ds = tf.data.Dataset.from_generator(
+        image_and_kspace_generator,
+        (tf.float32, tf.complex64),
+        (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
+        args=(path,),
+    ).map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=None,
+            rand=False,
+            scale_factor=1,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    ).map(
+        zero_filled,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    if norm:
+        zero_filled_ds = zero_filled_ds.map(
+            normalize_images,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
+    zero_filled_ds = zero_filled_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    return
