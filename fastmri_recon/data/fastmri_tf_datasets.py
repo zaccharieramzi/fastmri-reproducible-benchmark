@@ -29,20 +29,24 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
         mask = gen_mask_tf(kspaces, accel_factor=AF)
         kspaces_masked = mask * kspaces
         if inner_slices is not None:
-            slices = selected_slices(kspaces, inner_slices=inner_slices, rand=rand)
-            kspaces = kspaces[slices[0][0]:slices[1][0]]
-            images = images[slices[0][0]:slices[1][0]]
-            mask = mask[slices[0][0]:slices[1][0]]
-        kspaces = kspaces * scale_factor
-        images = images * scale_factor
-        kspaces = kspaces[..., None]
-        images = images[..., None]
-        return (kspaces_masked, mask), images
+            slices = selected_slices(kspaces_masked, inner_slices=inner_slices, rand=rand)
+            kspaces_sliced = kspaces_masked[slices[0][0]:slices[1][0]]
+            images_sliced = images[slices[0][0]:slices[1][0]]
+            mask_sliced = mask[slices[0][0]:slices[1][0]]
+        else:
+            kspaces_sliced = kspaces_masked
+            images_sliced = images
+            mask_sliced = mask
+        kspaces_scaled = kspaces_sliced * scale_factor
+        images_scaled = images_sliced * scale_factor
+        kspaces_channeled = kspaces_scaled[..., None]
+        images_channeled = images_scaled[..., None]
+        return (kspaces_channeled, mask_sliced), images_channeled
 
     masked_kspace_ds = tf.data.Dataset.from_generator(
         image_and_kspace_generator,
         (tf.float32, tf.complex64),
-        (tf.TensorShape([None, None, None]), tf.TensorShape([None, None, None])),
+        (tf.TensorShape([320, 320, 1]), tf.TensorShape([None, None, None])),
         args=(path,),
     ).map(
         from_kspace_to_masked_kspace_and_mask, num_parallel_calls=tf.data.experimental.AUTOTUNE
