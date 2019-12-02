@@ -80,7 +80,7 @@ class CifarGenerator:
 
     @threadsafe_generator
     def flow_z_filled_images(self,):
-        random_shapes_gen = self.flow_random_images()
+        random_shapes_gen = self.flow_images()
         for (kspaces, mask_batch), images in random_shapes_gen:
             z_filled = zero_filled_recon(kspaces[..., 0], crop=False)[..., None]
             yield z_filled, images, mask_batch
