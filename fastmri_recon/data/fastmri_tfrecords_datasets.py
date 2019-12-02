@@ -64,7 +64,7 @@ def ds_gen(path, num_shards=200):
 
 def create_tf_records(path, num_shards=200, wrapper=tqdm):
     for i_record, serialized_ds in wrapper(enumerate(ds_gen(path, num_shards=num_shards))):
-        record_filename = f'train-{i_record}.tfrecord'
+        record_filename = f'{path}train-{i_record}.tfrecord'
         writer = tf.data.experimental.TFRecordWriter(record_filename, compression_type='GZIP')
         writer.write(serialized_ds)
 
