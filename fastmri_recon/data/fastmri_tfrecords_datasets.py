@@ -15,6 +15,10 @@ def filename_image_and_kspace_generator_ds(path):
     filenames = glob.glob(path + '*.h5')
     return ((filename, from_train_file_to_image_and_kspace(filename)) for filename in filenames)
 
+def image_and_kspace_generator(path):
+    filenames = glob.glob(path.decode("utf-8") + '*.h5')
+    return (from_train_file_to_image_and_kspace(filename) for filename in filenames)
+
 # functions originated from https://www.tensorflow.org/tutorials/load_data/tfrecord#tfexample
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
@@ -46,26 +50,22 @@ def tf_serialize_example(images, kspaces):
     )      # the return type is `tf.string`.
     return tf.reshape(tf_string, ()) # The result is a scalar
 
-def single_acq_gen(images, kspaces):
-    # this because you can't create a dataset from non rectangular numpy sequences
-    return ((images, kspaces) for i in range(1))
+def ds_gen(path, num_shards=200):
+    image_kspace_ds = tf.data.Dataset.from_generator(
+        image_and_kspace_generator,
+        (tf.float32, tf.complex64),
+        (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
+        args=(path,),
+    )
+    serialized_ds = image_kspace_ds.map(tf_serialize_example)
+    for i_shard in range(num_shards):
+        sharded_serialized_ds = serialized_ds.shard(num_shards, i_shard)
+        yield sharded_serialized_ds
 
-def ds_gen(path):
-    for filename, (images, kspaces) in filename_image_and_kspace_generator_ds(path):
-        image_kspace_ds = tf.data.Dataset.from_generator(
-            single_acq_gen,
-            (tf.float32, tf.complex64),
-            (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
-            args=[images, kspaces],
-        )
-        serialized_ds = image_kspace_ds.map(tf_serialize_example)
-        yield filename, serialized_ds
-
-def create_tf_records(path, wrapper=tqdm):
-    for filename, serialized_ds in wrapper(ds_gen(path)):
-        orig_filename_wo_ext = op.splitext(filename)[0]
-        test_filename = f'{orig_filename_wo_ext}.tfrecord'
-        writer = tf.data.experimental.TFRecordWriter(test_filename, compression_type='GZIP')
+def create_tf_records(path, num_shards=200, wrapper=tqdm):
+    for i_record, serialized_ds in wrapper(enumerate(ds_gen(path, num_shards=num_shards))):
+        record_filename = f'train-{i_record}.tfrecord'
+        writer = tf.data.experimental.TFRecordWriter(record_filename, compression_type='GZIP')
         writer.write(serialized_ds)
 
 
