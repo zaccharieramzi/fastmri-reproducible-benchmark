@@ -83,7 +83,7 @@ class CifarGenerator:
         random_shapes_gen = self.flow_images()
         for (kspaces, mask_batch), images in random_shapes_gen:
             z_filled = zero_filled_recon(kspaces[..., 0], crop=False)[..., None]
-            yield z_filled, images, mask_batch
+            yield z_filled, images
 
     def reset(self,):
         self.index = 0
