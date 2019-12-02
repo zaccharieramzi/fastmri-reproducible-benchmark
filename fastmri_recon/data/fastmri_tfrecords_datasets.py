@@ -62,8 +62,8 @@ def sliced_ds(path, file_slice=None):
     serialized_ds = image_kspace_ds.map(tf_serialize_example)
     return serialized_ds
 
-def create_tf_records(path, n_samples=973, num_shards=200, wrapper=tqdm):
-    n_samples_in_shard = n_samples // num_shards + 1
+def create_tf_records(path, n_samples=973, n_samples_in_shard=5, wrapper=tqdm):
+    num_shards = n_samples // n_samples_in_shard + 1
     file_slices = [(i_shard * n_samples_in_shard, (i_shard + 1) * n_samples_in_shard) for i_shard in range(num_shards)]
     for i_record, file_slice in wrapper(enumerate(file_slices), total=num_shards):
         record_filename = f'{path}train-{i_record}.tfrecord'
