@@ -15,8 +15,10 @@ def filename_image_and_kspace_generator_ds(path):
     filenames = glob.glob(path + '*.h5')
     return ((filename, from_train_file_to_image_and_kspace(filename)) for filename in filenames)
 
-def image_and_kspace_generator(path):
+def image_and_kspace_generator(path, file_slice=None):
     filenames = glob.glob(path.decode("utf-8") + '*.h5')
+    if file_slice is not None:
+        filenames = filenames[file_slice]
     return (from_train_file_to_image_and_kspace(filename) for filename in filenames)
 
 # functions originated from https://www.tensorflow.org/tutorials/load_data/tfrecord#tfexample
@@ -50,22 +52,23 @@ def tf_serialize_example(images, kspaces):
     )      # the return type is `tf.string`.
     return tf.reshape(tf_string, ()) # The result is a scalar
 
-def ds_gen(path, num_shards=200):
+def sliced_ds(path, file_slice=None):
     image_kspace_ds = tf.data.Dataset.from_generator(
         image_and_kspace_generator,
         (tf.float32, tf.complex64),
         (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
-        args=(path,),
+        args=(path, file_slice),
     )
     serialized_ds = image_kspace_ds.map(tf_serialize_example)
-    for i_shard in range(num_shards):
-        sharded_serialized_ds = serialized_ds.shard(num_shards, i_shard)
-        yield sharded_serialized_ds
+    return serialized_ds
 
-def create_tf_records(path, num_shards=200, wrapper=tqdm):
-    for i_record, serialized_ds in wrapper(enumerate(ds_gen(path, num_shards=num_shards))):
+def create_tf_records(path, n_samples=973, num_shards=200, wrapper=tqdm):
+    n_samples_in_shard = n_samples // num_shards + 1
+    file_slices = [slice(i_shard * n_samples_in_shard, (i_shard + 1) * n_samples_in_shard) for i_shard in range(num_shards)]
+    for i_record, file_slice in wrapper(enumerate(file_slices)):
         record_filename = f'{path}train-{i_record}.tfrecord'
         writer = tf.data.experimental.TFRecordWriter(record_filename, compression_type='GZIP')
+        serialized_ds = sliced_ds(path, file_slice=file_slice)
         writer.write(serialized_ds)
 
 
