@@ -68,10 +68,11 @@ class CifarGenerator:
                 self.reset()
             for i in range(self.batch_size):
                 image = self.data[self.index]
+                images[i, ..., 0] = image
+                
                 image = image.astype('float32')
                 image /= 255
                 kspace = fft(image)
-                images[i, ..., 0] = self.data[self.index]
                 kspaces[i, ..., 0] = kspace
                 self.index += 1
             mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
