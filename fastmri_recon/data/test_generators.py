@@ -49,13 +49,14 @@ class RandomShapeGenerator:
             yield z_filled, images, mask_batch
 
 class CifarGenerator:
-    def __init__(self, af, size, data, batch_size=1):
+    def __init__(self, af, size, data, max_size, batch_size=1):
         self.af = af
         self.data = data
         self.size = size
         self.batch_size = batch_size
         self.im_shape = (batch_size, size, size, 1)
         self.index = 0
+        self.max_size = max_size
 
 
     @threadsafe_generator
@@ -63,6 +64,8 @@ class CifarGenerator:
         while True:
             images = np.empty(self.im_shape)
             kspaces = np.empty(self.im_shape)
+            if self.index == self.max_size:
+                self.reset()
             for i in range(self.batch_size):
                 image = self.data[self.index]
                 image = image.astype('float32')
