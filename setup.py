@@ -11,7 +11,7 @@ setuptools.setup(
     description="Tools to benchmark different reconstruction neural nets on the fastMRI dataset",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/fastmri-reproducible-benchmark",
+    url="https://github.com/zaccharieramzi/fastmri-reproducible-benchmark",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
