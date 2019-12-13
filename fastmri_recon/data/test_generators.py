@@ -44,19 +44,19 @@ class RandomShapeGenerator:
     @threadsafe_generator
     def flow_z_filled_random_shapes(self,):
         random_shapes_gen = self.flow_random_shapes()
-        for (kspaces, mask_batch), images in random_shapes_gen:
+        for (kspaces, _), images in random_shapes_gen:
             z_filled = zero_filled_recon(kspaces[..., 0], crop=False)[..., None]
-            yield z_filled, images, mask_batch
+            yield z_filled, images
 
-class CifarGenerator:
-    def __init__(self, af, size, data, max_size, batch_size=1):
+class DataGenerator:
+    def __init__(self, af, data, batch_size=1):
         self.af = af
         self.data = data
-        self.size = size
+        self.size = data.shape[1]
         self.batch_size = batch_size
-        self.im_shape = (batch_size, size, size, 1)
+        self.im_shape = (batch_size, data.shape[1], data.shape[1], 1)
         self.index = 0
-        self.max_size = max_size
+        self.max_size = data.shape[0]
 
 
     @threadsafe_generator
@@ -69,7 +69,7 @@ class CifarGenerator:
             for i in range(self.batch_size):
                 image = self.data[self.index]
                 images[i, ..., 0] = image
-                
+
                 image = image.astype('float32')
                 image /= 255
                 kspace = fft(image)
@@ -85,7 +85,7 @@ class CifarGenerator:
     @threadsafe_generator
     def flow_z_filled_images(self,):
         random_shapes_gen = self.flow_images()
-        for (kspaces, mask_batch), images in random_shapes_gen:
+        for (kspaces, _), images in random_shapes_gen:
             z_filled = zero_filled_recon(kspaces[..., 0], crop=False)[..., None]
             yield z_filled, images
 

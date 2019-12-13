@@ -1,13 +1,14 @@
-import tensorflow as tf
 import keras.callbacks as cbks
 from keras.engine.training_utils import iter_sequence_infinite, is_sequence
 from keras.optimizers import Adam, RMSprop
 from keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
+import tensorflow as tf
 
 from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
 from .utils import keras_ssim, keras_psnr
+
 
 def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
     # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
@@ -120,7 +121,6 @@ def adversarial_training_loop(
         include_d_metrics=False,
         gen_pre_training_steps=0,
         pre_training_callbacks=None,
-        # inner_training_gen=1
     ):
     
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
@@ -131,7 +131,7 @@ def adversarial_training_loop(
         callbacks,
         n_epochs=n_epochs,
         n_batches=n_batches,
-        include_d_metrics=include_d_metrics
+        include_d_metrics=include_d_metrics,
     )
     callbacks._call_begin_hook('train')
     use_sequence_api = is_sequence(train_gen)
@@ -144,12 +144,14 @@ def adversarial_training_loop(
     )
 
     # generator pre-training
-    pretraining_history = g.fit_generator(
-                                train_gen,
-                                steps_per_epoch=n_batches,
-                                verbose=0,
-                                epochs=gen_pre_training_steps,
-                                callbacks=pre_training_callbacks)
+    pretraining_history = g.fit_generator(train_gen,
+        steps_per_epoch=n_batches,
+        verbose=0,
+        epochs=gen_pre_training_steps,
+        callbacks=pre_training_callbacks,
+        validation_data=val_gen,
+        validation_steps=validation_steps,
+    )
 
     epoch_logs = {}
     for epoch in range(n_epochs):
@@ -181,11 +183,11 @@ def adversarial_training_loop(
                     d_outs_fake,
                     d_outs_real,
                     d_metrics_fake,
-                    d_metrics_real,
+                    d_metrics_real
                 )
 
             d.trainable = False
-        
+
             outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=True)
             outs = to_list(outs)
             for l, o in zip(out_labels, outs):
