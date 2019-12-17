@@ -45,7 +45,6 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
     # we only want to validate on the output of g
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
     callback_metrics = out_labels + val_out_labels
-
     if include_d_metrics:
         d_metrics_names = d.metrics_names
         d_metrics_fake = ['d_training/' + l + '_fake' for l in d_metrics_names]
@@ -183,7 +182,7 @@ def adversarial_training_loop(
                     d_outs_fake,
                     d_outs_real,
                     d_metrics_fake,
-                    d_metrics_real
+                    d_metrics_real,
                 )
 
             d.trainable = False

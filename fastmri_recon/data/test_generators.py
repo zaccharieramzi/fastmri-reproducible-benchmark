@@ -3,8 +3,8 @@ from skimage.draw import random_shapes
 
 from ..helpers.fourier import fft
 from ..helpers.reconstruction import zero_filled_recon
-from ..helpers.utils import gen_mask
 from ..helpers.threadsafe_gen import threadsafe_generator
+from ..helpers.utils import gen_mask
 
 
 class RandomShapeGenerator:
@@ -14,7 +14,6 @@ class RandomShapeGenerator:
         self.size = size
         self.batch_size = batch_size
         self.im_shape = (batch_size, size, size, 1)
-
 
     @threadsafe_generator
     def flow_random_shapes(self,):
@@ -52,9 +51,8 @@ class DataGenerator:
     def __init__(self, af, data, batch_size=1):
         self.af = af
         self.data = data
-        self.size = data.shape[1]
         self.batch_size = batch_size
-        self.im_shape = (batch_size, data.shape[1], data.shape[1], 1)
+        self.im_shape = (batch_size, data.shape[1], data.shape[2], 1)
         self.index = 0
         self.max_size = data.shape[0]
 
@@ -76,7 +74,7 @@ class DataGenerator:
                 kspaces[i, ..., 0] = kspace
                 self.index += 1
             mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-            fourier_mask = np.repeat(mask.astype(np.float), self.size, axis=0)
+            fourier_mask = np.repeat(mask.astype(np.float), self.im_shape[1], axis=0)
             mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
             kspaces *= mask_batch
             mask_batch = mask_batch[..., 0]
