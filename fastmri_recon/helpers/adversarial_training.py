@@ -4,6 +4,7 @@ from keras.optimizers import Adam, RMSprop
 from keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
 from keras.utils.metrics_utils import to_list
 import numpy as np
+import tensorflow as tf
 
 from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
 from .utils import keras_ssim, keras_psnr
@@ -117,6 +118,8 @@ def adversarial_training_loop(
         use_multiprocessing=False,
         max_queue_size=10,
         include_d_metrics=False,
+        gen_pre_training_steps=0,
+        pre_training_callbacks=None,
     ):
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real = prepare_callbacks(
@@ -136,6 +139,16 @@ def adversarial_training_loop(
         use_multiprocessing=use_multiprocessing,
         max_queue_size=max_queue_size,
         use_sequence_api=use_sequence_api,
+    )
+
+    # generator pre-training
+    pretraining_history = g.fit_generator(train_gen,
+        steps_per_epoch=n_batches,
+        verbose=0,
+        epochs=gen_pre_training_steps,
+        callbacks=pre_training_callbacks,
+        validation_data=val_gen,
+        validation_steps=validation_steps,
     )
 
     epoch_logs = {}
@@ -194,3 +207,4 @@ def adversarial_training_loop(
                 epoch_logs[l] = o
         callbacks.on_epoch_end(epoch, epoch_logs)
     callbacks._call_end_hook('train')
+    return pretraining_history
