@@ -121,7 +121,6 @@ def adversarial_training_loop(
         gen_pre_training_steps=0,
         pre_training_callbacks=None,
     ):
-    
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real = prepare_callbacks(
         g,
