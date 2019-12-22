@@ -1,6 +1,7 @@
 import glob
 
 import tensorflow as tf
+import tensorflow_io as tfio
 
 from .data_utils import from_train_file_to_image_and_kspace, from_file_to_kspace
 from ..helpers.nn_mri import tf_unmasked_ifft, _tf_crop
@@ -54,6 +55,30 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
         (tf.TensorShape([None, 320, 320]), tf.TensorShape([None, 640, None])),
         args=(path,),
     ).map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+    return masked_kspace_ds
+
+def image_and_kspace_from_h5(fpath):
+    h5_tensors = tfio.IOTensor.from_hdf5(fpath)
+    image = h5_tensors('/reconstruction_esc')
+    kspace = h5_tensors('kspace')
+    return image, kspace
+
+def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
+    files_ds = tf.data.Dataset.list_files(f'{path}/*.h5', seed=0)
+    image_and_kspace_ds = files_ds.map(
+        image_and_kspace_from_h5,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    masked_kspace_ds = image_and_kspace_ds.map(
         generic_from_kspace_to_masked_kspace_and_mask(
             AF=AF,
             inner_slices=inner_slices,
