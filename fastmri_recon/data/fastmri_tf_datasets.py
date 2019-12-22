@@ -68,8 +68,8 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
 
 def image_and_kspace_from_h5(fpath):
     h5_tensors = tfio.IOTensor.from_hdf5(fpath)
-    image = h5_tensors('/reconstruction_esc')
-    kspace = h5_tensors('kspace')
+    image = h5_tensors('/reconstruction_esc')[:]
+    kspace = h5_tensors('kspace')[:]
     return image, kspace
 
 def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
