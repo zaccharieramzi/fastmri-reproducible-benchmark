@@ -1,5 +1,7 @@
 # fastMRI reproducible benchmark
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/binder)
+
 The idea of this repository is to have a way to rapidly benchmark new solutions against existing reconstruction algorithms on the fastMRI dataset single-coil track.
 The reconstruction algorithms implemented or adapted to the fastMRI dataset include to this day:
 - zero filled reconstruction
