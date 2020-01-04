@@ -2,13 +2,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
 from tensorflow.keras import regularizers
-# right now because of https://stackoverflow.com/questions/59116928/how-do-i-import-the-fft2d-in-tensorflow-2-0-0
-# I can't use this import style.
-# from tensorflow.signal import fft2d, ifft2d
-fft2d = tf.signal.fft2d
-ifft2d = tf.signal.ifft2d
-fftshift = tf.signal.fftshift
-ifftshift = tf.signal.ifftshift
+from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftshift
 
 
 ### Keras and TensorFlow ###
