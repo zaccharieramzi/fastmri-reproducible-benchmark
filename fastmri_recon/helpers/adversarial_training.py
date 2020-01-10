@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow.keras.callbacks as cbks
 from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.utils import OrderedEnqueuer, GeneratorEnqueuer
+from tensorflow.python.keras.callbacks import CallbackList
 
 from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy, iter_sequence_infinite, is_sequence, to_list
 from .utils import keras_ssim, keras_psnr
@@ -53,7 +54,7 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
     _callbacks = [cbks.BaseLogger(
         stateful_metrics=d_on_g.metrics_names[1:])]
     _callbacks += (callbacks or []) + [d_on_g.history]
-    callbacks = cbks.CallbackList(_callbacks)
+    callbacks = CallbackList(_callbacks)
 
     # it's possible to callback a different model than self:
     callback_model = d_on_g._get_callback_model()
