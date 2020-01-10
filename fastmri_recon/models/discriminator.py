@@ -1,5 +1,4 @@
-from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense
-from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense, LeakyReLU
 from tensorflow.keras.models import Model
 
 
