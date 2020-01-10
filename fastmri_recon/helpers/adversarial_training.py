@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 import tensorflow.keras.callbacks as cbks
 from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.utils import OrderedEnqueuer, GeneratorEnqueuer
@@ -100,6 +101,43 @@ def fill_batch_logs_w_d_metrics(batch_logs, d_outs_fake, d_outs_real, d_metrics_
         batch_logs[l] = np.mean(d_outs_fake[:, i])
     for i, l in enumerate(d_metrics_real):
         batch_logs[l] = np.mean(d_outs_real[:, i])
+
+@tf.function
+def train_step(
+    x, image, g, d, g_opt, d_opt, n_critic_updates, perceptual_weight=100
+):
+    for _ in range(n_critic_updates):
+        with tf.GradientTape() as tape:
+            predictions_real = d(image)
+            d_loss_real = wasserstein_loss(
+                tf.ones_like(predictions_real), predictions_real
+            )
+
+            generated_images = g(x)
+            predictions_fake = d(generated_images)
+            d_loss_fake = wasserstein_loss(
+                -tf.ones_like(predictions_fake), predictions_fake
+            )
+
+            d_loss = tf.math.reduce_mean(0.5 * tf.math.add(d_loss_real, d_loss_fake))
+
+        gradients = tape.gradient(d_loss, d.trainable_weights)
+        d_opt.apply_gradients(zip(gradients, d.trainable_weights))
+
+    with tf.GradientTape() as tape:
+        generated_images = g(x)
+        predictions = d(generated_images)
+
+        discriminator_loss = wasserstein_loss(tf.ones_like(predictions), predictions)
+
+        image_loss = tf.keras.losses.MSE(image, generated_images)
+
+        g_loss = tf.math.reduce_mean(perceptual_weight * image_loss + discriminator_loss)
+
+    gradients = tape.gradient(g_loss, g.trainable_weights)
+    g_opt.apply_gradients(zip(gradients, g.trainable_weights))
+
+    return g_loss, d_loss
 
 def adversarial_training_loop(
         g,
