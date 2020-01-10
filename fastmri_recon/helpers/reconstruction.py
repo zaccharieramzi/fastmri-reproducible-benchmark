@@ -1,8 +1,5 @@
 import numpy as np
 
-from modopt.opt.linear import Identity
-from modopt.opt.proximity import SparseThreshold, LinearCompositionProx
-
 from ..data.data_utils import from_test_file_to_mask_and_kspace
 from .fourier import FFT2
 from .utils import crop_center
@@ -52,8 +49,11 @@ def reco_wav(kspace, gradient_op, mu=1*1e-8, max_iter=10, nb_scales=4, wavelet_n
     # for now this is only working with my fork of pysap-fastMRI
     # I will get it changed soon so that we don't need to ask for a specific
     # pysap-mri install
-    from ..wavelets import WaveletDecimated
+    from modopt.opt.linear import Identity
+    from modopt.opt.proximity import SparseThreshold, LinearCompositionProx
     from mri.numerics.reconstruct import sparse_rec_fista
+    
+    from ..wavelets import WaveletDecimated
 
     linear_op = WaveletDecimated(
         nb_scale=nb_scales,
