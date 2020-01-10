@@ -1,6 +1,6 @@
-from keras.layers import Input, Conv2D, Flatten, Dense
-from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense
+from tensorflow.keras.layers.advanced_activations import LeakyReLU
+from tensorflow.keras.models import Model
 
 
 def discriminator_model(im_size=320):
