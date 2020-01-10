@@ -6,4 +6,4 @@ torch
 torchvision
 nibabel
 Pillow
-tensorflow==1.14
+tensorflow==2.1
