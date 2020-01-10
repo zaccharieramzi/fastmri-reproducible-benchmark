@@ -1,9 +1,9 @@
-import keras.callbacks as cbks
-from keras.engine.training_utils import iter_sequence_infinite, is_sequence
-from keras.optimizers import Adam, RMSprop
-from keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
-from keras.utils.metrics_utils import to_list
 import numpy as np
+import tensorflow.keras.callbacks as cbks
+from tensorflow.keras.engine.training_utils import iter_sequence_infinite, is_sequence
+from tensorflow.keras.optimizers import Adam, RMSprop
+from tensorflow.keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
+from tensorflow.keras.utils.metrics_utils import to_list
 
 from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
 from .utils import keras_ssim, keras_psnr
