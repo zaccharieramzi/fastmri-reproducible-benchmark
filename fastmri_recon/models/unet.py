@@ -115,7 +115,7 @@ def unet(
         padding='same',
         kernel_initializer='he_normal',
     )(output)
-    model = Model(inputs=inputs, outputs=output)
+    model = Model(inputs=inputs, outputs=output, name='unet')
     if compile:
         default_model_compile(model, lr)
     if pretrained_weights:
