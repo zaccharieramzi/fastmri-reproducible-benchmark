@@ -77,7 +77,7 @@ def image_and_kspace_from_h5(fpath):
     return image, kspace
 
 def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
-    files_ds = tf.data.Dataset.list_files(f'{path}/*.h5', seed=0)
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
     image_and_kspace_ds = files_ds.map(
         image_and_kspace_from_h5,
         num_parallel_calls=tf.data.experimental.AUTOTUNE
