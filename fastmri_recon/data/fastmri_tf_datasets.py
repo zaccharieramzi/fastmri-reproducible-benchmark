@@ -67,9 +67,13 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
     return masked_kspace_ds
 
 def image_and_kspace_from_h5(fpath):
-    h5_tensors = tfio.IOTensor.from_hdf5(fpath)
-    image = h5_tensors('/reconstruction_esc')[:]
-    kspace = h5_tensors('kspace')[:]
+    spec = {
+        '/kspace': tf.TensorSpec(shape=[None, None, None], dtype=tf.complex64),
+        '/reconstruction_esc': tf.TensorSpec(shape=[None, None, None], dtype=tf.float32),
+    }
+    h5_tensors = tfio.IOTensor.from_hdf5(fpath, spec=spec)
+    image = h5_tensors('/reconstruction_esc').to_tensor()
+    kspace = h5_tensors('kspace').to_tensor()
     return image, kspace
 
 def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
