@@ -5,7 +5,7 @@ import random
 import numpy as np
 from tensorflow.keras.utils import Sequence
 
-from .data_utils import from_file_to_kspace, from_test_file_to_mask_and_kspace, from_train_file_to_image_and_kspace
+from .data_utils import from_file_to_kspace, from_test_file_to_mask_and_kspace, from_train_file_to_image_and_kspace, from_file_to_contrast
 from ..helpers.reconstruction import zero_filled_cropped_recon, zero_filled_recon
 from ..helpers.utils import gen_mask, normalize, normalize_instance
 
@@ -32,15 +32,28 @@ class fastMRI2DSequence(Sequence):
     """
     train_modes = ('training', 'validation')
 
-    def __init__(self, path, mode='training', af=4):
+    def __init__(self, path, mode='training', af=4, contrast=None):
         self.path = path
         self.mode = mode
         self.af = af
+        self.contrast = contrast
 
         self.filenames = glob.glob(path + '*.h5')
+        if self.contrast is not None:
+            contrast_filenames = list()
+            for filename in self.filenames:
+                contrast = from_file_to_contrast(filename)
+                if contrast == self.contrast:
+                    contrast_filenames.append(filename)
+            self.filenames = contrast_filenames
         if not self.filenames:
-            raise ValueError('No h5 files at path {}'.format(path))
+            raise ValueError(
+                'No h5 files of given contrast {} at path {}'.format(
+                    contrast, path
+                )
+            )
         self.filenames.sort()
+
         if mode == 'testing':
             af_filenames = list()
             for filename in self.filenames:
