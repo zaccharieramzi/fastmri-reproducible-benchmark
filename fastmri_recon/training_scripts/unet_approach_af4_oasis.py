@@ -44,6 +44,7 @@ print(run_id)
 chkpt_cback = ModelCheckpoint(chkpt_path, period=100)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
+    profile_batch=0,
     log_dir=log_dir,
     histogram_freq=0,
     write_graph=True,

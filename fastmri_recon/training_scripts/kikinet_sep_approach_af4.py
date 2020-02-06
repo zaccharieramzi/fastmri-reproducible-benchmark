@@ -55,6 +55,7 @@ def train_model(model, space='K', n=1):
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs//2)
     log_dir = op.join('logs', run_id)
     tboard_cback = TensorBoard(
+        profile_batch=0,
         log_dir=log_dir,
         histogram_freq=0,
         write_graph=True,
