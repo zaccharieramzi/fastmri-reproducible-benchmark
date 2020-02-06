@@ -1,7 +1,7 @@
 """KIKI network."""
-from keras.layers import Input, Lambda
-from keras.models import Model
 import tensorflow as tf
+from tensorflow.keras.layers import Input, Lambda
+from tensorflow.keras.models import Model
 import torch
 from torch import nn
 

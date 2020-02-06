@@ -1,9 +1,8 @@
 """Module containing helpers for building NN for MRI reconstruction in pytorch and keras."""
-from keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
-from keras import regularizers
 import tensorflow as tf
-from tensorflow.signal import fft2d, ifft2d
-from tensorflow.python.ops import manip_ops
+from tensorflow.keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
+from tensorflow.keras import regularizers
+from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftshift
 
 
 ### Keras and TensorFlow ###
@@ -60,18 +59,6 @@ def _mask_tf(x):
     masked_k_data = tf.math.multiply(mask, k_data)
     return masked_k_data
 
-# we have to define temporary fftshift ops to be compatible with most tf versions
-# cf https://github.com/tensorflow/tensorflow/issues/26989#issuecomment-517622706
-def _temptf_fft_shift(x):
-    # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
-    shift = [tf.shape(x)[ax] // 2 for ax in FOURIER_SHIFT_AXES]
-    return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
-
-def _temptf_ifft_shift(x):
-    # taken from https://github.com/tensorflow/tensorflow/pull/27075/files
-    shift = [-tf.cast(tf.shape(x)[ax] // 2, tf.int32) for ax in FOURIER_SHIFT_AXES]
-    return manip_ops.roll(x, shift, FOURIER_SHIFT_AXES)
-
 def tf_adj_op(y, idx=0):
     x, mask = y
     x_masked = _mask_tf((x, mask))
@@ -79,8 +66,8 @@ def tf_adj_op(y, idx=0):
     return x_inv
 
 def tf_unmasked_adj_op(x, idx=0):
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return scaling_norm * tf.expand_dims(_temptf_fft_shift(ifft2d(_temptf_ifft_shift(x[..., idx]))), axis=-1)
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
+    return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x[..., idx]))), axis=-1)
 
 def tf_op(y, idx=0):
     x, mask = y
@@ -89,8 +76,16 @@ def tf_op(y, idx=0):
     return x_masked
 
 def tf_unmasked_op(x, idx=0):
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.to_float(tf.math.reduce_prod(tf.shape(x)[1:3]))), x.dtype)
-    return tf.expand_dims(_temptf_ifft_shift(fft2d(_temptf_fft_shift(x[..., idx]))), axis=-1) / scaling_norm
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
+    return tf.expand_dims(ifftshift(fft2d(fftshift(x[..., idx]))), axis=-1) / scaling_norm
+
+def tf_unmasked_fft(image):
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(image)), 'float32')), image.dtype)
+    return ifftshift(fft2d(fftshift(image))) / scaling_norm
+
+def tf_unmasked_ifft(fft_coeffs):
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(fft_coeffs)), 'float32')), fft_coeffs.dtype)
+    return scaling_norm * fftshift(ifft2d(ifftshift(fft_coeffs)))
 
 ## Data consistency ops
 class MultiplyScalar(Layer):

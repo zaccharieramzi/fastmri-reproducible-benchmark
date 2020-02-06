@@ -1,6 +1,5 @@
-from keras.layers import Input, Conv2D, Flatten, Dense
-from keras.layers.advanced_activations import LeakyReLU
-from keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, Flatten, Dense, LeakyReLU
+from tensorflow.keras.models import Model
 
 
 def discriminator_model(im_size=320):
@@ -30,14 +29,4 @@ def discriminator_model(im_size=320):
     x = Dense(1, activation='sigmoid')(x)
 
     model = Model(inputs=inputs, outputs=x, name='Discriminator')
-    return model
-
-def generator_containing_discriminator_multiple_outputs(generator, discriminator, im_size=320):
-    """From https://github.com/RaphaelMeudec/deblur-gan/blob/master/deblurgan/model.py"""
-    # to correct when going to cross domain learning.
-    # The size of the input of the gen will be different, and we will need 2 inputs
-    inputs = Input(shape=(im_size, im_size, 1))
-    generated_image = generator(inputs)
-    outputs = discriminator(generated_image)
-    model = Model(inputs=inputs, outputs=[generated_image, outputs])
     return model

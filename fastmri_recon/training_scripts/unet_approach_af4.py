@@ -1,8 +1,8 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras_tqdm import TQDMCallback
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.data.fastmri_sequences import ZeroFilled2DSequence
 from fastmri_recon.models.unet import unet
@@ -57,12 +57,14 @@ chkpt_cback = ModelCheckpoint(chkpt_path, period=100)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
     log_dir=log_dir,
+    profile_batch=0,
     histogram_freq=0,
     write_graph=True,
     write_images=False,
 )
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
-
+tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
+tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
 
 
 

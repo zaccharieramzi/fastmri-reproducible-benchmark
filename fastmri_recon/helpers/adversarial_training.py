@@ -1,45 +1,23 @@
-import keras.callbacks as cbks
-from keras.engine.training_utils import iter_sequence_infinite, is_sequence
-from keras.optimizers import Adam, RMSprop
-from keras.utils.data_utils import OrderedEnqueuer, GeneratorEnqueuer
-from keras.utils.metrics_utils import to_list
 import numpy as np
+import tensorflow as tf
+import tensorflow.keras.callbacks as cbks
+from tensorflow.keras.optimizers import Adam, RMSprop
+from tensorflow.keras.utils import OrderedEnqueuer, GeneratorEnqueuer
+from tensorflow.python.keras.callbacks import CallbackList
 
-from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy
+from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy, iter_sequence_infinite, is_sequence, to_list
 from .utils import keras_ssim, keras_psnr
 
-
-def compile_models(d, g, d_on_g, d_lr=1e-3, d_on_g_lr=1e-3, perceptual_weight=100, perceptual_loss='mse'):
-    # strongly inspired by https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
-    # d_opt = Adam(lr=d_lr, clipnorm=1.)
-    d_opt = RMSprop(lr=d_lr, clipnorm=1.)
-    g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
-    d_on_g_opt = Adam(lr=d_on_g_lr, clipnorm=1.)
-
-    d.trainable = True
-    d.compile(optimizer=d_opt, loss=wasserstein_loss, metrics=[mean_output, discriminator_accuracy])
-    d.trainable = False
-    loss = [perceptual_loss, wasserstein_loss]
-    # to adjust with the typical mse (probably changing when dealing with normalized z_filled and kspaces scaled)
-    loss_weights = [perceptual_weight, 1]
-    generator_metrics = [keras_psnr, keras_ssim]
-    if perceptual_loss != 'mse':
-        generator_metrics.append('mse')
-    discriminator_metrics = []
-    d_on_g.compile(optimizer=d_on_g_opt, loss=loss, loss_weights=loss_weights, metrics=[generator_metrics, discriminator_metrics])
-    d.trainable = True
-    # this because we want to evaluate only the output of the generator, and therefore will evaluate with it
-    g.compile(optimizer=g_opt, loss=perceptual_loss, metrics=generator_metrics)
 
 def _replace_label_first_underscore(label):
     label = label.replace('_', '/', 1)
     return label
 
-def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_d_metrics=False):
+def prepare_callbacks(g, d, callbacks, n_epochs=1, n_batches=1, include_d_metrics=False):
     # all the callback stuff is from https://github.com/keras-team/keras/blob/master/keras/engine/training_generator.py
     # NOTE: see if saving the weights of d_on_g is enough
     # Prepare display labels.
-    out_labels = d_on_g.metrics_names
+    out_labels = g.metrics_names
     out_labels = [_replace_label_first_underscore(l) for l in out_labels]
     # we only want to validate on the output of g
     val_out_labels = ['val_' + n for n in out_labels if g.name in n]
@@ -51,14 +29,14 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
         d_metrics_names = d_metrics_fake + d_metrics_real
         callback_metrics += d_metrics_names
     # prepare callbacks
-    d_on_g.history = cbks.History()
+    g.history = cbks.History()
     _callbacks = [cbks.BaseLogger(
-        stateful_metrics=d_on_g.metrics_names[1:])]
-    _callbacks += (callbacks or []) + [d_on_g.history]
-    callbacks = cbks.CallbackList(_callbacks)
+        stateful_metrics=g.metrics_names[1:])]
+    _callbacks += (callbacks or []) + [g.history]
+    callbacks = CallbackList(_callbacks)
 
     # it's possible to callback a different model than self:
-    callback_model = d_on_g._get_callback_model()
+    callback_model = g._get_callback_model()
 
     callbacks.set_model(callback_model)
     callbacks.set_params({
@@ -68,6 +46,8 @@ def prepare_callbacks(g, d, d_on_g, callbacks, n_epochs=1, n_batches=1, include_
         # 'do_validation': do_validation, to set when using validation data
         'metrics': callback_metrics,
     })
+    if not include_d_metrics:
+        d_metrics_fake, d_metrics_real = None, None
     return callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real
 
 def queue_train_generator(train_gen, workers=1, use_multiprocessing=False, max_queue_size=10, use_sequence_api=True):
@@ -102,11 +82,49 @@ def fill_batch_logs_w_d_metrics(batch_logs, d_outs_fake, d_outs_real, d_metrics_
     for i, l in enumerate(d_metrics_real):
         batch_logs[l] = np.mean(d_outs_real[:, i])
 
+@tf.function
+def train_step(
+    x, image, g, d, g_opt, d_opt, n_critic_updates, perceptual_weight=100, perceptual_loss='mse'
+):
+    for _ in range(n_critic_updates):
+        with tf.GradientTape() as tape:
+            predictions_real = d(image)
+            d_loss_real = wasserstein_loss(
+                tf.ones_like(predictions_real), predictions_real
+            )
+
+            generated_images = g(x)
+            predictions_fake = d(generated_images)
+            d_loss_fake = wasserstein_loss(
+                -tf.ones_like(predictions_fake), predictions_fake
+            )
+
+            d_loss = tf.math.reduce_mean(0.5 * tf.math.add(d_loss_real, d_loss_fake))
+
+        gradients = tape.gradient(d_loss, d.trainable_weights)
+        d_opt.apply_gradients(zip(gradients, d.trainable_weights))
+
+    with tf.GradientTape() as tape:
+        generated_images = g(x)
+        predictions = d(generated_images)
+
+        discriminator_loss = wasserstein_loss(tf.ones_like(predictions), predictions)
+
+        image_loss = tf.losses.get(perceptual_loss)(image, generated_images)
+
+        g_loss = tf.math.reduce_mean(perceptual_weight * image_loss + discriminator_loss)
+
+    gradients = tape.gradient(g_loss, g.trainable_weights)
+    g_opt.apply_gradients(zip(gradients, g.trainable_weights))
+
+    return g_loss, d_loss
+
 def adversarial_training_loop(
         g,
         d,
-        d_on_g,
         train_gen,
+        d_lr=1e-3,
+        g_lr=1e-3,
         val_gen=None,
         validation_steps=1,
         n_epochs=1,
@@ -117,16 +135,19 @@ def adversarial_training_loop(
         use_multiprocessing=False,
         max_queue_size=10,
         include_d_metrics=False,
+        perceptual_weight=1,
+        perceptual_loss='mse',
     ):
+    d_opt = RMSprop(lr=d_lr, clipnorm=1.)
+    g_opt = Adam(lr=g_lr, clipnorm=1.)
     # all the gan stuff is from https://github.com/RaphaelMeudec/deblur-gan/blob/master/scripts/train.py#L26
     callbacks, out_labels, val_out_labels, d_metrics_fake, d_metrics_real = prepare_callbacks(
         g,
         d,
-        d_on_g,
         callbacks,
         n_epochs=n_epochs,
         n_batches=n_batches,
-        include_d_metrics=include_d_metrics,
+        include_d_metrics=False,
     )
     callbacks._call_begin_hook('train')
     use_sequence_api = is_sequence(train_gen)
@@ -139,6 +160,8 @@ def adversarial_training_loop(
     )
 
     epoch_logs = {}
+    generator_metric = tf.keras.metrics.Mean()
+    discriminator_metric = tf.keras.metrics.Mean()
     for epoch in range(n_epochs):
         callbacks.on_epoch_begin(epoch)
         for batch_index in range(n_batches):
@@ -147,43 +170,32 @@ def adversarial_training_loop(
                 batch_size = len(x[0])
             else:
                 batch_size = len(x)
+            x = tf.convert_to_tensor(x)
+            # TODO: handle case where x is a list (i.e. image + mask)
+            image = tf.convert_to_tensor(image)
             # build batch logs
             batch_logs = {'batch': batch_index, 'size': batch_size}
             callbacks.on_batch_begin(batch_index, batch_logs)
-            output_true_batch, output_false_batch = np.ones((batch_size, 1)), -np.ones((batch_size, 1))
-
-            generated_image = g.predict_on_batch(x)
-            if include_d_metrics:
-                d_outs_fake = []
-                d_outs_real = []
-            for _ in range(n_critic_updates):
-                d_out_real = d.train_on_batch(image, output_true_batch, reset_metrics=True)
-                d_out_fake = d.train_on_batch(generated_image, output_false_batch, reset_metrics=True)
-                if include_d_metrics:
-                    d_outs_fake.append(d_out_fake)
-                    d_outs_real.append(d_out_real)
-            if include_d_metrics:
-                fill_batch_logs_w_d_metrics(
-                    batch_logs,
-                    d_outs_fake,
-                    d_outs_real,
-                    d_metrics_fake,
-                    d_metrics_real,
-                )
-
-            d.trainable = False
-
-            outs = d_on_g.train_on_batch(x, [image, output_true_batch], reset_metrics=True)
-            outs = to_list(outs)
-            for l, o in zip(out_labels, outs):
-                batch_logs[l] = o
-
-            d.trainable = True
+            g_loss, d_loss = train_step(x, image, g, d, g_opt, d_opt, n_critic_updates, perceptual_weight=perceptual_weight, perceptual_loss=perceptual_loss)
+            # TODO: find a way to include discriminator_metrics
+            # if include_d_metrics:
+                    # d_outs_fake.append(d_out_fake)
+                    # d_outs_real.append(d_out_real)
+            # if include_d_metrics:
+                # fill_batch_logs_w_d_metrics(
+                    # batch_logs,
+                    # d_outs_fake,
+                    # d_outs_real,
+                    # d_metrics_fake,
+                    # d_metrics_real,
+                # )
+            generator_metric(g_loss)
+            discriminator_metric(d_loss)
 
             callbacks._call_batch_hook('train', 'end', batch_index, batch_logs)
 
         if val_gen:
-            val_outs = g.evaluate_generator(
+            val_outs = g.evaluate(
                 val_gen,
                 validation_steps,
                 callbacks=callbacks,
