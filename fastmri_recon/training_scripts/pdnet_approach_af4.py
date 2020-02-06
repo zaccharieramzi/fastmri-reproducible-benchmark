@@ -1,21 +1,12 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence
 from fastmri_recon.models.pdnet import pdnet
-
-
-
-
-
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-
 
 
 
@@ -65,13 +56,15 @@ chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 chkpt_cback = ModelCheckpoint(chkpt_path, period=100, save_weights_only=True)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
+    profile_batch=0,
     log_dir=log_dir,
     histogram_freq=0,
     write_graph=True,
     write_images=False,
 )
 tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
-
+tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
+tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
 
 
 

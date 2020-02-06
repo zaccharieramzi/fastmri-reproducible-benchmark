@@ -14,7 +14,6 @@ def crop_center(img, cropx, cropy=None):
 
 def gen_mask(kspace, accel_factor=8, seed=None):
     # inspired by https://github.com/facebookresearch/fastMRI/blob/master/common/subsample.py
-    np.random.seed(seed)
     shape = kspace.shape
     num_cols = shape[-1]
 
@@ -24,7 +23,7 @@ def gen_mask(kspace, accel_factor=8, seed=None):
     # Create the mask
     num_low_freqs = int(round(num_cols * center_fraction))
     prob = (num_cols / acceleration - num_low_freqs) / (num_cols - num_low_freqs)
-    mask = np.random.uniform(size=num_cols) < prob
+    mask = np.random.default_rng(seed).uniform(size=num_cols) < prob
     pad = (num_cols - num_low_freqs + 1) // 2
     mask[pad:pad + num_low_freqs] = True
 
@@ -33,6 +32,32 @@ def gen_mask(kspace, accel_factor=8, seed=None):
     mask_shape[-1] = num_cols
     mask = mask.reshape(*mask_shape)
     return mask
+
+def gen_mask_tf(kspace, accel_factor):
+    shape = tf.shape(kspace)
+    num_cols = shape[-1]
+    center_fraction = (32 // accel_factor) / 100
+    num_low_freqs = tf.dtypes.cast(num_cols, 'float32') * center_fraction
+    num_low_freqs = tf.dtypes.cast((tf.round(num_low_freqs)), 'int32')
+    prob = (num_cols / accel_factor - tf.dtypes.cast(num_low_freqs, 'float64')) / tf.dtypes.cast((num_cols - num_low_freqs), 'float64')
+    mask = tf.random.uniform(shape=tf.expand_dims(num_cols, axis=0), dtype='float64') < prob
+    pad = (num_cols - num_low_freqs + 1) // 2
+    final_mask = tf.concat([
+        mask[:pad],
+        tf.ones([num_low_freqs], dtype=tf.bool),
+        mask[pad+num_low_freqs:],
+    ], axis=0)
+
+    # Reshape the mask
+    mask_shape = tf.ones_like(shape)
+    final_mask_shape = tf.concat([
+        mask_shape[:2],
+        tf.expand_dims(num_cols, axis=0),
+    ], axis=0)
+    final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
+    fourier_mask = tf.tile(final_mask_reshaped, [shape[0], shape[1], 1])
+    fourier_mask = tf.dtypes.cast(fourier_mask, 'complex64')
+    return fourier_mask
 
 def gen_mask_vd(kspace, accel_factor=8):
     shape = kspace.shape
@@ -45,7 +70,7 @@ def gen_mask_vd(kspace, accel_factor=8):
     num_low_freqs = int(round(num_cols * center_fraction))
     prob = (num_cols / acceleration - num_low_freqs) / (num_cols - 3 * num_low_freqs)
     num_sampling = int(prob * num_cols)
-    selected_indexes = np.random.randint(0, num_cols, size=(num_sampling, 2)).mean(axis=-1).astype('int')
+    selected_indexes = np.random.default_rng().randint(0, num_cols, size=(num_sampling, 2)).mean(axis=-1).astype('int')
     mask = np.zeros((num_cols,)).astype('bool')
     mask[selected_indexes] = True
     pad = (num_cols - num_low_freqs + 1) // 2

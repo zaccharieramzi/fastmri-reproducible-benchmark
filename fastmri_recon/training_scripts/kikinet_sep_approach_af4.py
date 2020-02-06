@@ -1,15 +1,13 @@
 import os.path as op
 import time
 
-from keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 from keras_tqdm import TQDMCallback
 import tensorflow as tf
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence, KIKISequence
 from fastmri_recon.helpers.nn_mri import MultiplyScalar, lrelu
 from fastmri_recon.models.kiki_sep import kiki_sep_net
-
-tf.logging.set_verbosity(tf.logging.INFO)
 
 
 # paths
@@ -57,6 +55,7 @@ def train_model(model, space='K', n=1):
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs//2)
     log_dir = op.join('logs', run_id)
     tboard_cback = TensorBoard(
+        profile_batch=0,
         log_dir=log_dir,
         histogram_freq=0,
         write_graph=True,
@@ -64,6 +63,8 @@ def train_model(model, space='K', n=1):
     )
     lrate_cback = LearningRateScheduler(learning_rate_from_epoch)
     tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
+    tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
+    tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
     if space == 'K':
         train_gen = train_gen_k
         val_gen = val_gen_k
