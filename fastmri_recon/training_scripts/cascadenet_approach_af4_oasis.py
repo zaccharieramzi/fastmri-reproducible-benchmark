@@ -11,7 +11,6 @@ from fastmri_recon.models.cascading import cascade_net
 
 
 random.seed(0)
-tf.logging.set_verbosity(tf.logging.INFO)
 
 # paths
 train_path = '/media/Zaccharie/UHRes/OASIS_data/'
@@ -48,6 +47,7 @@ chkpt_path = f'checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 chkpt_cback = ModelCheckpoint(chkpt_path, period=100, save_weights_only=True)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
+    profile_batch=0,
     log_dir=log_dir,
     histogram_freq=0,
     write_graph=True,

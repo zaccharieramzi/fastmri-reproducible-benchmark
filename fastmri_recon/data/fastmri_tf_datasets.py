@@ -67,16 +67,24 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
     return masked_kspace_ds
 
 def image_and_kspace_from_h5(fpath):
-    h5_tensors = tfio.IOTensor.from_hdf5(fpath)
-    image = h5_tensors('/reconstruction_esc')[:]
-    kspace = h5_tensors('kspace')[:]
+    spec = {
+        '/kspace': tf.TensorSpec(shape=[None, 320, 320], dtype=tf.complex64),
+        '/reconstruction_esc': tf.TensorSpec(shape=[None, 640, None], dtype=tf.float32),
+    }
+    h5_tensors = tfio.IOTensor.from_hdf5(fpath, spec=spec)
+    image = h5_tensors('/reconstruction_esc').to_tensor()
+    image.set_shape((None, 320, 320))
+    kspace = h5_tensors('/kspace').to_tensor()
+    kspace.set_shape((None, 640, None))
     return image, kspace
 
 def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
-    files_ds = tf.data.Dataset.list_files(f'{path}/*.h5', seed=0)
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
     image_and_kspace_ds = files_ds.map(
         image_and_kspace_from_h5,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE
+        # TODO: when hdf5 is thread safe, move back to parallel io
+        # follow: https://github.com/tensorflow/io/issues/745
+        # num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
     masked_kspace_ds = image_and_kspace_ds.map(
         generic_from_kspace_to_masked_kspace_and_mask(

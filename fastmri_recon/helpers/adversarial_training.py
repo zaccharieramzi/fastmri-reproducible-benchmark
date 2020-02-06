@@ -170,6 +170,9 @@ def adversarial_training_loop(
                 batch_size = len(x[0])
             else:
                 batch_size = len(x)
+            x = tf.convert_to_tensor(x)
+            # TODO: handle case where x is a list (i.e. image + mask)
+            image = tf.convert_to_tensor(image)
             # build batch logs
             batch_logs = {'batch': batch_index, 'size': batch_size}
             callbacks.on_batch_begin(batch_index, batch_logs)

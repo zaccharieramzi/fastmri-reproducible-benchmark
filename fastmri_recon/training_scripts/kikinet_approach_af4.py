@@ -13,13 +13,6 @@ from fastmri_recon.models.kiki import kiki_net
 
 
 
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-
-
-
-
 # paths
 train_path = '/media/Zaccharie/UHRes/singlecoil_train/singlecoil_train/'
 val_path = '/media/Zaccharie/UHRes/singlecoil_val/'
@@ -68,6 +61,7 @@ print(run_id)
 chkpt_cback = ModelCheckpoint(chkpt_path, period=100, save_weights_only=True)
 log_dir = op.join('logs', run_id)
 tboard_cback = TensorBoard(
+    profile_batch=0,
     log_dir=log_dir,
     histogram_freq=0,
     write_graph=True,
