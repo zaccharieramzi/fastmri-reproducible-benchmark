@@ -12,13 +12,6 @@ from fastmri_recon.data.fastmri_sequences import Masked2DSequence
 
 
 
-tf.logging.set_verbosity(tf.logging.INFO)
-
-
-
-
-
-
 # paths
 train_path = '/media/Zaccharie/UHRes/singlecoil_train/singlecoil_train/'
 val_path = '/media/Zaccharie/UHRes/singlecoil_val/'

@@ -11,7 +11,6 @@ from fastmri_recon.helpers.nn_mri import MultiplyScalar, lrelu
 from fastmri_recon.models.kiki_sep import kiki_sep_net
 
 random.seed(0)
-tf.logging.set_verbosity(tf.logging.INFO)
 
 
 # paths

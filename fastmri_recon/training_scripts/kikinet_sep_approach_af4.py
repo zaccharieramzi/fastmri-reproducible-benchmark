@@ -9,8 +9,6 @@ from fastmri_recon.data.fastmri_sequences import Masked2DSequence, KIKISequence
 from fastmri_recon.helpers.nn_mri import MultiplyScalar, lrelu
 from fastmri_recon.models.kiki_sep import kiki_sep_net
 
-tf.logging.set_verbosity(tf.logging.INFO)
-
 
 # paths
 train_path = '/media/Zaccharie/UHRes/singlecoil_train/singlecoil_train/'

@@ -11,7 +11,6 @@ from fastmri_recon.models.pdnet import pdnet
 
 
 random.seed(0)
-tf.logging.set_verbosity(tf.logging.INFO)
 
 # paths
 train_path = '/media/Zaccharie/UHRes/OASIS_data/'
