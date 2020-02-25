@@ -2,7 +2,6 @@ import os.path as op
 import time
 
 import click
-import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
@@ -76,7 +75,7 @@ def fine_tune_pdnet(original_run_id, af, contrast):
     print(model.summary(line_length=150))
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train,
+        steps_per_epoch=n_volumes_train//2,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=5,
