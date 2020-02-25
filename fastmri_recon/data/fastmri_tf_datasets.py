@@ -66,38 +66,6 @@ def train_masked_kspace_dataset(path, AF=4, inner_slices=None, rand=False, scale
 
     return masked_kspace_ds
 
-def image_and_kspace_from_h5(fpath):
-    spec = {
-        '/kspace': tf.TensorSpec(shape=[None, 320, 320], dtype=tf.complex64),
-        '/reconstruction_esc': tf.TensorSpec(shape=[None, 640, None], dtype=tf.float32),
-    }
-    h5_tensors = tfio.IOTensor.from_hdf5(fpath, spec=spec)
-    image = h5_tensors('/reconstruction_esc').to_tensor()
-    image.set_shape((None, 320, 320))
-    kspace = h5_tensors('/kspace').to_tensor()
-    kspace.set_shape((None, 640, None))
-    return image, kspace
-
-def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
-    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
-    image_and_kspace_ds = files_ds.map(
-        image_and_kspace_from_h5,
-        # TODO: when hdf5 is thread safe, move back to parallel io
-        # follow: https://github.com/tensorflow/io/issues/745
-        # num_parallel_calls=tf.data.experimental.AUTOTUNE
-    )
-    masked_kspace_ds = image_and_kspace_ds.map(
-        generic_from_kspace_to_masked_kspace_and_mask(
-            AF=AF,
-            inner_slices=inner_slices,
-            rand=rand,
-            scale_factor=scale_factor,
-        ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE
-    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
-    return masked_kspace_ds
-
 # zero-filled specific utils
 def zero_filled(kspace_mask, images):
     kspaces, _ = kspace_mask
@@ -210,4 +178,67 @@ def train_masked_kspace_kiki(path, AF=4, inner_slices=None, rand=False, scale_fa
             num_parallel_calls=tf.data.experimental.AUTOTUNE,
         )
     masked_kspace_ds = masked_kspace_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    return masked_kspace_ds
+
+
+# Dataset not from generator, using hdf5io
+def image_and_kspace_from_h5(fpath):
+    spec = {
+        '/kspace': tf.TensorSpec(shape=[None, 320, 320], dtype=tf.complex64),
+        '/reconstruction_esc': tf.TensorSpec(shape=[None, 640, None], dtype=tf.float32),
+    }
+    h5_tensors = tfio.IOTensor.from_hdf5(fpath, spec=spec)
+    image = h5_tensors('/reconstruction_esc').to_tensor()
+    image.set_shape((None, 320, 320))
+    kspace = h5_tensors('/kspace').to_tensor()
+    kspace.set_shape((None, 640, None))
+    return image, kspace
+
+def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
+    image_and_kspace_ds = files_ds.map(
+        image_and_kspace_from_h5,
+        # TODO: when hdf5 is thread safe, move back to parallel io
+        # follow: https://github.com/tensorflow/io/issues/745
+        # num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    masked_kspace_ds = image_and_kspace_ds.map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+    return masked_kspace_ds
+
+# dataset from indexable
+def tf_filename_to_image_and_kspace(filename):
+    def _from_train_file_to_image_and_kspace_tensor_to_tensor(filename):
+        filename_str = filename.numpy()
+        image, kspace = from_train_file_to_image_and_kspace(filename_str)
+        return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace)
+    [image, kspace] = tf.py_function(_from_train_file_to_image_and_kspace_tensor_to_tensor, [filename], [tf.float32, tf.complex64])
+    image.set_shape((None, 320, 320))
+    kspace.set_shape((None, 640, None))
+    return image, kspace
+
+def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
+    image_and_kspace_ds = files_ds.map(
+        tf_filename_to_image_and_kspace,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    masked_kspace_ds = image_and_kspace_ds.map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
     return masked_kspace_ds
