@@ -22,8 +22,8 @@ n_volumes_train = 973
 @click.option(
     'af',
     '-a',
-    default=4,
-    type=click.Choice([4, 8]),
+    default='4',
+    type=click.Choice(['4', '8']),
     help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
 )
 @click.option(
@@ -34,6 +34,7 @@ n_volumes_train = 973
     help='The contrast chosen for this fine-tuning. Defaults to CORPDFS_FBK.',
 )
 def fine_tune_pdnet(original_run_id, af, contrast):
+    af = int(af)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
         train_path,
