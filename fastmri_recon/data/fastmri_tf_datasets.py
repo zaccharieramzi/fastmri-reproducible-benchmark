@@ -3,7 +3,7 @@ import glob
 import tensorflow as tf
 import tensorflow_io as tfio
 
-from .data_utils import from_train_file_to_image_and_kspace, from_file_to_kspace
+from .data_utils import from_train_file_to_image_and_kspace, from_file_to_kspace, from_train_file_to_image_and_kspace_and_contrast
 from ..helpers.nn_mri import tf_unmasked_ifft, _tf_crop
 from ..helpers.utils import gen_mask_tf
 
@@ -215,22 +215,31 @@ def train_masked_kspace_dataset_io(path, AF=4, inner_slices=None, rand=False, sc
     return masked_kspace_ds
 
 # dataset from indexable
-def tf_filename_to_image_and_kspace(filename):
-    def _from_train_file_to_image_and_kspace_tensor_to_tensor(filename):
+def tf_filename_to_image_and_kspace_and_contrast(filename):
+    def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
         filename_str = filename.numpy()
-        image, kspace = from_train_file_to_image_and_kspace(filename_str)
-        return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace)
-    [image, kspace] = tf.py_function(_from_train_file_to_image_and_kspace_tensor_to_tensor, [filename], [tf.float32, tf.complex64])
+        image, kspace, contrast = from_train_file_to_image_and_kspace_and_contrast(filename_str)
+        return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
+    [image, kspace, contrast] = tf.py_function(
+        _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor,
+        [filename],
+        [tf.float32, tf.complex64, tf.string],
+    )
     image.set_shape((None, 320, 320))
     kspace.set_shape((None, 640, None))
+    contrast.set_shape((None, 1))
     return image, kspace
 
-def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1):
+def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None):
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
-    image_and_kspace_ds = files_ds.map(
-        tf_filename_to_image_and_kspace,
+    image_and_kspace_and_contrast_ds = files_ds.map(
+        tf_filename_to_image_and_kspace_and_contrast,
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
+    # contrast filtering
+    if contrast:
+        image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(lambda x: x[2] == contrast)
+    image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(lambda x: x[0:2], num_parallel_calls=tf.data.experimental.AUTOTUNE)
     masked_kspace_ds = image_and_kspace_ds.map(
         generic_from_kspace_to_masked_kspace_and_mask(
             AF=AF,
