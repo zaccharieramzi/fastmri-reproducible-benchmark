@@ -227,8 +227,7 @@ def tf_filename_to_image_and_kspace_and_contrast(filename):
     )
     image.set_shape((None, 320, 320))
     kspace.set_shape((None, 640, None))
-    contrast.set_shape((None, 1))
-    return image, kspace
+    return image, kspace, contrast
 
 def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None):
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
@@ -238,8 +237,13 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
     )
     # contrast filtering
     if contrast:
-        image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(lambda x: x[2] == contrast)
-    image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(lambda x: x[0:2], num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(
+            lambda image, kspace, tf_contrast: tf_contrast == contrast
+        )
+    image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
+        lambda image, kspace, tf_contrast: (image, kspace),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
     masked_kspace_ds = image_and_kspace_ds.map(
         generic_from_kspace_to_masked_kspace_and_mask(
             AF=AF,
