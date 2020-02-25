@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
-from fastmri_recon.data.fastmri_tf_datasets import train_masked_kspace_dataset
+from fastmri_recon.data.fastmri_tf_datasets import train_masked_kspace_dataset_from_indexable
 from fastmri_recon.models.pdnet import pdnet
 
 
@@ -36,7 +36,7 @@ n_volumes_train = 973
 )
 def fine_tune_pdnet(original_run_id, af, contrast):
     # generators
-    train_set = train_masked_kspace_dataset(
+    train_set = train_masked_kspace_dataset_from_indexable(
         train_path,
         AF=af,
         contrast=contrast,
@@ -44,7 +44,7 @@ def fine_tune_pdnet(original_run_id, af, contrast):
         rand=True,
         scale_factor=1e6,
     )
-    val_set = train_masked_kspace_dataset(
+    val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
         AF=af,
         contrast=contrast,
