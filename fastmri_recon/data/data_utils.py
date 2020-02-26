@@ -31,6 +31,16 @@ def from_train_file_to_image_and_kspace_and_contrast(filename):
         contrast = h5_obj.attrs['acquisition']
     return images, kspaces, contrast
 
+def from_test_file_to_mask_and_kspace_and_contrast(filename):
+    """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
+    and 'kspace' keys.
+    """
+    with h5py.File(filename, 'r') as h5_obj:
+        masks = h5_obj['mask'][()]
+        kspaces = h5_obj['kspace'][()]
+        contrast = h5_obj.attrs['acquisition']
+    return masks, kspaces, contrast
+
 
 def from_file_to_kspace(filename):
     """Get the kspaces from an h5 file with 'kspace' keys.
