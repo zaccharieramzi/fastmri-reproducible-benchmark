@@ -5,6 +5,7 @@ module load tensorflow-gpu/py3/2.1.0
 
 export TMPDIR=$SCRATCH/tmp
 pip install --no-cache-dir ./
+pip install requirements.txt
 
 export FASTMRI_DATA_DIR=$SCRATCH/
 export OASIS_DATA_DIR=$SCRATCH/
