@@ -5,4 +5,5 @@ runstats
 nibabel
 Pillow
 tensorflow
+tensorflow-io
 click
