@@ -6,6 +6,4 @@ nibabel
 Pillow
 tensorflow
 tensorflow-io
-torch
-torchvision
 click
