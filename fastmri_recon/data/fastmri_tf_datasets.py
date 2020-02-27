@@ -263,6 +263,7 @@ def tf_filename_to_mask_and_kspace_and_contrast(filename):
 
 
 def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None):
+    print(f'Getting training files from {path}')
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
     image_and_kspace_and_contrast_ds = files_ds.map(
         tf_filename_to_image_and_kspace_and_contrast,
