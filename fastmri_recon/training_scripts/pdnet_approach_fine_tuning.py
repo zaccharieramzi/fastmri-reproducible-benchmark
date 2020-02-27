@@ -1,3 +1,4 @@
+import os
 import os.path as op
 import time
 
@@ -33,7 +34,16 @@ n_volumes_train = 973
     type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK'], case_sensitive=False),
     help='The contrast chosen for this fine-tuning. Defaults to CORPDFS_FBK.',
 )
-def fine_tune_pdnet(original_run_id, af, contrast):
+@click.option(
+    'cuda_visible_devices',
+    '-gpus',
+    '--cuda-visible-devices',
+    default='0123',
+    type=str,
+    help='The visible GPU devices. Defaults to 0123',
+)
+def fine_tune_pdnet(original_run_id, af, contrast,cuda_visible_devices):
+    os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
