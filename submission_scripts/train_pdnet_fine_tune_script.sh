@@ -17,7 +17,7 @@ cd $workspace/fastmri-reproducible-benchmark
 
 . ./submission_scripts/env_config.sh
 
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPDFS_FBK -gpus 01 &
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPD_FBK -gpus 23 &
+ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPDFS_FBK -gpus 0 &
+ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPD_FBK -gpus 1 &
 
 wait  # wait for all ccc_mprun(s) to complete.
