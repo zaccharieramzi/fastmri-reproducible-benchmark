@@ -42,7 +42,7 @@ n_volumes_train = 973
     type=str,
     help='The visible GPU devices. Defaults to 0123',
 )
-def fine_tune_pdnet(original_run_id, af, contrast,cuda_visible_devices):
+def fine_tune_pdnet(original_run_id, af, contrast, cuda_visible_devices):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
