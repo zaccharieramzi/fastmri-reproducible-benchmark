@@ -81,7 +81,7 @@ def fine_tune_pdnet(original_run_id, af, contrast, cuda_visible_devices):
         write_images=False,
     )
 
-    model = pdnet(lr=1e-5, **run_params)
+    model = pdnet(lr=1e-6, **run_params)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-300.hdf5')
     print(model.summary(line_length=150))
     model.fit(
