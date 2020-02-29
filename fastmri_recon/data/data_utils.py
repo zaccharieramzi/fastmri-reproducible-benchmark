@@ -68,6 +68,7 @@ def from_file_to_contrast(filename):
 
 def list_files_w_contrast_and_af(path, AF=4, contrast=None):
     filenames = glob.glob(path + '*.h5')
+    filenames.sort()
     for filename in filenames:
         mask, contrast_f = from_test_file_to_mask_and_contrast(filename)
         if contrast and contrast != contrast_f:
