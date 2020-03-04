@@ -59,6 +59,10 @@ def gen_mask_tf(kspace, accel_factor):
     fourier_mask = tf.dtypes.cast(fourier_mask, 'complex64')
     return fourier_mask
 
+def tf_af(mask):
+    mask_int = tf.dtypes.cast(mask, 'int32')
+    return tf.shape(mask_int)[0] / tf.reduce_sum(mask_int)
+
 def gen_mask_vd(kspace, accel_factor=8):
     shape = kspace.shape
     num_cols = shape[-1]
