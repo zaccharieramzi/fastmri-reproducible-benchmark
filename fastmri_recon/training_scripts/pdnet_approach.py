@@ -45,6 +45,7 @@ n_volumes_train = 973
     'n_samples',
     '-ns',
     default=None,
+    type=int,
     help='The number of samples to use for this training. Default to None, which means all samples are used.',
 )
 def train_pdnet(af, contrast, cuda_visible_devices, n_samples):
