@@ -29,9 +29,9 @@ n_volumes_train = 973
 @click.option(
     'contrast',
     '-c',
-    default='None',
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', 'None'], case_sensitive=False),
-    help='The contrast chosen for this fine-tuning. Defaults to CORPDFS_FBK.',
+    default=None,
+    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
+    help='The contrast chosen for this fine-tuning. Defaults to None.',
 )
 @click.option(
     'cuda_visible_devices',
@@ -41,10 +41,14 @@ n_volumes_train = 973
     type=str,
     help='The visible GPU devices. Defaults to 0123',
 )
-def train_pdnet(af, contrast, cuda_visible_devices):
+@click.option(
+    'n_samples',
+    '-ns',
+    default=None,
+    help='The number of samples to use for this training. Default to None, which means all samples are used.',
+)
+def train_pdnet(af, contrast, cuda_visible_devices, n_samples):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
-    if contrast == 'None':
-        contrast = None
     af = int(af)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
@@ -54,6 +58,7 @@ def train_pdnet(af, contrast, cuda_visible_devices):
         inner_slices=8,
         rand=True,
         scale_factor=1e6,
+        n_samples=n_samples,
     )
     val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
@@ -69,11 +74,17 @@ def train_pdnet(af, contrast, cuda_visible_devices):
         'n_filters': 32,
     }
     n_epochs = 300
-    new_run_id = f'pdnet_af{af}_{contrast}_{int(time.time())}'
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{new_run_id}' + '-{epoch:02d}.hdf5'
+    additional_info = f'af{af}'
+    if contrast is not None:
+        additional_info += f'_{contrast}'
+    if n_samples is not None:
+        additional_info += f'_{n_samples}'
+
+    run_id = f'pdnet_{additional_info}_{int(time.time())}'
+    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
-    log_dir = op.join(f'{LOGS_DIR}logs', new_run_id)
+    log_dir = op.join(f'{LOGS_DIR}logs', run_id)
     tboard_cback = TensorBoard(
         profile_batch=0,
         log_dir=log_dir,
@@ -83,10 +94,11 @@ def train_pdnet(af, contrast, cuda_visible_devices):
     )
 
     model = pdnet(lr=1e-3, **run_params)
+    print(run_id)
     print(model.summary(line_length=150))
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train//2,
+        steps_per_epoch=n_volumes_train,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=5,
