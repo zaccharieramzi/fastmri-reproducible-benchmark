@@ -17,4 +17,4 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-srun --multi-prog ./submission_scripts/mpmd_pdnet_n_samples.conf
+srun --multi-prog ./submission_scripts_jean_zay/mpmd_pdnet_n_samples.conf
