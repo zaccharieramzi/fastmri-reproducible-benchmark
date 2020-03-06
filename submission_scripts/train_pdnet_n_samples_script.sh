@@ -13,9 +13,9 @@
 #MSUB -A gch0424                  # Project ID
 
 set -x
-cd $WORK/fastmri-reproducible-benchmark
+cd $workspace/fastmri-reproducible-benchmark
 
-. ./submission_scripts_jean_zay/env_config.sh
+. ./submission_scripts/env_config.sh
 
 ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 200 -gpus 0 &
 ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 50 -gpus 1 &
