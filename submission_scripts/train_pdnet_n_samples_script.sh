@@ -1,6 +1,6 @@
 #!/bin/bash
 #MSUB -r train_pdnet_n_samples                # Request name
-#MSUB -n 4                         # Number of tasks to use
+#MSUB -n 2                         # Number of tasks to use
 #MSUB -c 2                         # I want 2 cores per task since io might be costly
 #MSUB -x
 #MSUB -T 86400                      # Elapsed time limit in seconds
@@ -17,9 +17,7 @@ cd $workspace/fastmri-reproducible-benchmark
 
 . ./submission_scripts/env_config.sh
 
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 200 -gpus 0 &
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 50 -gpus 1 &
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 10 -gpus 2 &
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -ns 2 -gpus 3 &
+ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -e 200 -ns 400 -gpus 0 &
+ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/pdnet_approach.py -a 4 -e 200 -ns 2 -gpus 1 &
 
 wait  # wait for all ccc_mprun(s) to complete.
