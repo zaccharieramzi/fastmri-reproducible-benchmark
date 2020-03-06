@@ -4,8 +4,8 @@
 #MSUB -c 2                         # I want 2 cores per task since io might be costly
 #MSUB -x
 #MSUB -T 86400                      # Elapsed time limit in seconds
-#MSUB -o learnlet_fine_tune_%I.o              # Standard output. %I is the job id
-#MSUB -e learnlet_fine_tune_%I.e              # Error output. %I is the job id
+#MSUB -o pdnet_fine_tune_%I.o              # Standard output. %I is the job id
+#MSUB -e pdnet_fine_tune_%I.e              # Error output. %I is the job id
 #MSUB -q v100               # Queue
 #MSUB -Q normal
 #MSUB -m scratch,work
