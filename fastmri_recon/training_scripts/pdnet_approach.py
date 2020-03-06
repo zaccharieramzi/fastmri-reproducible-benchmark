@@ -48,7 +48,14 @@ n_volumes_train = 973
     type=int,
     help='The number of samples to use for this training. Default to None, which means all samples are used.',
 )
-def train_pdnet(af, contrast, cuda_visible_devices, n_samples):
+@click.option(
+    'n_epochs',
+    '-e',
+    default=300,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
@@ -74,7 +81,6 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples):
         'n_iter': 10,
         'n_filters': 32,
     }
-    n_epochs = 300
     additional_info = f'af{af}'
     if contrast is not None:
         additional_info += f'_{contrast}'
