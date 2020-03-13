@@ -23,7 +23,7 @@ def selected_slices(kspaces, inner_slices=8, rand=True):
             maxval=slice_start + inner_slices - 1,
             dtype=tf.int32,
         )
-        slices = (i_slice, i_slice + 1)
+        slices = (i_slice[0], i_slice[0] + 1)
     else:
         slices = (slice_start, slice_start + inner_slices)
     return slices
@@ -34,7 +34,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=
         kspaces_masked = mask * kspaces
         if inner_slices is not None:
             slices = selected_slices(kspaces_masked, inner_slices=inner_slices, rand=rand)
-            kspaces_sliced = kspaces_masked[slices[0][0]:slices[1][0]]
+            kspaces_sliced = kspaces_masked[slices[0]:slices[1]]
             images_sliced = images[slices[0][0]:slices[1][0]]
             mask_sliced = mask[slices[0][0]:slices[1][0]]
         else:
