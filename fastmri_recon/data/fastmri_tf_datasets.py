@@ -35,8 +35,8 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=
         if inner_slices is not None:
             slices = selected_slices(kspaces_masked, inner_slices=inner_slices, rand=rand)
             kspaces_sliced = kspaces_masked[slices[0]:slices[1]]
-            images_sliced = images[slices[0][0]:slices[1][0]]
-            mask_sliced = mask[slices[0][0]:slices[1][0]]
+            images_sliced = images[slices[0]:slices[1]]
+            mask_sliced = mask[slices[0]:slices[1]]
         else:
             kspaces_sliced = kspaces_masked
             images_sliced = images
