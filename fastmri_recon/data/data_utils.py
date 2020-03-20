@@ -4,7 +4,6 @@ import glob
 import h5py
 
 
-# TODO: refactor all of this !
 def _from_file_to_stuff(filename, vals=None, attrs=None):
     stuff = []
     if vals is None:
