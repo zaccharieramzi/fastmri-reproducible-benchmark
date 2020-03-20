@@ -5,6 +5,19 @@ import h5py
 
 
 # TODO: refactor all of this !
+def _from_file_to_stuff(filename, vals=None, attrs=None):
+    stuff = []
+    if vals is None:
+        vals = []
+    if attrs is None:
+        attrs = []
+    with  h5py.File(filename, 'r') as h5_obj:
+        for val in vals:
+            stuff.append(h5_obj[val][()])
+        for attr in attrs:
+            stuff.append(h5_obj.attrs[attr])
+    return stuff
+
 def from_test_file_to_mask_and_kspace(filename):
     """Get the mask and kspaces from an h5 file with 'mask' and 'kspace' keys.
     """
