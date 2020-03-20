@@ -2,8 +2,9 @@
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
 from tensorflow.keras.models import Model
 
-from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri import tf_unmasked_adj_op, tf_fastmri_format
+from ..training.compile import default_model_compile
+from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.fourier import tf_unmasked_adj_op
 
 
 def unet_rec(
