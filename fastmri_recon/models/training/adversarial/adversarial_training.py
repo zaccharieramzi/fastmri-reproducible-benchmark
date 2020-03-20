@@ -8,7 +8,7 @@ from tensorflow.python.keras.callbacks import CallbackList
 from .loss import wasserstein_loss
 # from .metrics import mean_output, discriminator_accuracy
 from ..keras_utils import iter_sequence_infinite, is_sequence, to_list
-from ...evaluate.metrics.tf_metrics import keras_ssim, keras_psnr
+# from ....evaluate.metrics.tf_metrics import keras_ssim, keras_psnr
 
 
 def _replace_label_first_underscore(label):
