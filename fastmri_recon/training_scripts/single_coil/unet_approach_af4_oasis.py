@@ -5,7 +5,7 @@ from keras_tqdm import TQDMCallback
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.data.oasis_sequences import ZeroFilled2DSequence
-from fastmri_recon.models.unet import unet
+from fastmri_recon.models.functional_models.unet import unet
 
 # paths
 train_path = '/media/Zaccharie/UHRes/OASIS_data/'

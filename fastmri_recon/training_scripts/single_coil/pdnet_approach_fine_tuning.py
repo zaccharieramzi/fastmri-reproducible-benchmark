@@ -7,7 +7,7 @@ from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
 from fastmri_recon.data.fastmri_tf_datasets import train_masked_kspace_dataset_from_indexable
-from fastmri_recon.models.pdnet import pdnet
+from fastmri_recon.models.functional_models.pdnet import pdnet
 
 
 

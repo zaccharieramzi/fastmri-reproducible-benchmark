@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence, KIKISequence
-from fastmri_recon.models.kiki_sep import kiki_sep_net
+from fastmri_recon.models.functional_models.kiki_sep import kiki_sep_net
 from fastmri_recon.models.utils.data_consistency import MultiplyScalar
 from fastmri_recon.models.utils.non_linearities import lrelu
 
