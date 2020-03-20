@@ -5,8 +5,10 @@ from tensorflow.keras.optimizers import Adam, RMSprop
 from tensorflow.keras.utils import OrderedEnqueuer, GeneratorEnqueuer
 from tensorflow.python.keras.callbacks import CallbackList
 
-from .keras_utils import wasserstein_loss, mean_output, discriminator_accuracy, iter_sequence_infinite, is_sequence, to_list
-from .utils import keras_ssim, keras_psnr
+from .loss import wasserstein_loss
+# from .metrics import mean_output, discriminator_accuracy
+from ..keras_utils import iter_sequence_infinite, is_sequence, to_list
+from ...evaluate.metrics.tf_metrics import keras_ssim, keras_psnr
 
 
 def _replace_label_first_underscore(label):

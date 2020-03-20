@@ -1,7 +1,6 @@
 from tensorflow.keras.optimizers import Adam
 
-# TODO: change import
-from .utils import keras_psnr, keras_ssim
+from ...evaluate.metrics.tf_metrics import keras_psnr, keras_ssim
 
 
 def default_model_compile(model, lr):
