@@ -4,7 +4,7 @@ import time
 from keras_tqdm import TQDMCallback
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
-from fastmri_recon.data.fastmri_sequences import ZeroFilled2DSequence
+from fastmri_recon.data.sequences.fastmri_sequences import ZeroFilled2DSequence
 from fastmri_recon.models.functional_models.unet import unet
 
 
