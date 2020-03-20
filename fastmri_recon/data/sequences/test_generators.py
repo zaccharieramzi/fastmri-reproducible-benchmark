@@ -1,9 +1,9 @@
 import numpy as np
 from skimage.draw import random_shapes
 
-from ..helpers.fourier import fft
-from ..helpers.reconstruction import zero_filled_recon
-from ..helpers.utils import gen_mask
+from ...helpers.reconstruction import zero_filled_recon
+from ..utils.masking.gen_mask import gen_mask
+from ..utils.fourier import fft
 
 
 class RandomShapeGenerator:

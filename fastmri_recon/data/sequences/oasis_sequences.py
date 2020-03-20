@@ -7,9 +7,9 @@ import nibabel as nib
 import numpy as np
 from tensorflow.keras.utils import Sequence
 
-from ..helpers.fourier import FFT2
-from ..helpers.reconstruction import zero_filled_recon
-from ..helpers.utils import gen_mask
+from ...helpers.reconstruction import zero_filled_recon
+from ..utils.masking.gen_mask import gen_mask
+from ..utils.fourier import FFT2
 
 
 def _get_subject_from_filename(filename):
