@@ -2,13 +2,9 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Lambda
 from tensorflow.keras.models import Model
-import torch
-from torch import nn
 
 from ..helpers.keras_utils import default_model_compile
-from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, replace_values_on_mask_torch, conv2d_complex, enforce_kspace_data_consistency
-from ..helpers.torch_utils import ConvBlock
-from ..helpers.transforms import ifft2, fft2, center_crop, complex_abs
+from ..helpers.nn_mri import tf_fastmri_format, tf_unmasked_adj_op, tf_unmasked_op, MultiplyScalar, conv2d_complex, enforce_kspace_data_consistency
 
 
 def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, noiseless=True, lr=1e-3, fastmri=True, activation='relu'):
@@ -60,39 +56,3 @@ def kiki_net(input_size=(640, None, 1), n_cascade=2, n_convs=5, n_filters=16, no
     default_model_compile(model, lr)
 
     return model
-
-
-class KikiNet(torch.nn.Module):
-    def __init__(self, n_cascade=5, n_convs=5, n_filters=16):
-        super(KikiNet, self).__init__()
-
-        self.n_cascade = n_cascade
-        self.n_convs = n_convs
-        self.n_filters = n_filters
-
-        self.i_conv_layers = nn.ModuleList([ConvBlock(n_convs, n_filters) for _ in range(n_cascade)])
-        self.k_conv_layers = nn.ModuleList([ConvBlock(n_convs, n_filters) for _ in range(n_cascade)])
-
-    def forward(self, kspace, mask):
-        zero_filled = ifft2(kspace)
-        image = zero_filled
-        # this because pytorch doesn't support NHWC
-        for i, (i_conv_layer, k_conv_layer) in enumerate(zip(self.i_conv_layers, self.k_conv_layers)):
-            # residual convolution
-            res_image = image
-            res_image = res_image.permute(0, 3, 1, 2)
-            res_image = i_conv_layer(res_image)
-            res_image = res_image.permute(0, 2, 3, 1)
-            image = image + res_image
-            # data consistency layer
-            cnn_fft = fft2(image)
-            data_consistency_fourier = replace_values_on_mask_torch(cnn_fft, kspace, mask)
-            data_consistency_fourier = data_consistency_fourier.permute(0, 3, 1, 2)
-            data_consistency_fourier = k_conv_layer(data_consistency_fourier)
-            data_consistency_fourier = data_consistency_fourier.permute(0, 2, 3, 1)
-            image = ifft2(data_consistency_fourier)
-
-        # equivalent of taking the module of the image
-        image = complex_abs(image)
-        image = center_crop(image, (320, 320))
-        return image
