@@ -1,4 +1,4 @@
-from fastmri_recon.data.data_utils import (
+from fastmri_recon.data.utils.h5 import (
     from_train_file_to_image_and_kspace,
     from_train_file_to_image_and_kspace_and_contrast,
     from_file_to_kspace,
