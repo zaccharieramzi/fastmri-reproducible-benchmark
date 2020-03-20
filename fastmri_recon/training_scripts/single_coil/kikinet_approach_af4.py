@@ -6,8 +6,8 @@ from keras_tqdm import TQDMCallback
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.data.fastmri_sequences import Masked2DSequence
-from fastmri_recon.helpers.nn_mri import lrelu
 from fastmri_recon.models.kiki import kiki_net
+from fastmri_recon.models.utils.non_linearities import lrelu
 
 
 
