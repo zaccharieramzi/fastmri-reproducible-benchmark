@@ -93,13 +93,13 @@ def normalize(data, mean, stddev, eps=0.):
         (data - mean) / (stddev + eps)
 
     Args:
-        data (torch.Tensor): Input data to be normalized
+        data (array-like): Input data to be normalized
         mean (float): Mean value
         stddev (float): Standard deviation
         eps (float): Added to stddev to prevent dividing by zero
 
     Returns:
-        torch.Tensor: Normalized tensor
+        array-like: Normalized tensor
     """
     return (data - mean) / (stddev + eps)
 
@@ -111,11 +111,11 @@ def normalize_instance(data, eps=0.):
         where mean and stddev are computed from the data itself.
 
         Args:
-            data (torch.Tensor): Input data to be normalized
+            data (array-like): Input data to be normalized
             eps (float): Added to stddev to prevent dividing by zero
 
         Returns:
-            torch.Tensor: Normalized tensor
+            array-like: Normalized tensor
         """
     mean = data.mean()
     std = data.std()
@@ -131,14 +131,3 @@ def keras_ssim(y_true, y_pred):
     max_pixel = tf.math.reduce_max(y_true)
     min_pixel = tf.math.reduce_min(y_true)
     return tf.image.ssim(y_true, y_pred, max_pixel - min_pixel)
-
-
-def keras_psnr_complex(y_true, y_pred):
-    y_true_abs = tf.math.abs(y_true)
-    max_pixel = tf.math.reduce_max(y_true_abs)
-    return tf.image.psnr(y_true_abs, tf.math.abs(y_pred), max_pixel)
-
-def keras_ssim_complex(y_true, y_pred):
-    y_true_abs = tf.math.abs(y_true)
-    max_pixel = tf.math.reduce_max(y_true_abs)
-    return tf.image.ssim(y_true_abs, tf.math.abs(y_pred), max_pixel)

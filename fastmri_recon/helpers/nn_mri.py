@@ -1,4 +1,4 @@
-"""Module containing helpers for building NN for MRI reconstruction in pytorch and keras."""
+"""Module containing helpers for building NN for MRI reconstruction in tf."""
 import tensorflow as tf
 from tensorflow.keras.layers import Lambda, Conv2D, Layer, concatenate, Add, LeakyReLU
 from tensorflow.keras import regularizers
@@ -139,11 +139,3 @@ def _tf_crop(im, crop=320):
 def tf_fastmri_format(image):
     image = Lambda(lambda x: _tf_crop(tf.math.abs(x)), name='cropping', output_shape=(320, 320, 1))(image)
     return image
-
-### PyTorch ###
-def replace_values_on_mask_torch(cnn_fft, kspace, mask):
-    mask = mask[..., None]
-    mask = mask.expand_as(kspace).float()
-    anti_mask = 1.0 - mask
-    replace_cnn_fft = anti_mask * cnn_fft + kspace
-    return replace_cnn_fft

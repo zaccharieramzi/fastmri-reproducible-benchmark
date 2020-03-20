@@ -12,9 +12,7 @@ The reconstruction algorithms implemented or adapted to the fastMRI dataset incl
 - [KIKI net](https://www.ncbi.nlm.nih.gov/pubmed/29624729)
 - [Learned Primal Dual](https://arxiv.org/abs/1707.06474), adapted to MRI reconstruction
 
-All the neural networks (except the U-net) are implemented in both `keras` and `pytorch`.
-I mainly used `keras` to develop, but I realized at some point that `pytorch` might just be faster for fourier transform operations (see https://github.com/tensorflow/tensorflow/issues/6541).
-However, the main documentation is still for the `keras` models.
+All the neural networks are implemented in TensorFlow with the Keras API.
 
 
 ## How to train the neural networks
