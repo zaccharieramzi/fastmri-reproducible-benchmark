@@ -93,7 +93,7 @@ def normalize(data, mean, stddev, eps=0.):
         (data - mean) / (stddev + eps)
 
     Args:
-        data (torch.Tensor): Input data to be normalized
+        data (array-like): Input data to be normalized
         mean (float): Mean value
         stddev (float): Standard deviation
         eps (float): Added to stddev to prevent dividing by zero
