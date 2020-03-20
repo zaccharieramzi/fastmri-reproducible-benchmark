@@ -17,7 +17,7 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-srun --ntasks=1 python ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPDFS_FBK -gpus 0 &
-srun --ntasks=1 python ./fastmri_recon/training_scripts/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPD_FBK -gpus 1 &
+srun --ntasks=1 python ./fastmri_recon/training_scripts/single_coil/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPDFS_FBK -gpus 0 &
+srun --ntasks=1 python ./fastmri_recon/training_scripts/single_coil/pdnet_approach_fine_tuning.py pdnet_af4_1568384763 -a 4 -c CORPD_FBK -gpus 1 &
 
 wait  # wait for all ccc_mprun(s) to complete.
