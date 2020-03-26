@@ -19,7 +19,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=
             kspaces_sliced = kspaces_sliced[:, i_coil]
             mask_sliced = mask_sliced[:, i_coil]
         images_sliced = tf_unmasked_adj_op(kspaces_sliced[..., None])
-        kspaces_masked = mask * kspaces_sliced
+        kspaces_masked = mask_sliced * kspaces_sliced
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images_sliced * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
