@@ -1,14 +1,14 @@
 import tensorflow as tf
 
 from .preprocessing import generic_from_kspace_to_masked_kspace_and_mask
-from ...utils.h5 import from_train_file_to_image_and_kspace_and_contrast, from_test_file_to_mask_and_kspace_and_contrast
+from ...utils.h5 import from_multicoil_train_file_to_image_and_kspace_and_contrast, from_test_file_to_mask_and_kspace_and_contrast
 from ...utils.masking.acceleration_factor import tf_af
 
 # TODO: add unet and kikinet datasets
 def tf_filename_to_image_and_kspace_and_contrast(filename):
     def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
         filename_str = filename.numpy()
-        image, kspace, contrast = from_train_file_to_image_and_kspace_and_contrast(filename_str)
+        image, kspace, contrast = from_multicoil_train_file_to_image_and_kspace_and_contrast(filename_str)
         return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
     [image, kspace, contrast] = tf.py_function(
         _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor,
