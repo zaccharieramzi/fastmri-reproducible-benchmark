@@ -1,7 +1,7 @@
 import numpy as np
 from skimage.draw import random_shapes
 
-from ...helpers.reconstruction import zero_filled_recon
+from ...evaluate.reconstruction.zero_filled_reconstruction import zero_filled_recon
 from ..utils.masking.gen_mask import gen_mask
 from ..utils.fourier import fft
 

@@ -7,7 +7,7 @@ import nibabel as nib
 import numpy as np
 from tensorflow.keras.utils import Sequence
 
-from ...helpers.reconstruction import zero_filled_recon
+from ...evaluate.reconstruction.zero_filled_reconstruction import zero_filled_recon
 from ..utils.masking.gen_mask import gen_mask
 from ..utils.fourier import FFT2
 
