@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 from .coil_selection import selected_coil
 from ..slice_selection import selected_slices
 from ...utils.masking.gen_mask_tf import gen_mask_tf
@@ -18,7 +20,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=
             i_coil = selected_coil(kspaces_sliced)
             kspaces_sliced = kspaces_sliced[:, i_coil]
             mask_sliced = mask_sliced[:, i_coil]
-        images_sliced = tf_unmasked_adj_op(kspaces_sliced[..., None])
+        images_sliced = tf.abs(tf_unmasked_adj_op(kspaces_sliced[..., None]))
         kspaces_masked = mask_sliced * kspaces_sliced
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images_sliced * scale_factor
