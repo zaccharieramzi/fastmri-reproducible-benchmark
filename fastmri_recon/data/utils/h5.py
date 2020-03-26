@@ -26,25 +26,37 @@ def from_test_file_to_mask_and_kspace(filename):
 
 
 def from_train_file_to_image_and_kspace(filename):
-    """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
+    """Get the images and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.
     """
     return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'])
 
 def from_train_file_to_image_and_kspace_and_contrast(filename):
-    """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
+    """Get the images and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.
     """
     return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'], attrs=['acquisition'])
 
+def from_multicoil_train_file_to_image_and_kspace(filename):
+    """Get the images and kspaces from an h5 file with 'reconstruction_rss'
+    and 'kspace' keys.
+    """
+    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'])
+
+def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename):
+    """Get the images and kspaces from an h5 file with 'reconstruction_rss'
+    and 'kspace' keys.
+    """
+    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], attrs=['acquisition'])
+
 def from_test_file_to_mask_and_kspace_and_contrast(filename):
-    """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
+    """Get the mask and kspaces from an h5 file with 'mask'
     and 'kspace' keys.
     """
     return _from_file_to_stuff(filename, vals=['mask', 'kspace'], attrs=['acquisition'])
 
 def from_test_file_to_mask_and_contrast(filename):
-    """Get the imagess and kspaces from an h5 file with 'reconstruction_esc'
+    """Get the mask and kspaces from an h5 file with 'mask'
     and 'kspace' keys.
     """
     return _from_file_to_stuff(filename, vals=['mask'], attrs=['acquisition'])
