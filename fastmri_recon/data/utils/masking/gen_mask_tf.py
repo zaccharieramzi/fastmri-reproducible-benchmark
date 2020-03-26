@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def gen_mask_tf(kspace, accel_factor):
+def gen_mask_tf(kspace, accel_factor, multicoil=False):
     shape = tf.shape(kspace)
     num_cols = shape[-1]
     center_fraction = (32 // accel_factor) / 100
@@ -23,6 +23,9 @@ def gen_mask_tf(kspace, accel_factor):
         tf.expand_dims(num_cols, axis=0),
     ], axis=0)
     final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
-    fourier_mask = tf.tile(final_mask_reshaped, [shape[0], shape[1], 1])
+    tiling = [shape[0], shape[1], 1]
+    if multicoil:
+        tiling = [shape[0], shape[1], shape[2], 1]
+    fourier_mask = tf.tile(final_mask_reshaped, tiling)
     fourier_mask = tf.dtypes.cast(fourier_mask, 'complex64')
     return fourier_mask
