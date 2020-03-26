@@ -6,8 +6,8 @@ import tensorflow as tf
 from keras_tqdm import TQDMCallback
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
-from fastmri_recon.data.oasis_sequences import Masked2DSequence
-from fastmri_recon.models.cascading import cascade_net
+from fastmri_recon.data.sequences.oasis_sequences import Masked2DSequence
+from fastmri_recon.models.functional_models.cascading import cascade_net
 
 
 random.seed(0)
