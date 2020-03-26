@@ -16,18 +16,18 @@ All the neural networks are implemented in TensorFlow with the Keras API.
 
 
 ## How to train the neural networks
-The scripts to train the neural networks are located in `fastmri_recon/training/`.
+The scripts to train the neural networks are located in `fastmri_recon/training_scripts/`.
 You just need to install the package and its dependencies:
 ```
 pip install . &&\
-pip install -r fastmri_recon/requirements.txt
+pip install -r requirements.txt
 ```
 TensorFlow is not listed as a dependency to let you chose if you want gpu supported TensorFlow.
 
 
 ## How to write a new neural network for reconstruction
 A good example of a simple neural network on which you can improve is the `zerofill_net` which is simply performing zero-filled reconstruction using `keras`.
-The building blocks can then be found in `fastmri_recon/helpers/nn_mri.py`
+The building blocks can then be found in `fastmri_recon/models/utils/`
 
 
 # Citation
