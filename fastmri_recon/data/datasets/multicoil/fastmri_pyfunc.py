@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from ..preprocessing import generic_from_kspace_to_masked_kspace_and_mask, generic_prepare_mask_and_kspace
+from .preprocessing import generic_from_kspace_to_masked_kspace_and_mask, generic_prepare_mask_and_kspace
 from ...utils.h5 import from_train_file_to_image_and_kspace_and_contrast, from_test_file_to_mask_and_kspace_and_contrast
 from ...utils.masking.acceleration_factor import tf_af
 
