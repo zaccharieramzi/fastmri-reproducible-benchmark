@@ -18,8 +18,12 @@ def gen_mask_tf(kspace, accel_factor, multicoil=False):
 
     # Reshape the mask
     mask_shape = tf.ones_like(shape)
+    if multicoil:
+        mask_shape = mask_shape[:3]
+    else:
+        mask_shape = mask_shape[:2]
     final_mask_shape = tf.concat([
-        mask_shape[:2],
+        mask_shape,
         tf.expand_dims(num_cols, axis=0),
     ], axis=0)
     final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
