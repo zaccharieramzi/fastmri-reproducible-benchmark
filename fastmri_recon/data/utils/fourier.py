@@ -23,7 +23,7 @@ class FFT2:
         x: np.ndarray
             masked Fourier transform of the input image.
         """
-        fft_coeffs = np.fft.ifftshift(np.fft.fft2(np.fft.fftshift(img), norm='ortho'))
+        fft_coeffs = np.fft.ifftshift(np.fft.fft2(np.fft.fftshift(img, axes=(-2, -1)), norm='ortho'), axes=(-2, -1))
         return self.mask * fft_coeffs
 
     def adj_op(self, x):
@@ -41,7 +41,7 @@ class FFT2:
             inverse 2D discrete Fourier transform of the input coefficients.
         """
         masked_fft_coeffs = self.mask * x
-        return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(masked_fft_coeffs), norm='ortho'))
+        return np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(masked_fft_coeffs, axes=(-2, -1)), norm='ortho'), axes=(-2, -1))
 
 
 def fft(image):
