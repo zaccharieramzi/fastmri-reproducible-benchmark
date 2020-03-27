@@ -81,6 +81,7 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs):
         'n_dual': 5,
         'n_iter': 10,
         'n_filters': 32,
+        'fastmri': False,
     }
     additional_info = f'af{af}'
     if contrast is not None:
