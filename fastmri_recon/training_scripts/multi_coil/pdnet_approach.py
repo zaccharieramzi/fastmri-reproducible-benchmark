@@ -12,7 +12,7 @@ from fastmri_recon.models.functional_models.pdnet import pdnet
 
 
 # paths
-train_path = f'{FASTMRI_DATA_DIR}multicoil_train/multicoil_train/'
+train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
 val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
 n_volumes_train = 973
