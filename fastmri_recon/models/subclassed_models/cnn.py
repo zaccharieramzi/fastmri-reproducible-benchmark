@@ -40,13 +40,13 @@ class CNNComplex(Model):
 
     def call(self, inputs):
         outputs = inputs
-        outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)])
+        outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         for conv in self.convs:
             outputs = conv(outputs)
         outputs = tf.complex(
-            outputs[..., self.n_output_channels:],
             outputs[..., :self.n_output_channels],
+            outputs[..., self.n_output_channels:],
         )
         if self.res:
-            outputs = inputs + outputs
+            outputs = inputs[..., :self.n_output_channels] + outputs
         return outputs
