@@ -35,33 +35,32 @@ def tf_filename_to_mask_and_kspace_and_contrast(filename):
 
 
 def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None, n_samples=None, parallel=True):
-    with tf.device('/cpu:0'):
-        files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
-        image_and_kspace_and_contrast_ds = files_ds.map(
-            tf_filename_to_image_and_kspace_and_contrast,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
+    image_and_kspace_and_contrast_ds = files_ds.map(
+        tf_filename_to_image_and_kspace_and_contrast,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    # contrast filtering
+    if contrast:
+        image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(
+            lambda image, kspace, tf_contrast: tf_contrast == contrast
         )
-        # contrast filtering
-        if contrast:
-            image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(
-                lambda image, kspace, tf_contrast: tf_contrast == contrast
-            )
-        image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
-            lambda image, kspace, tf_contrast: (image, kspace),
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-        )
-        if n_samples is not None:
-            image_and_kspace_ds = image_and_kspace_ds.take(n_samples)
-        masked_kspace_ds = image_and_kspace_ds.map(
-            generic_from_kspace_to_masked_kspace_and_mask(
-                AF=AF,
-                inner_slices=inner_slices,
-                rand=rand,
-                scale_factor=scale_factor,
-                parallel=parallel,
-            ),
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-        ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
+        lambda image, kspace, tf_contrast: (image, kspace),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    if n_samples is not None:
+        image_and_kspace_ds = image_and_kspace_ds.take(n_samples)
+    masked_kspace_ds = image_and_kspace_ds.map(
+        generic_from_kspace_to_masked_kspace_and_mask(
+            AF=AF,
+            inner_slices=inner_slices,
+            rand=rand,
+            scale_factor=scale_factor,
+            parallel=parallel,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return masked_kspace_ds
 
