@@ -18,6 +18,15 @@ class PDNet(CrossDomainNet):
         self.n_iter = n_iter
         self.primal_only = primal_only
         self.activation = activation
+        super(PDNet, self).__init__(
+            domain_sequence='KI'*self.n_iter,
+            data_consistency_mode='measurements_residual',
+            i_buffer_mode=True,
+            k_buffer_mode=not self.primal_only,
+            i_buffer_size=self.n_primal,
+            k_buffer_size=self.n_dual,
+            **kwargs,
+        )
         self.image_net = [CNNComplex(
             n_convs=3,
             n_filters=self.n_filters,
@@ -39,15 +48,7 @@ class PDNet(CrossDomainNet):
             # TODO: check n dual
             # TODO: code small diff function
             self.kspace_net = [measurements_residual for i in range(self.n_iter)]
-        super(PDNet, self).__init__(
-            domain_sequence='KI'*self.n_iter,
-            data_consistency_mode='measurements_residual',
-            i_buffer_mode=True,
-            k_buffer_mode=not self.primal_only,
-            i_buffer_size=self.n_primal,
-            k_buffer_size=self.n_dual,
-            **kwargs,
-        )
+
 
 def measurements_residual(concatenated_kspace):
     current_kspace = concatenated_kspace[..., 0:1]
