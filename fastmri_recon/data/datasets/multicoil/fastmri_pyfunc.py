@@ -19,19 +19,19 @@ def tf_filename_to_image_and_kspace_and_contrast(filename):
     kspace.set_shape((None, 15, 640, None))
     return image, kspace, contrast
 
-def tf_filename_to_mask_and_kspace_and_contrast(filename):
-    def _from_test_file_to_mask_and_kspace_and_contrast_tensor_to_tensor(filename):
-        filename_str = filename.numpy()
-        mask, kspace, contrast = from_test_file_to_mask_and_kspace_and_contrast(filename_str)
-        return tf.convert_to_tensor(mask), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
-    [mask, kspace, contrast] = tf.py_function(
-        _from_test_file_to_mask_and_kspace_and_contrast_tensor_to_tensor,
-        [filename],
-        [tf.bool, tf.complex64, tf.string],
-    )
-    mask.set_shape((None,))
-    kspace.set_shape((None, 15, 640, None))
-    return mask, kspace, contrast
+# def tf_filename_to_mask_and_kspace_and_contrast(filename):
+#     def _from_test_file_to_mask_and_kspace_and_contrast_tensor_to_tensor(filename):
+#         filename_str = filename.numpy()
+#         mask, kspace, contrast = from_test_file_to_mask_and_kspace_and_contrast(filename_str)
+#         return tf.convert_to_tensor(mask), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
+#     [mask, kspace, contrast] = tf.py_function(
+#         _from_test_file_to_mask_and_kspace_and_contrast_tensor_to_tensor,
+#         [filename],
+#         [tf.bool, tf.complex64, tf.string],
+#     )
+#     mask.set_shape((None,))
+#     kspace.set_shape((None, 15, 640, None))
+#     return mask, kspace, contrast
 
 
 def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None, n_samples=None, parallel=True):
