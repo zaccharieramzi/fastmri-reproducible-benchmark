@@ -4,7 +4,7 @@ import glob
 import h5py
 
 
-def _from_file_to_stuff(filename, vals=None, attrs=None):
+def _from_file_to_stuff(filename, vals=None, attrs=None, slices=None):
     stuff = []
     if vals is None:
         vals = []
@@ -12,7 +12,10 @@ def _from_file_to_stuff(filename, vals=None, attrs=None):
         attrs = []
     with  h5py.File(filename, 'r') as h5_obj:
         for val in vals:
-            stuff.append(h5_obj[val][()])
+            if slices is None:
+                stuff.append(h5_obj[val][()])
+            else:
+                stuff.append(h5_obj[val][slices[val]])
         for attr in attrs:
             stuff.append(h5_obj.attrs[attr])
     if len(stuff) == 1:
