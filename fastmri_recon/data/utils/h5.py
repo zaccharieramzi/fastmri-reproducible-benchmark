@@ -79,7 +79,8 @@ def from_multicoil_train_file_to_image_and_kspace(filename, selection=None):
     and 'kspace' keys.
     """
     if selection is not None:
-        selection = {'kspace': selection, 'reconstruction_rss': selection}
+        # selection for the image does not involve the coil
+        selection = {'kspace': selection, 'reconstruction_rss': selection[0:1]}
     return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], selection=selection)
 
 def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename, selection=None):
@@ -87,7 +88,8 @@ def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename, selecti
     and 'kspace' keys.
     """
     if selection is not None:
-        selection = {'kspace': selection, 'reconstruction_rss': selection}
+        # selection for the image does not involve the coil
+        selection = {'kspace': selection, 'reconstruction_rss': selection[0:1]}
     return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], attrs=['acquisition'], selection=selection)
 
 def from_test_file_to_mask_and_kspace_and_contrast(filename, selection=None):
