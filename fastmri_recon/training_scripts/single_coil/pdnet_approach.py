@@ -7,8 +7,9 @@ from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+from fastmri_recon.models.subclassed_models.single_coil.pdnet import PDNet
 from fastmri_recon.models.functional_models.pdnet import pdnet
-
+from fastmri_recon.models.training.compile import default_model_compile
 
 
 # paths
@@ -19,6 +20,12 @@ test_path = f'{FASTMRI_DATA_DIR}singlecoil_test/'
 n_volumes_train = 973
 
 @click.command()
+@click.option(
+    'subclassed',
+    '-s',
+    is_flag=True,
+    help='Flag to use the subclassed API.',
+)
 @click.option(
     'af',
     '-a',
@@ -55,7 +62,7 @@ n_volumes_train = 973
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs):
+def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epochs):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
@@ -99,10 +106,12 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs):
         write_graph=False,
         write_images=False,
     )
-
-    model = pdnet(lr=1e-3, **run_params)
+    if subclassed:
+        model = PDNet(**run_params)
+        default_model_compile(model, lr=1e-3)
+    else:
+        model = pdnet(lr=1e-3, **run_params)
     print(run_id)
-    print(model.summary(line_length=150))
     model.fit(
         train_set,
         steps_per_epoch=n_volumes_train,
