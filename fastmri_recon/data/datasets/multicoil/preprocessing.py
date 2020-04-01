@@ -1,37 +1,20 @@
 import tensorflow as tf
 
-from .coil_selection import selected_coil
-from ..slice_selection import selected_slices
 from ...utils.masking.gen_mask_tf import gen_mask_tf
 from ....models.utils.fourier import tf_unmasked_adj_op
 
 
-def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=False, scale_factor=1, parallel=True):
+def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, parallel=True):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        mask = gen_mask_tf(kspaces, accel_factor=AF, multicoil=True)
-        if inner_slices is not None:
-            slices = selected_slices(kspaces, inner_slices=inner_slices, rand=rand)
-            kspaces_sliced = kspaces[slices[0]:slices[1]]
-            mask_sliced = mask[slices[0]:slices[1]]
-        else:
-            kspaces_sliced = kspaces
-            mask_sliced = mask
+        mask = gen_mask_tf(kspaces, accel_factor=AF, multicoil=not parallel)
         if parallel:
-            i_coil = selected_coil(kspaces_sliced)
-            kspaces_sliced = kspaces_sliced[:, i_coil]
-            mask_sliced = mask_sliced[:, i_coil]
-            images_sliced = tf.abs(tf_unmasked_adj_op(kspaces_sliced[..., None]))[..., 0]
-        else:
-            if inner_slices is not None:
-                images_sliced = images[slices[0]:slices[1]]
-            else:
-                images_sliced = images
-        kspaces_masked = mask_sliced * kspaces_sliced
+            images = tf.abs(tf_unmasked_adj_op(kspaces[..., None]))[..., 0]
+        kspaces_masked = mask * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
-        images_scaled = images_sliced * scale_factor
+        images_scaled = images * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
-        return (kspaces_channeled, mask_sliced), images_channeled
+        return (kspaces_channeled, mask), images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 # TODO: adapt to multicoil
