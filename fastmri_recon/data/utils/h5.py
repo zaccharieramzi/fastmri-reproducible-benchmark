@@ -22,41 +22,53 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, slices=None):
         stuff = stuff[0]
     return stuff
 
-def from_test_file_to_mask_and_kspace(filename):
+def from_test_file_to_mask_and_kspace(filename, slices=None):
     """Get the mask and kspaces from an h5 file with 'mask' and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['mask', 'kspace'])
+    if slices is not None:
+        slices = {'kspace': slices}
+    return _from_file_to_stuff(filename, vals=['mask', 'kspace'], slices=slices)
 
 
-def from_train_file_to_image_and_kspace(filename):
+def from_train_file_to_image_and_kspace(filename, slices=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'])
+    if slices is not None:
+        slices = {'kspace': slices, 'reconstruction_esc': slices}
+    return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'], slices=slices)
 
-def from_train_file_to_image_and_kspace_and_contrast(filename):
+def from_train_file_to_image_and_kspace_and_contrast(filename, slices=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'], attrs=['acquisition'])
+    if slices is not None:
+        slices = {'kspace': slices, 'reconstruction_esc': slices}
+    return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'], attrs=['acquisition'], slices=slices)
 
-def from_multicoil_train_file_to_image_and_kspace(filename):
+def from_multicoil_train_file_to_image_and_kspace(filename, slices=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_rss'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'])
+    if slices is not None:
+        slices = {'kspace': slices, 'reconstruction_rss': slices}
+    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], slices=slices)
 
-def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename):
+def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename, slices=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_rss'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], attrs=['acquisition'])
+    if slices is not None:
+        slices = {'kspace': slices, 'reconstruction_rss': slices}
+    return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], attrs=['acquisition'], slices=slices)
 
-def from_test_file_to_mask_and_kspace_and_contrast(filename):
+def from_test_file_to_mask_and_kspace_and_contrast(filename, slices=None):
     """Get the mask and kspaces from an h5 file with 'mask'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['mask', 'kspace'], attrs=['acquisition'])
+    if slices is not None:
+        slices = {'kspace': slices}
+    return _from_file_to_stuff(filename, vals=['mask', 'kspace'], attrs=['acquisition'], slices=slices)
 
 def from_test_file_to_mask_and_contrast(filename):
     """Get the mask and kspaces from an h5 file with 'mask'
@@ -65,10 +77,12 @@ def from_test_file_to_mask_and_contrast(filename):
     return _from_file_to_stuff(filename, vals=['mask'], attrs=['acquisition'])
 
 
-def from_file_to_kspace(filename):
+def from_file_to_kspace(filename, slices=None):
     """Get the kspaces from an h5 file with 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['kspace'])
+    if slices is not None:
+        slices = {'kspace': slices}
+    return _from_file_to_stuff(filename, vals=['kspace'], slices=slices)
 
 def from_file_to_contrast(filename):
     """Get the contrast from an h5 file.
