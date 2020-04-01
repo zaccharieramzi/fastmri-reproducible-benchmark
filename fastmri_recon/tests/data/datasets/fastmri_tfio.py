@@ -3,6 +3,8 @@ import os
 import pytest
 
 from fastmri_recon.data.datasets.fastmri_tfio import train_masked_kspace_dataset_io
+from fastmri_recon.models.subclassed_models.single_coil.pdnet import PDNet
+from fastmri_recon.models.training.compile import default_model_compile
 
 
 test_file_single_coil = 'fastmri_recon/tests/fastmri_data/single_coil/file1000002.h5'
@@ -23,3 +25,10 @@ def test_train_masked_kspace_dataset_io(ds_kwargs, expected_kspace_shape):
     assert kspace.shape.as_list() == expected_kspace_shape
     assert mask.shape.as_list() == expected_kspace_shape[:3]
     assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
+
+
+def test_train_masked_kspace_dataset_io_graph_mode():
+    ds = train_masked_kspace_dataset_io('fastmri_recon/tests/fastmri_data/single_coil/', rand=True)
+    model = PDNet(primal_only=True, n_iter=1, n_filters=8, n_primal=1, n_dual=1)
+    default_model_compile(model, lr=1e-3)
+    model.fit(ds, steps_per_epoch=1, n_epochs=2)
