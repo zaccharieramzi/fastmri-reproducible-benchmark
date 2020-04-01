@@ -20,7 +20,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, inner_slices=None, rand=
             i_coil = selected_coil(kspaces_sliced)
             kspaces_sliced = kspaces_sliced[:, i_coil]
             mask_sliced = mask_sliced[:, i_coil]
-            images_sliced = tf.abs(tf_unmasked_adj_op(kspaces_sliced[..., None]))
+            images_sliced = tf.abs(tf_unmasked_adj_op(kspaces_sliced[..., None]))[..., 0]
         else:
             if inner_slices is not None:
                 images_sliced = images[slices[0]:slices[1]]
