@@ -1,5 +1,5 @@
 # fastmri data
-fastmri_recon/tests/fastmri/data/
+fastmri_recon/tests/fastmri_data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
