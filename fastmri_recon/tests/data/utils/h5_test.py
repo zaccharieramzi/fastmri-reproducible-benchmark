@@ -20,7 +20,8 @@ def test_all_functions_single_coil():
         fun(test_file_single_coil)
     for fun in functions_sliceable:
         # this gets the 10-th slice of the volume
-        fun(test_file_single_coil, rand_slices=[8])
+        fun(test_file_single_coil, selection=[{'inner_slices': 8, 'rand': True}])
+        fun(test_file_single_coil, selection=[{'inner_slices': 8}])
 
 @pytest.mark.skipif(not os.path.isfile(test_file_multi_coil), reason='test multi coil file not present for h5 utils.')
 def test_all_functions_multi_coil():
@@ -35,4 +36,4 @@ def test_all_functions_multi_coil():
         fun(test_file_multi_coil)
     for fun in functions_sliceable:
         # this gets the 10-th slice of the volume
-        fun(test_file_multi_coil, rand_slices=[8, None])
+        fun(test_file_multi_coil, selection=[{'inner_slices': 8, 'rand': True}, {'rand': True}])
