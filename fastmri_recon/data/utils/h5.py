@@ -27,12 +27,12 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
                     keep_dim = dimension_selection.get('keep_dim', True)
                     if inner_slices is not None:
                         slice_start = data_dimension // 2 - inner_slices // 2
-                        slice_end = slice_start + inner_slices - 1
+                        slice_end = slice_start + inner_slices
                     else:
                         slice_start = 0
                         slice_end = data_dimension
                     if rand:
-                        i_slice = random.randint(slice_start, slice_end)
+                        i_slice = random.randint(slice_start, slice_end - 1)
                         if keep_dim:
                             selected_slices = slice(i_slice, i_slice + 1)
                         else:
