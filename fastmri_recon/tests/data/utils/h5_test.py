@@ -36,4 +36,4 @@ def test_all_functions_multi_coil():
         fun(test_file_multi_coil)
     for fun in functions_sliceable:
         # this gets the 10-th slice of the volume
-        fun(test_file_multi_coil, selection=[{'inner_slices': 8, 'rand': True}, {'rand': True}])
+        fun(test_file_multi_coil, selection=[{'inner_slices': 8, 'rand': True}, {'rand': True, 'keep_dim': False}])

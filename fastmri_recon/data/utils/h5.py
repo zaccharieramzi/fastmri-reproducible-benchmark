@@ -24,6 +24,7 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
                     data_dimension = data_shape[i_dimension]
                     rand = dimension_selection.get('rand', False)
                     inner_slices = dimension_selection.get('inner_slices', None)
+                    keep_dim = dimension_selection.get('keep_dim', True)
                     if inner_slices is not None:
                         slice_start = data_dimension // 2 - inner_slices // 2
                         slice_end = slice_start + inner_slices - 1
@@ -32,7 +33,10 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
                         slice_end = data_dimension
                     if rand:
                         i_slice = random.randint(slice_start, slice_end)
-                        selected_slices = slice(i_slice, i_slice + 1)
+                        if keep_dim:
+                            selected_slices = slice(i_slice, i_slice + 1)
+                        else:
+                            selected_slices = i_slice
                     else:
                         selected_slices = slice(slice_start, slice_end)
                     selected_slices_list.append(selected_slices)
