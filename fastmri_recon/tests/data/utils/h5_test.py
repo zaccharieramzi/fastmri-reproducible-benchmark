@@ -5,7 +5,7 @@ import pytest
 from fastmri_recon.data.utils.h5 import *
 
 test_file_single_coil = 'fastmri_recon/tests/fastmri_data/single_coil/file1000002.h5'
-test_file_multi_coil = 'fastmri_recon/tests/fastmri_data/multi_coil/file1000001.h5'
+test_file_multi_coil = 'fastmri_recon/tests/fastmri_data/muti_coil/file1000001.h5'
 
 @pytest.mark.skipif(not os.path.isfile(test_file_single_coil), reason='test single coil file not present for h5 utils.')
 def test_all_functions_single_coil():
