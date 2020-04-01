@@ -15,7 +15,7 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, slices=None):
             if slices is None:
                 stuff.append(h5_obj[val][()])
             else:
-                stuff.append(h5_obj[val][slices[val]])
+                stuff.append(h5_obj[val][slices.get(val, ())])
         for attr in attrs:
             stuff.append(h5_obj.attrs[attr])
     if len(stuff) == 1:
