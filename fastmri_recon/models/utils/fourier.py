@@ -75,4 +75,4 @@ class FFT(FFTBase):
 
 class IFFT(FFTBase):
     def call(self, inputs):
-        return self.op(inputs)
+        return self.adj_op(inputs)
