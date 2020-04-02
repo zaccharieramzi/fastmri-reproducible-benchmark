@@ -34,11 +34,19 @@ class CrossDomainNet(Model):
         # TODO: create a buffer
         for i_domain, domain in enumerate(self.domain_sequence):
             if domain == 'K':
+                if self.k_buffer_mode:
+                    kspace_buffer = tf.concat([
+                        kspace_buffer,
+                        self.forward_operator(image_buffer, mask),
+                    ], axis=-1)
+                else:
+                    kspace_buffer = self.forward_operator(image_buffer, mask)
                 kspace_buffer = self.apply_data_consistency(kspace_buffer, *inputs)
                 # NOTE: this i //2 suggest alternating domains, this will need
                 # evolve if we want non-alternating domains. This needs to be
                 # clear in the docs.
                 kspace_buffer = self.kspace_net[i_domain//2](kspace_buffer)
+            if domain == 'I':
                 if self.i_buffer_mode:
                     image_buffer = tf.concat([
                         image_buffer,
@@ -47,15 +55,7 @@ class CrossDomainNet(Model):
                 else:
                     # NOTE: the operator is already doing the channel selection
                     image_buffer = self.backward_operator(kspace_buffer, mask)
-            if domain == 'I':
                 image_buffer = self.image_net[i_domain//2](image_buffer)
-                if self.k_buffer_mode:
-                    kspace_buffer = tf.concat([
-                        kspace_buffer,
-                        self.forward_operator(image_buffer, mask),
-                    ], axis=-1)
-                else:
-                    kspace_buffer = self.forward_operator(image_buffer, mask)
         image = tf_fastmri_format(image_buffer[..., 0:1])
         return image
 
