@@ -17,6 +17,6 @@ cd $workspace/fastmri-reproducible-benchmark
 
 . ./submission_scripts/env_config.sh
 
-ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/single_coil/pdnet_approach.py -a 4 -s -i 20 &
+ccc_mprun -E '--exclusive' -n 1 python3 ./fastmri_recon/training_scripts/single_coil/pdnet_approach.py -a 4 -s -i 30 &
 
 wait  # wait for all ccc_mprun(s) to complete.
