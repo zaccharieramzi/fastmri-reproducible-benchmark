@@ -1,5 +1,6 @@
 from ..cnn import  CNNComplex
 from ..cross_domain import CrossDomainNet
+from ...utils.fourier import FFT, IFFT
 
 class PDNet(CrossDomainNet):
     def __init__(
@@ -27,6 +28,8 @@ class PDNet(CrossDomainNet):
             k_buffer_size=self.n_dual,
             **kwargs,
         )
+        self.op = FFT(masked=True)
+        self.adj_op = IFFT(masked=True)
         self.image_net = [CNNComplex(
             n_convs=3,
             n_filters=self.n_filters,

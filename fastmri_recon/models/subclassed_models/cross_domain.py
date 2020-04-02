@@ -3,7 +3,6 @@ from tensorflow.keras.models import Model
 
 from ..utils.data_consistency import _replace_values_on_mask
 from ..utils.fastmri_format import tf_fastmri_format
-from ..utils.fourier import tf_op, tf_adj_op, tf_unmasked_op, tf_unmasked_adj_op
 
 
 class CrossDomainNet(Model):
@@ -70,12 +69,12 @@ class CrossDomainNet(Model):
         if self.data_consistency_mode == 'measurements_residual':
             # TODO: when dealing with non cartesian/pMRI change this to self.op
             # defined in init
-            return tf_op([image, mask])
+            return self.op([image, mask])
         else:
-            return tf_unmasked_op(image)
+            return self.op(image)
 
     def backward_operator(self, kspace, mask):
         if self.data_consistency_mode == 'measurements_residual':
-            return tf_adj_op([kspace, mask])
+            return self.adj_op([kspace, mask])
         else:
-            return tf_unmasked_adj_op(kspace)
+            return self.adj_op(kspace)
