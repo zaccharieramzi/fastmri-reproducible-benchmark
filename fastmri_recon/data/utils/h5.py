@@ -21,8 +21,8 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
             if val in selection:
                 data_shape = h5_dataset.shape
                 dimensions_selection_list = selection[val]
-                if not selected_slices_list:
-                    for i_dimension, dimension_selection in enumerate(dimensions_selection_list):
+                for i_dimension, dimension_selection in enumerate(dimensions_selection_list):
+                    if i_dimension > len(selected_slices_list) - 1:
                         data_dimension = data_shape[i_dimension]
                         rand = dimension_selection.get('rand', False)
                         inner_slices = dimension_selection.get('inner_slices', None)
