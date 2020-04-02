@@ -66,7 +66,7 @@ class FFTBase(Layer):
         shifted_kspace = ifftshift(kspace[..., 0])
         image_shifted = ifft2d(shifted_kspace)
         image_unnormed = fftshift(image_shifted)
-        image = image_unnormed[..., None] / scaling_norm
+        image = image_unnormed[..., None] * scaling_norm
         return image
 
 class FFT(FFTBase):
