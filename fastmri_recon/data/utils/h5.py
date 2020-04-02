@@ -14,32 +14,34 @@ def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
     if selection is None:
         selection = {}
     with h5py.File(filename, 'r') as h5_obj:
+        selected_slices_list = []
+        # TODO: see how I can refactor this mess
         for val in vals:
             h5_dataset = h5_obj[val]
             if val in selection:
                 data_shape = h5_dataset.shape
                 dimensions_selection_list = selection[val]
-                selected_slices_list = []
-                for i_dimension, dimension_selection in enumerate(dimensions_selection_list):
-                    data_dimension = data_shape[i_dimension]
-                    rand = dimension_selection.get('rand', False)
-                    inner_slices = dimension_selection.get('inner_slices', None)
-                    keep_dim = dimension_selection.get('keep_dim', True)
-                    if inner_slices is not None:
-                        slice_start = data_dimension // 2 - inner_slices // 2
-                        slice_end = slice_start + inner_slices
-                    else:
-                        slice_start = 0
-                        slice_end = data_dimension
-                    if rand:
-                        i_slice = random.randint(slice_start, slice_end - 1)
-                        if keep_dim:
-                            selected_slices = slice(i_slice, i_slice + 1)
+                if not selected_slices_list:
+                    for i_dimension, dimension_selection in enumerate(dimensions_selection_list):
+                        data_dimension = data_shape[i_dimension]
+                        rand = dimension_selection.get('rand', False)
+                        inner_slices = dimension_selection.get('inner_slices', None)
+                        keep_dim = dimension_selection.get('keep_dim', True)
+                        if inner_slices is not None:
+                            slice_start = data_dimension // 2 - inner_slices // 2
+                            slice_end = slice_start + inner_slices
                         else:
-                            selected_slices = i_slice
-                    else:
-                        selected_slices = slice(slice_start, slice_end)
-                    selected_slices_list.append(selected_slices)
+                            slice_start = 0
+                            slice_end = data_dimension
+                        if rand:
+                            i_slice = random.randint(slice_start, slice_end - 1)
+                            if keep_dim:
+                                selected_slices = slice(i_slice, i_slice + 1)
+                            else:
+                                selected_slices = i_slice
+                        else:
+                            selected_slices = slice(slice_start, slice_end)
+                        selected_slices_list.append(selected_slices)
                 selected_slices_tuple = tuple(selected_slices_list)
                 stuff.append(h5_dataset[selected_slices_tuple])
             else:
