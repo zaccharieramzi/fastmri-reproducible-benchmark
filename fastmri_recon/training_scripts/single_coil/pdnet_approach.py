@@ -62,7 +62,14 @@ n_volumes_train = 973
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epochs):
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
@@ -85,7 +92,7 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
     run_params = {
         'n_primal': 5,
         'n_dual': 5,
-        'n_iter': 10,
+        'n_iter': n_iter,
         'n_filters': 32,
     }
     additional_info = f'af{af}'
@@ -93,6 +100,8 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
         additional_info += f'_{contrast}'
     if n_samples is not None:
         additional_info += f'_{n_samples}'
+    if n_iter != 10:
+        additional_info += f'_i{n_iter}'
 
     run_id = f'pdnet_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
