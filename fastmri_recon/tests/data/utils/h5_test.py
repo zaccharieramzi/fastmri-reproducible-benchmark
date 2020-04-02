@@ -1,7 +1,10 @@
 import os
 
+import numpy as np
 import pytest
 
+from fastmri_recon.data.utils.crop import crop_center
+from fastmri_recon.data.utils.fourier import ifft
 from fastmri_recon.data.utils.h5 import *
 
 test_file_single_coil = 'fastmri_recon/tests/fastmri_data/single_coil/file1000002.h5'
@@ -22,6 +25,17 @@ def test_all_functions_single_coil():
         # this gets the 10-th slice of the volume
         fun(test_file_single_coil, selection=[{'inner_slices': 8, 'rand': True}])
         fun(test_file_single_coil, selection=[{'inner_slices': 8}])
+
+@pytest.mark.skipif(not os.path.isfile(test_file_single_coil), reason='test single coil file not present for h5 utils.')
+@pytest.mark.parametrize('selection', [
+    [],
+    [{'inner_slices': 8, 'rand': True}],
+    [{'inner_slices': 8}],
+])
+def test_from_train_file_to_image_and_kspace(selection):
+    image, kspace = from_train_file_to_image_and_kspace(test_file_single_coil, selection=selection)
+    reconstructed_image = crop_center(np.abs(ifft(kspace)), 320)
+    np.testing.assert_allclose(reconstructed_image, image, rtol=1e-4, atol=1e-11)
 
 @pytest.mark.skipif(not os.path.isfile(test_file_multi_coil), reason='test multi coil file not present for h5 utils.')
 def test_all_functions_multi_coil():
