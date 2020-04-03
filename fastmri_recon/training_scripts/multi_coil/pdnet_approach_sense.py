@@ -62,7 +62,7 @@ n_volumes_train = 973
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
