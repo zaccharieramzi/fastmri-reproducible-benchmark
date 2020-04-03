@@ -26,7 +26,7 @@ def tf_unmasked_op(x, idx=0):
     return tf.expand_dims(ifftshift(fft2d(fftshift(x[..., idx], axes=[1, 2])), axes=[1, 2]), axis=-1) / scaling_norm
 
 def _compute_scaling_norm(x):
-    image_area = tf.reduce_prod(tf.shape(x)[1:3])
+    image_area = tf.reduce_prod(tf.shape(x)[-2:])
     image_area = tf.cast(image_area, 'float32')
     scaling_norm = tf.sqrt(image_area)
     scaling_norm = tf.cast(scaling_norm, x.dtype)
@@ -49,18 +49,22 @@ class FFTBase(Layer):
         return config
 
     def op(self, inputs):
-        if self.masked:
-            if self.multicoil:
+        if self.multicoil:
+            if self.masked:
                 image, mask, smaps = inputs
             else:
-                image, mask = inputs
-        else:
-            if self.multicoil:
                 image, smaps = inputs
+        else:
+            if self.masked:
+                image, mask = inputs
             else:
                 image = inputs
+        image = image[..., 0]
         scaling_norm = _compute_scaling_norm(image)
-        shifted_image = fftshift(image[..., 0], axes=self.shift_axes)
+        if self.multicoil:
+            # TODO: correct this shit
+            image = image * smaps
+        shifted_image = fftshift(image, axes=self.shift_axes)
         kspace_shifted = fft2d(shifted_image)
         kspace_unnormed = ifftshift(kspace_shifted, axes=self.shift_axes)
         kspace = kspace_unnormed[..., None] / scaling_norm
@@ -70,15 +74,24 @@ class FFTBase(Layer):
 
     def adj_op(self, inputs):
         if self.masked:
-            kspace, mask = inputs
+            if self.multicoil:
+                kspace, mask, smaps = inputs
+            else:
+                kspace, mask = inputs
             kspace = _mask_tf([kspace, mask])
         else:
-            kspace = inputs
+            if self.multicoil:
+                kspace, smaps = inputs
+            else:
+                kspace = inputs
+        kspace = kspace[..., 0]
         scaling_norm = _compute_scaling_norm(kspace)
-        shifted_kspace = ifftshift(kspace[..., 0], axes=self.shift_axes)
+        shifted_kspace = ifftshift(kspace, axes=self.shift_axes)
         image_shifted = ifft2d(shifted_kspace)
         image_unnormed = fftshift(image_shifted, axes=self.shift_axes)
         image = image_unnormed[..., None] * scaling_norm
+        if self.multicoil:
+            image = tf.reduce_sum(image * tf.math.conj(smaps), axis=1)
         return image
 
 class FFT(FFTBase):
