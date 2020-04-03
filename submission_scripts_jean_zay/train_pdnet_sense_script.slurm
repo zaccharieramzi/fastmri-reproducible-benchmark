@@ -17,6 +17,6 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-srun --ntasks=1 python ./fastmri_recon/training_scripts/multi_coil/pdnet_sense_approach.py -a 4&
+srun --ntasks=1 python ./fastmri_recon/training_scripts/multi_coil/pdnet_approach_sense.py -a 4&
 
 wait  # wait for all ccc_mprun(s) to complete.
