@@ -11,6 +11,7 @@ class PDNet(CrossDomainNet):
             n_iter=10,
             primal_only=False,
             activation='relu',
+            multicoil=False,
             **kwargs,
         ):
         self.n_filters = n_filters
@@ -19,6 +20,7 @@ class PDNet(CrossDomainNet):
         self.n_iter = n_iter
         self.primal_only = primal_only
         self.activation = activation
+        self.multicoil = multicoil
         super(PDNet, self).__init__(
             domain_sequence='KI'*self.n_iter,
             data_consistency_mode='measurements_residual',
@@ -26,10 +28,11 @@ class PDNet(CrossDomainNet):
             k_buffer_mode=not self.primal_only,
             i_buffer_size=self.n_primal,
             k_buffer_size=self.n_dual,
+            multicoil=self.multicoil,
             **kwargs,
         )
-        self.op = FFT(masked=True)
-        self.adj_op = IFFT(masked=True)
+        self.op = FFT(masked=True, multicoil=self.multicoil)
+        self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
         self.image_net = [CNNComplex(
             n_convs=3,
             n_filters=self.n_filters,
@@ -39,6 +42,7 @@ class PDNet(CrossDomainNet):
             name=f'image_net_{i}',
         ) for i in range(self.n_iter)]
         if not self.primal_only:
+            # TODO: check that when multicoil we do not have this
             self.kspace_net = [CNNComplex(
                 n_convs=3,
                 n_filters=self.n_filters,
