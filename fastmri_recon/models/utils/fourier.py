@@ -62,7 +62,7 @@ class FFTBase(Layer):
         image = image[..., 0]
         scaling_norm = _compute_scaling_norm(image)
         if self.multicoil:
-            # TODO: correct this shit
+            image = tf.expand_dims(image, axis=1)
             image = image * smaps
         shifted_image = fftshift(image, axes=self.shift_axes)
         kspace_shifted = fft2d(shifted_image)
