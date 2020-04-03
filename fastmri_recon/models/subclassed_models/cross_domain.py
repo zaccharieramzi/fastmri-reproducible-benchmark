@@ -30,12 +30,12 @@ class CrossDomainNet(Model):
     def call(self, inputs):
         # TODO: deal with the potential sensitivity maps
         if self.multicoil:
-            kspace, mask, smaps = inputs
+            original_kspace, mask, smaps = inputs
         else:
-            kspace, mask = inputs
+            original_kspace, mask = inputs
             smaps = None
-        kspace_buffer = tf.concat([kspace] * self.k_buffer_size, axis=-1)
-        image = self.backward_operator(kspace, mask, smaps)
+        kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
+        image = self.backward_operator(original_kspace, mask, smaps)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
         # TODO: create a buffer
         for i_domain, domain in enumerate(self.domain_sequence):
@@ -47,7 +47,7 @@ class CrossDomainNet(Model):
                     ], axis=-1)
                 else:
                     kspace_buffer = self.forward_operator(image_buffer, mask, smaps)
-                kspace_buffer = self.apply_data_consistency(kspace_buffer, *inputs)
+                kspace_buffer = self.apply_data_consistency(kspace_buffer, original_kspace, mask)
                 # NOTE: this i //2 suggest alternating domains, this will need
                 # evolve if we want non-alternating domains. This needs to be
                 # clear in the docs.
