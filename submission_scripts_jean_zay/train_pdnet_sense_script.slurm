@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=pdnet_huge     # nom du job
+#SBATCH --job-name=pdnet_sense     # nom du job
 #SBATCH --ntasks=1                   # nombre de tâche MPI
 #SBATCH --ntasks-per-node=1          # nombre de tâche MPI par noeud
 #SBATCH --gres=gpu:1                 # nombre de GPU à réserver par nœud
@@ -9,8 +9,8 @@
 #SBATCH --hint=nomultithread         # on réserve des coeurs physiques et non logiques
 #SBATCH --distribution=block:block   # on épingle les tâches sur des coeurs contigus
 #SBATCH --time=20:00:00              # temps d’exécution maximum demande (HH:MM:SS)
-#SBATCH --output=pdnet_huge%j.out # nom du fichier de sortie
-#SBATCH --error=pdnet_huge%j.out  # nom du fichier d'erreur (ici commun avec la sortie)
+#SBATCH --output=pdnet_sense%j.out # nom du fichier de sortie
+#SBATCH --error=pdnet_sense%j.out  # nom du fichier d'erreur (ici commun avec la sortie)
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
