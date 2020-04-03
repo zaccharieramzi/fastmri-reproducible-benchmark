@@ -41,7 +41,7 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     coil_image_low_freq = fftshift(coil_image_low_freq_shifted, axes=[2, 3])
     # no need to norm this since they all have the same norm
     low_freq_rss = tf.norm(coil_image_low_freq, axis=1)
-    coil_smap = coil_image_low_freq / low_freq_rss
+    coil_smap = coil_image_low_freq / low_freq_rss[:, None]
     # for now we do not perform background removal based on low_freq_rss
     # could be done with 1D k-means or fixed background_thresh, with tf.where
     return coil_smap
