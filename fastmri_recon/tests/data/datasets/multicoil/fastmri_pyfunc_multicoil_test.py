@@ -21,13 +21,17 @@ file_contrast = 'CORPDFS_FBK'
 ])
 def test_train_masked_kspace_dataset_from_indexable(ds_kwargs, expected_kspace_shape):
     ds = train_masked_kspace_dataset_from_indexable('fastmri_recon/tests/fastmri_data/multi_coil/', AF=1, **ds_kwargs)
-    (kspace, mask), image = next(iter(ds))
+    if ds_kwargs.get('parallel', True):
+        (kspace, mask), image = next(iter(ds))
+    else:
+        (kspace, mask, smaps), image = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
     assert mask.shape.as_list() == expected_kspace_shape[:-1]
     if ds_kwargs.get('parallel', True):
         assert image.shape.as_list() == expected_kspace_shape
     else:
+        assert smaps.shape.as_list() == expected_kspace_shape[:-1]
         assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
     # content verifications
     tf_tester = tf.test.TestCase()
