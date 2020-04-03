@@ -16,6 +16,7 @@ file_contrast = 'CORPDFS_FBK'
     ({'parallel': False}, kspace_shape),
     ({'inner_slices': 8}, [8,] + kspace_shape[2:]),
     ({'inner_slices': 8, 'rand': True}, [1,] + kspace_shape[2:]),
+    ({'inner_slices': 8, 'rand': True, 'parallel': False}, [1,] + kspace_shape[1:]),
     ({'contrast': file_contrast, 'parallel': False}, kspace_shape),
     ({'n_samples': 1, 'parallel': False}, kspace_shape)
 ])
