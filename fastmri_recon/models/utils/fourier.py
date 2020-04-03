@@ -89,9 +89,10 @@ class FFTBase(Layer):
         shifted_kspace = ifftshift(kspace, axes=self.shift_axes)
         image_shifted = ifft2d(shifted_kspace)
         image_unnormed = fftshift(image_shifted, axes=self.shift_axes)
-        image = image_unnormed[..., None] * scaling_norm
+        image = image_unnormed * scaling_norm
         if self.multicoil:
             image = tf.reduce_sum(image * tf.math.conj(smaps), axis=1)
+        image = image[..., None]
         return image
 
 class FFT(FFTBase):
