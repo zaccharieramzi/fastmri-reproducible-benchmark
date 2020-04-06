@@ -80,6 +80,8 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         val_path,
         AF=af,
         contrast=contrast,
+        inner_slices=8,
+        rand=True,
         scale_factor=1e6,
         parallel=False,
     )
