@@ -101,7 +101,7 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
     if n_iter != 10:
         additional_info += f'_i{n_iter}'
 
-    run_id = f'pdnet_{additional_info}_{int(time.time())}'
+    run_id = f'pdnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
