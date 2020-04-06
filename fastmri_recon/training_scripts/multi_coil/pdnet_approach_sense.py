@@ -12,9 +12,8 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 
 # paths
-train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
-val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-test_path = f'{FASTMRI_DATA_DIR}singlecoil_test/'
+train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
 n_volumes_train = 973
 
