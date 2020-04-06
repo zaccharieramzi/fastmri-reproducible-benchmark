@@ -1,6 +1,6 @@
-from ..cnn import  CNNComplex
-from ..cross_domain import CrossDomainNet
-from ...utils.fourier import FFT, IFFT
+from .cnn import  CNNComplex
+from .cross_domain import CrossDomainNet
+from ..utils.fourier import FFT, IFFT
 
 class PDNet(CrossDomainNet):
     def __init__(
