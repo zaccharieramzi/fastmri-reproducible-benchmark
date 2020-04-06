@@ -3,7 +3,7 @@ import os
 import pytest
 
 from fastmri_recon.data.datasets.fastmri_tfio import train_masked_kspace_dataset_io
-from fastmri_recon.models.subclassed_models.single_coil.pdnet import PDNet
+from fastmri_recon.models.subclassed_models.pdnet import PDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
