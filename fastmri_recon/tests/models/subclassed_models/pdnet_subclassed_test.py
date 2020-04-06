@@ -1,7 +1,7 @@
 import pytest
 import tensorflow as tf
 
-from fastmri_recon.models.subclassed_models.single_coil.pdnet import PDNet
+from fastmri_recon.models.subclassed_models.pdnet import PDNet
 
 
 @pytest.mark.parametrize('model_kwargs', [
