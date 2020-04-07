@@ -13,7 +13,7 @@ val_set = train_masked_kspace_dataset_from_indexable(
     rand=True,
     scale_factor=1e6,
     parallel=False,
-    n_samples=n_iter,
+    n_samples=None,
 )
 
 for e in range(epochs):
