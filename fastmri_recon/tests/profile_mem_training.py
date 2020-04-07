@@ -14,7 +14,7 @@ val_set = train_masked_kspace_dataset_from_indexable(
     rand=True,
     scale_factor=1e6,
     parallel=False,
-    n_samples=None,
+    n_samples=n_iter,
 )
 
 model = PDNet(n_filters=4, n_primal=1, n_dual=1, primal_only=True, n_iter=1, multicoil=True, activation='linear')
