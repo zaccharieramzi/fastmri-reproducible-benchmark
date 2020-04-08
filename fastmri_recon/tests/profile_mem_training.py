@@ -9,7 +9,7 @@ from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_ks
 from fastmri_recon.models.subclassed_models.pdnet import PDNet
 
 val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-epochs = 50
+epochs = 100
 n_iter = 30
 
 af = 4
