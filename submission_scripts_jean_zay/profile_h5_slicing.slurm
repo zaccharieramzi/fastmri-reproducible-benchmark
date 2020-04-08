@@ -19,3 +19,4 @@ cd $WORK/fastmri-reproducible-benchmark
 . ./submission_scripts_jean_zay/env_config.sh
 
 srun --ntasks=1 mprof run -C python ./fastmri_recon/tests/profile_h5_slicing.py
+mprof plot --output memory-profile-h5-jz.png
