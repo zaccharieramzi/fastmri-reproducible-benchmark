@@ -19,3 +19,4 @@ cd $WORK/fastmri-reproducible-benchmark
 . ./submission_scripts_jean_zay/env_config.sh
 
 srun --ntasks=1 mprof run -C python ./fastmri_recon/tests/profile_mem_training.py
+mprof plot --output memory-profile-training-jz.png
