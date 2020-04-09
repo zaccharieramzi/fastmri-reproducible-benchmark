@@ -51,7 +51,7 @@ def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=
             )
             return psnr
         def tf_ssim(y_true, y_pred):
-            perm_ssim = [3, 0, 1, 2]
+            perm_ssim = [0, 1, 2, 3]
             ssim = tf.image.ssim(
                 tf.transpose(y_true, perm_ssim),
                 tf.transpose(y_pred, perm_ssim),
