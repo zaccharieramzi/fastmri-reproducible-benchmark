@@ -9,6 +9,13 @@ from fastmri_recon.evaluate.scripts.pdnet_sense_eval import evaluate_pdnet_sense
 
 @click.command()
 @click.option(
+    'run_id',
+    '-r',
+    default='pdnet_sense_af4_1586266200',
+    type=str,
+    help='The run id of the trained network. Defaults to pdnet_sense_af4_1586266200.',
+)
+@click.option(
     'contrast',
     '-c',
     default=None,
@@ -37,7 +44,7 @@ from fastmri_recon.evaluate.scripts.pdnet_sense_eval import evaluate_pdnet_sense
     type=str,
     help='The visible GPU devices. Defaults to 0123',
 )
-def evaluate_pdnet_sense_dask(contrast, af, n_iter, cuda_visible_devices):
+def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
     job_name = f'evaluate_pdnet_sense_{af}'
@@ -73,7 +80,7 @@ def evaluate_pdnet_sense_dask(contrast, af, n_iter, cuda_visible_devices):
         # function to execute
         evaluate_pdnet_sense,
         # *args
-        contrast, af, n_iter,
+        run_id, contrast, af, n_iter,
         # this function has potential side effects
         pure=True,
         resources={'GPU': 4},
