@@ -87,7 +87,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         # function to execute
         evaluate_pdnet_sense,
         # *args
-        run_id, contrast, af, n_iter, n_samples,
+        run_id, contrast, int(af), n_iter, n_samples,
         # this function has potential side effects
         pure=True,
         resources={'GPU': 4},
