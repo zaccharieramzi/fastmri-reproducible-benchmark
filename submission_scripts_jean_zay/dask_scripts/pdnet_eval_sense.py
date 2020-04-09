@@ -55,9 +55,9 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         job_name += f'_{contrast}'
 
     cluster = SLURMCluster(
-        cores=4,
-        job_cpu=10,
-        memory='180GB',
+        cores=1,
+        job_cpu=40,
+        memory='80GB',
         job_name=job_name,
         walltime='20:00:00',
         interface='ib0',
@@ -72,7 +72,6 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
             'cd $WORK/fastmri-reproducible-benchmark',
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
-        extra=[f'--resources GPU=4'],
     )
     cluster.scale(1)
 
@@ -86,7 +85,6 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         run_id, contrast, int(af), n_iter, n_samples, cuda_visible_devices,
         # this function has potential side effects
         pure=True,
-        resources={'GPU': 4},
     )
     metrics_names, eval_res = client.gather(futures)
     print(metrics_names)
