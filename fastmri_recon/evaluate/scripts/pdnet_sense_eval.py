@@ -1,14 +1,14 @@
-import click
-import numpy as np
-import tensorflow as tf
-
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
-from fastmri_recon.models.subclassed_models.pdnet import PDNet
+
 
 val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
-def evaluate_pdnet_sense(contrast=None, af=4, n_iter=10):
+def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=4, n_iter=10, n_samples=None):
+    import tensorflow as tf
+
+    from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+    from fastmri_recon.models.subclassed_models.pdnet import PDNet
+
     run_params = {
         'n_primal': 5,
         'n_dual': 1,
@@ -27,6 +27,9 @@ def evaluate_pdnet_sense(contrast=None, af=4, n_iter=10):
         scale_factor=1e6,
         parallel=False,
     )
+    if n_samples is not None:
+        val_set = val_set.take(n_samples)
+
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
         model = PDNet(**run_params)
@@ -53,6 +56,6 @@ def evaluate_pdnet_sense(contrast=None, af=4, n_iter=10):
             return ssim
 
         model.compile(loss=tf_psnr, metrics=[tf_ssim])
-    model.load_weights('checkpoints/pdnet_sense_af4_1586266200-300.hdf5')
-    eval_res = model.evaluate(val_set.take(2), verbose=1)
+    model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-300.hdf5')
+    eval_res = model.evaluate(val_set, verbose=1)
     return model.metrics_names, eval_res
