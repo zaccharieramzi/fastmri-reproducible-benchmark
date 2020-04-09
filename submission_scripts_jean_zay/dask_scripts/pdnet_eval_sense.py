@@ -37,6 +37,13 @@ from fastmri_recon.evaluate.scripts.pdnet_sense_eval import evaluate_pdnet_sense
     help='The number of epochs to train the model. Default to 300.',
 )
 @click.option(
+    '-n',
+    'n_samples',
+    default=None,
+    type=int,
+    help='The number of samples to take from the dataset. Default to None (all samples taken).',
+)
+@click.option(
     'cuda_visible_devices',
     '-gpus',
     '--cuda-visible-devices',
@@ -44,7 +51,7 @@ from fastmri_recon.evaluate.scripts.pdnet_sense_eval import evaluate_pdnet_sense
     type=str,
     help='The visible GPU devices. Defaults to 0123',
 )
-def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices):
+def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices, n_samples):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
     job_name = f'evaluate_pdnet_sense_{af}'
@@ -80,7 +87,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         # function to execute
         evaluate_pdnet_sense,
         # *args
-        run_id, contrast, af, n_iter,
+        run_id, contrast, af, n_iter, n_samples,
         # this function has potential side effects
         pure=True,
         resources={'GPU': 4},
