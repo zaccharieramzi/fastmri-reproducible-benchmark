@@ -62,7 +62,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         n_workers=4,
         cores=4,
         job_cpu=10,
-        memory='80GB',
+        memory='180GB',
         job_name=job_name,
         walltime='20:00:00',
         interface='ib0',
