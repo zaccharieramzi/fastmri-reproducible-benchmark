@@ -43,7 +43,7 @@ def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ])
         def tf_psnr(y_true, y_pred):
-            perm_psnr = [3, 0, 1, 2]
+            perm_psnr = [3, 1, 2, 0]
             psnr = tf.image.psnr(
                 tf.transpose(y_true, perm_psnr),
                 tf.transpose(y_pred, perm_psnr),
