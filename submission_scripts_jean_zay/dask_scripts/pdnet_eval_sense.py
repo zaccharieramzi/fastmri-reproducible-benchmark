@@ -74,8 +74,8 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
             '--output=%x_%j.out',
         ],
         env_extra=[
-            'module purge',
-            'module load tensorflow-gpu/py3/2.1.0',
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
         ],
         extra=[f'--resources GPU=4'],
     )
