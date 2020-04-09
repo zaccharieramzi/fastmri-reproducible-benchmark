@@ -1,5 +1,3 @@
-import os
-
 import click
 from dask.distributed import Client
 from dask_jobqueue import SLURMCluster
@@ -52,14 +50,11 @@ from fastmri_recon.evaluate.scripts.pdnet_sense_eval import evaluate_pdnet_sense
     help='The visible GPU devices. Defaults to 0123',
 )
 def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices, n_samples):
-    os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
-
     job_name = f'evaluate_pdnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
 
     cluster = SLURMCluster(
-        n_workers=4,
         cores=4,
         job_cpu=10,
         memory='180GB',
@@ -79,6 +74,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         ],
         extra=[f'--resources GPU=4'],
     )
+    cluster.scale(1)
 
     print(cluster.job_script())
 
@@ -87,7 +83,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         # function to execute
         evaluate_pdnet_sense,
         # *args
-        run_id, contrast, int(af), n_iter, n_samples,
+        run_id, contrast, int(af), n_iter, n_samples, cuda_visible_devices,
         # this function has potential side effects
         pure=True,
         resources={'GPU': 4},
