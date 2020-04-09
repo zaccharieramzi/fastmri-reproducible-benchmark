@@ -1,9 +1,13 @@
+import os
+
 from fastmri_recon.config import *
 
 
 val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
-def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=4, n_iter=10, n_samples=None):
+def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=4, n_iter=10, n_samples=None, cuda_visible_devices='0123'):
+    os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
+
     import tensorflow as tf
 
     from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
