@@ -68,7 +68,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
         interface='ib0',
         job_extra=[
             f'--gres=gpu:4',
-            '--qos=qos_gpu-dev',
+            '--qos=qos_gpu-t3',
             '--distribution=block:block',
             '--hint=nomultithread',
             '--output=%x_%j.out',
