@@ -18,6 +18,6 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-srun --ntasks=1 python ./fastmri_recon/evaluate/scripts/pdnet_eval_sense.py -n 2&
+srun --ntasks=1 python ./fastmri_recon/evaluate/scripts/pdnet_sense_eval.py -n 2&
 
 wait  # wait for all ccc_mprun(s) to complete.
