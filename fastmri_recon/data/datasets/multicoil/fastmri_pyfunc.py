@@ -74,7 +74,7 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
             parallel=parallel,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    ).repeat().prefetch(buffer_size=2)
 
     return masked_kspace_ds
 
