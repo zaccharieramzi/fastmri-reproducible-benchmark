@@ -2,8 +2,8 @@
 #SBATCH --job-name=pdnet_sense_eval     # nom du job
 #SBATCH --ntasks=1                   # nombre de tâche MPI
 #SBATCH --ntasks-per-node=1          # nombre de tâche MPI par noeud
-#SBATCH --partition=gpu_p2s
-#SBATCH --cpus-per-task=4           # nombre de coeurs à réserver par tâche
+#SBATCH --gres=gpu:4                 # nombre de GPU à réserver par nœud
+#SBATCH --cpus-per-task=40           # nombre de coeurs à réserver par tâche
 # /!\ Attention, la ligne suivante est trompeuse mais dans le vocabulaire
 # de Slurm "multithread" fait bien référence à l'hyperthreading.
 #SBATCH --hint=nomultithread         # on réserve des coeurs physiques et non logiques
