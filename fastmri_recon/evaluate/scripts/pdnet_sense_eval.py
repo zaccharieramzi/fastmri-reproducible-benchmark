@@ -1,5 +1,7 @@
 import os
 
+import click
+
 from fastmri_recon.config import *
 
 
@@ -63,3 +65,62 @@ def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-300.hdf5')
     eval_res = model.evaluate(val_set, verbose=1)
     return model.metrics_names, eval_res
+
+@click.command()
+@click.option(
+    'run_id',
+    '-r',
+    default='pdnet_sense_af4_1586266200',
+    type=str,
+    help='The run id of the trained network. Defaults to pdnet_sense_af4_1586266200.',
+)
+@click.option(
+    'contrast',
+    '-c',
+    default=None,
+    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
+    help='The contrast chosen for this evaluation. Defaults to CORPDFS_FBK.',
+)
+@click.option(
+    'af',
+    '-a',
+    default='4',
+    type=click.Choice(['4', '8']),
+    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
+)
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
+    '-n',
+    'n_samples',
+    default=None,
+    type=int,
+    help='The number of samples to take from the dataset. Default to None (all samples taken).',
+)
+@click.option(
+    'cuda_visible_devices',
+    '-gpus',
+    '--cuda-visible-devices',
+    default='0123',
+    type=str,
+    help='The visible GPU devices. Defaults to 0123',
+)
+def evaluate_pdnet_sense_click(run_id, contrast, af, n_iter, cuda_visible_devices, n_samples):
+    metrics_names, eval_res = evaluate_pdnet_sense(
+        run_id=run_id,
+        contrast=contrast,
+        af=af,
+        n_iter=n_iter,
+        n_samples=n_samples,
+        cuda_visible_devices=cuda_visible_devices,
+    )
+    print(metrics_names)
+    print(eval_res)
+
+if __name__ == '__main__':
+    evaluate_pdnet_sense_click()
