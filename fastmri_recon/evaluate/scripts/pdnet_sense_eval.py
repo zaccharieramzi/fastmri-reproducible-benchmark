@@ -111,6 +111,7 @@ def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=
     help='The visible GPU devices. Defaults to 0123',
 )
 def evaluate_pdnet_sense_click(run_id, contrast, af, n_iter, cuda_visible_devices, n_samples):
+    af = int(af)
     metrics_names, eval_res = evaluate_pdnet_sense(
         run_id=run_id,
         contrast=contrast,
