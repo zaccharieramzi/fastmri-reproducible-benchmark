@@ -27,9 +27,5 @@ def gen_mask_tf(kspace, accel_factor, multicoil=False):
         tf.expand_dims(num_cols, axis=0),
     ], axis=0)
     final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
-    tiling = [shape[0], shape[1], 1]
-    if multicoil:
-        tiling = [shape[0], shape[1], shape[2], 1]
-    fourier_mask = tf.tile(final_mask_reshaped, tiling)
-    fourier_mask = tf.dtypes.cast(fourier_mask, 'complex64')
+    fourier_mask = tf.cast(final_mask_reshaped, tf.uint8)
     return fourier_mask

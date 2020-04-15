@@ -12,7 +12,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, parallel
             images = tf.abs(tf_unmasked_adj_op(kspaces[..., None]))[..., 0]
         else:
             smaps = extract_smaps(kspaces, low_freq_percentage=AF)
-        kspaces_masked = mask * kspaces
+        kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
