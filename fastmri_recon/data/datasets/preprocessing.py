@@ -6,7 +6,7 @@ from ..utils.masking.gen_mask_tf import gen_mask_tf
 def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         mask = gen_mask_tf(kspaces, accel_factor=AF)
-        kspaces_masked = mask * kspaces
+        kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
