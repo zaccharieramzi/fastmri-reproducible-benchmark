@@ -23,7 +23,7 @@ def test_train_masked_kspace_dataset_io(ds_kwargs, expected_kspace_shape):
     ds = train_masked_kspace_dataset_io('fastmri_recon/tests/fastmri_data/single_coil/', **ds_kwargs)
     (kspace, mask), image = next(iter(ds))
     assert kspace.shape.as_list() == expected_kspace_shape
-    assert mask.shape.as_list() == expected_kspace_shape[:3]
+    assert mask.shape.as_list() == [1 for _ in expected_kspace_shape[:-2]] + [expected_kspace_shape[-2]]
     assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
 
 @pytest.mark.skipif(not os.path.isfile(test_file_single_coil), reason='test single coil file not present for single dataset.')

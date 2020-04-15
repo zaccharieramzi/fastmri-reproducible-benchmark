@@ -28,7 +28,7 @@ def test_train_masked_kspace_dataset_from_indexable(ds_kwargs, expected_kspace_s
         (kspace, mask, smaps), image = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
-    assert mask.shape.as_list() == expected_kspace_shape[:-1]
+    assert mask.shape.as_list() == [1 for _ in expected_kspace_shape[:-2]] + [expected_kspace_shape[-2]]
     if ds_kwargs.get('parallel', True):
         assert image.shape.as_list() == expected_kspace_shape
     else:
