@@ -63,7 +63,7 @@ def evaluate_pdnet_sense(run_id='pdnet_sense_af4_1586266200', contrast=None, af=
 
         model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-300.hdf5')
-    eval_res = model.evaluate(val_set, verbose=1)
+    eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
     return model.metrics_names, eval_res
 
 @click.command()
