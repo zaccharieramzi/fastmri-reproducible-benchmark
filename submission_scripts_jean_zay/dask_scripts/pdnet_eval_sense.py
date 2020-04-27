@@ -57,7 +57,7 @@ def evaluate_pdnet_sense_dask(run_id, contrast, af, n_iter, cuda_visible_devices
     cluster = SLURMCluster(
         cores=1,
         job_cpu=40,
-        memory='80GB',
+        memory='160GB',
         job_name=job_name,
         walltime='20:00:00',
         interface='ib0',
