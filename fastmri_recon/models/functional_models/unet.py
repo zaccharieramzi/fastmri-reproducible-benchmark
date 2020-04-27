@@ -75,6 +75,7 @@ def unet_rec(
 def unet(
         pretrained_weights=None,
         input_size=(256, 256, 1),
+        n_output_channels=None,
         kernel_size=3,
         n_layers=1,
         layers_n_channels=1,
@@ -92,6 +93,8 @@ def unet(
         layers_n_non_lins = [layers_n_non_lins] * n_layers
     else:
         assert len(layers_n_non_lins) == n_layers
+    if n_output_channels is None:
+        n_output_channels = input_size[-1]
     inputs = Input(input_size)
     output = unet_rec(
         inputs,
@@ -110,7 +113,7 @@ def unet(
         kernel_initializer='he_normal',
     )(output)
     output = Conv2D(
-        input_size[-1],
+        n_output_channels,
         1,
         activation='linear',
         padding='same',
