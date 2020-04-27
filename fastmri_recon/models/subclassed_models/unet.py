@@ -38,12 +38,21 @@ class UnetComplex(Model):
 
     def call(self, inputs):
         outputs = inputs
+        n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(inputs)[-2], 2**(self.n_layers-1))
+        paddings = [
+            (0, 0),
+            (0, 0),  # here in the context of fastMRI there is nothing to worry about because the dim is 640 (128 x 5)
+            (n_pad//2, n_pad//2),
+            (0, 0),
+        ]
+        outputs = tf.pad(outputs, paddings)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.unet(outputs)
         outputs = tf.complex(
             outputs[..., :self.n_output_channels],
             outputs[..., self.n_output_channels:],
         )
+        outputs = outputs[:, :, n_pad//2:-n_pad//2]
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         return outputs
