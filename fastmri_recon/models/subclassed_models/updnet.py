@@ -39,6 +39,7 @@ class UPDNet(CrossDomainNet):
             n_layers=self.n_layers,
             layers_n_channels=self.layers_n_channels,
             layers_n_non_lins=2,
+            n_input_channels=self.n_primal + 1,
             n_output_channels=self.n_primal,
             res=self.res,
             name=f'image_net_{i}',
@@ -49,7 +50,8 @@ class UPDNet(CrossDomainNet):
                 n_layers=self.n_layers,
                 layers_n_channels=self.layers_n_channels,
                 layers_n_non_lins=2,
-                    n_output_channels=self.n_dual,
+                n_output_channels=self.n_dual,
+                n_input_channels=self.n_dual + 2,
                 res=self.res,
                 name=f'kspace_net_{i}',
             ) for i in range(self.n_iter)]
