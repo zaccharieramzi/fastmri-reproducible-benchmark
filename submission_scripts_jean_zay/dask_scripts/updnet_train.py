@@ -2,7 +2,7 @@ import click
 from dask.distributed import Client
 from dask_jobqueue import SLURMCluster
 
-from fastmri_recon.training_scripts.multicoil.updnet_approach_sense import train_updnet
+from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import train_updnet
 
 
 @click.command()
