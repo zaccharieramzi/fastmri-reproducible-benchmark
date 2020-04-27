@@ -7,6 +7,7 @@ from ..functional_models.unet import unet
 class UnetComplex(Model):
     def __init__(
             self,
+            n_input_channels=1,
             n_output_channels=1,
             kernel_size=3,
             n_layers=1,
@@ -16,6 +17,7 @@ class UnetComplex(Model):
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
+        self.n_input_channels = n_input_channels
         self.n_output_channels = n_output_channels
         self.kernel_size = kernel_size
         self.n_layers = n_layers
@@ -23,7 +25,8 @@ class UnetComplex(Model):
         self.layers_n_non_lins = layers_n_non_lins
         self.res = res
         self.unet = unet(
-            input_size=(None, None, 2 * self.n_output_channels),  # 2 for real and imag
+            input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag
+            n_output_channels=self.n_output_channels,
             kernel_size=self.kernel_size,
             n_layers=self.n_layers,
             layers_n_channels=self.layers_n_channels,
