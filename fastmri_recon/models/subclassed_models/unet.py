@@ -26,7 +26,7 @@ class UnetComplex(Model):
         self.res = res
         self.unet = unet(
             input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag
-            n_output_channels=self.n_output_channels,
+            n_output_channels=2 * self.n_output_channels,
             kernel_size=self.kernel_size,
             n_layers=self.n_layers,
             layers_n_channels=self.layers_n_channels,
