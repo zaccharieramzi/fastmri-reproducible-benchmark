@@ -25,6 +25,7 @@ class MultiplyScalar(Layer):
         return input_shape
 
 def _replace_values_on_mask(x):
+    # TODO: check in multicoil case
     cnn_fft, kspace_input, mask = x
     anti_mask = tf.expand_dims(tf.dtypes.cast(1.0 - mask, cnn_fft.dtype), axis=-1)
     replace_cnn_fft = tf.math.multiply(anti_mask, cnn_fft) + kspace_input

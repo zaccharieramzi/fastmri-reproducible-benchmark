@@ -6,26 +6,18 @@ import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
 from fastmri_recon.models.subclassed_models.pdnet import PDNet
-from fastmri_recon.models.functional_models.pdnet import pdnet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
 # paths
-train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
-val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-test_path = f'{FASTMRI_DATA_DIR}singlecoil_test/'
+train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
 n_volumes_train = 973
 
 @click.command()
-@click.option(
-    'subclassed',
-    '-s',
-    is_flag=True,
-    help='Flag to use the subclassed API.',
-)
 @click.option(
     'af',
     '-a',
@@ -69,7 +61,7 @@ n_volumes_train = 973
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
@@ -81,18 +73,24 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
         rand=True,
         scale_factor=1e6,
         n_samples=n_samples,
+        parallel=False,
     )
     val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
         AF=af,
         contrast=contrast,
+        inner_slices=8,
+        rand=True,
         scale_factor=1e6,
+        parallel=False,
     )
 
     run_params = {
         'n_primal': 5,
-        'n_dual': 5,
+        'n_dual': 1,
+        'primal_only': True,
         'n_iter': n_iter,
+        'multicoil': True,
         'n_filters': 32,
     }
     additional_info = f'af{af}'
@@ -103,7 +101,7 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
     if n_iter != 10:
         additional_info += f'_i{n_iter}'
 
-    run_id = f'pdnet_{additional_info}_{int(time.time())}'
+    run_id = f'pdnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
@@ -115,18 +113,17 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
         write_graph=False,
         write_images=False,
     )
-    if subclassed:
-        model = PDNet(**run_params)
-        default_model_compile(model, lr=1e-3)
-    else:
-        model = pdnet(lr=1e-3, **run_params)
+
+    model = PDNet(**run_params)
+    default_model_compile(model, lr=1e-3)
     print(run_id)
+
     model.fit(
         train_set,
         steps_per_epoch=n_volumes_train,
         epochs=n_epochs,
         validation_data=val_set,
-        validation_steps=5,
+        validation_steps=2,
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback,],
     )

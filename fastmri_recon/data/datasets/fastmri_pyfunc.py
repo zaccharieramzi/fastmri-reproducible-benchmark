@@ -5,20 +5,6 @@ from ..utils.h5 import from_train_file_to_image_and_kspace_and_contrast, from_te
 from ..utils.masking.acceleration_factor import tf_af
 
 # TODO: add unet and kikinet datasets
-def tf_filename_to_image_and_kspace_and_contrast(filename):
-    def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
-        filename_str = filename.numpy()
-        image, kspace, contrast = from_train_file_to_image_and_kspace_and_contrast(filename_str)
-        return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
-    [image, kspace, contrast] = tf.py_function(
-        _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor,
-        [filename],
-        [tf.float32, tf.complex64, tf.string],
-    )
-    image.set_shape((None, 320, 320))
-    kspace.set_shape((None, 640, None))
-    return image, kspace, contrast
-
 def tf_filename_to_mask_and_kspace_and_contrast(filename):
     def _from_test_file_to_mask_and_kspace_and_contrast_tensor_to_tensor(filename):
         filename_str = filename.numpy()
@@ -35,9 +21,33 @@ def tf_filename_to_mask_and_kspace_and_contrast(filename):
 
 
 def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None, n_samples=None):
+    selection = [{'inner_slices': inner_slices, 'rand': rand}]
+    def _tf_filename_to_image_and_kspace_and_contrast(filename):
+        def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
+            filename_str = filename.numpy()
+            image, kspace, contrast = from_train_file_to_image_and_kspace_and_contrast(
+                filename_str,
+                selection=selection,
+            )
+            return tf.convert_to_tensor(image), tf.convert_to_tensor(kspace), tf.convert_to_tensor(contrast)
+        [image, kspace, contrast] = tf.py_function(
+            _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor,
+            [filename],
+            [tf.float32, tf.complex64, tf.string],
+        )
+        if rand:
+            n_slices = (1,)
+        else:
+            n_slices = (inner_slices,)
+        kspace_size = n_slices + (640, None)
+        image_size = n_slices + (320, 320)
+        image.set_shape(image_size)
+        kspace.set_shape(kspace_size)
+        return image, kspace, contrast
+
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
     image_and_kspace_and_contrast_ds = files_ds.map(
-        tf_filename_to_image_and_kspace_and_contrast,
+        _tf_filename_to_image_and_kspace_and_contrast,
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
     # contrast filtering
@@ -54,8 +64,6 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
     masked_kspace_ds = image_and_kspace_ds.map(
         generic_from_kspace_to_masked_kspace_and_mask(
             AF=AF,
-            inner_slices=inner_slices,
-            rand=rand,
             scale_factor=scale_factor,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,

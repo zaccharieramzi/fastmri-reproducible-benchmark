@@ -11,7 +11,7 @@ def selected_slices(kspaces, inner_slices=8, rand=True):
             maxval=slice_start + inner_slices - 1,
             dtype=tf.int32,
         )
-        slices = (i_slice, i_slice + 1)
+        slices = (i_slice[0], i_slice[0] + 1)
     else:
         slices = (slice_start, slice_start + inner_slices)
     return slices
