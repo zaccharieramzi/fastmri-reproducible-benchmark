@@ -12,13 +12,14 @@ from fastmri_recon.models.subclassed_models.updnet import UPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-# paths
-train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-
 n_volumes_train = 973
 
 def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+    # paths
+    train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+    val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+
+
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
