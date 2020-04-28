@@ -7,4 +7,5 @@ nibabel
 Pillow
 tensorflow
 tensorflow-io
+tensorflow-addons
 click
