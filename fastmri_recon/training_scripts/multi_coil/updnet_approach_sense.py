@@ -4,6 +4,7 @@ import time
 
 import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
@@ -70,6 +71,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         write_graph=False,
         write_images=False,
     )
+    tqdm_cback = TQDMProgressBar()
 
     model = UPDNet(**run_params)
     default_model_compile(model, lr=1e-3)
@@ -82,7 +84,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         validation_data=val_set,
         validation_steps=2,
         verbose=0,
-        callbacks=[tboard_cback, chkpt_cback,],
+        callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
 
 
