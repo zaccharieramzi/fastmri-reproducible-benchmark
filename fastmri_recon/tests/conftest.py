@@ -33,12 +33,19 @@ def monkeysession(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def create_full_fastmri_test_tmp_dataset(monkeysession, tmpdir_factory):
-    # main dir
+    # main dirs
     fastmri_tmp_data_dir = tmpdir_factory.mktemp(
         "fastmri_test_tmp_data",
         numbered=False,
     )
-    monkeysession.setenv("FASTMRI_DATA_DIR", str(fastmri_tmp_data_dir))
+    logs_tmp_dir = tmpdir_factory.mktemp(
+        "logs",
+        numbered=False,
+    )
+    checkpoints_tmp_dir = tmpdir_factory.mktemp(
+        "checkpoints",
+        numbered=False,
+    )
     #### single coil
     fastmri_tmp_singlecoil_train = tmpdir_factory.mktemp(str(
         fastmri_tmp_data_dir.join('singlecoil_train')
@@ -81,6 +88,9 @@ def create_full_fastmri_test_tmp_dataset(monkeysession, tmpdir_factory):
             multicoil=True,
         )
     return {
+        'fastmri_tmp_data_dir': str(fastmri_tmp_data_dir) + '/',
+        'logs_tmp_dir': str(logs_tmp_dir) + '/',
+        'checkpoints_tmp_dir': str(checkpoints_tmp_dir) + '/',
         'fastmri_tmp_singlecoil_train': str(fastmri_tmp_singlecoil_train) + '/',
         'fastmri_tmp_singlecoil_val': str(fastmri_tmp_singlecoil_val) + '/',
         'fastmri_tmp_multicoil_train': str(fastmri_tmp_multicoil_train) + '/',
