@@ -28,6 +28,19 @@ pip install -r requirements.txt
 The simplest and most versatile way to write a neural network for reconstruction is to subclass the [`CrossDomainNet` class](fastmri_recon/models/subclassed_models/cross_domain.py).
 An example is the [`PDnet`](fastmri_recon/models/subclassed_models/pdnet.py)
 
+# Data requirements
+
+## fastMRI
+
+The fastMRI data must be located in a directory whose path is stored in the `FASTMRI_DATA_DIR` environment variable.
+It can be downloaded on [the official website](https://fastmri.med.nyu.edu/) after submitting a request (bottom of the page).
+
+## OASIS
+
+The OASIS data must be located in a directory whose path is stored in the `OASIS_DATA_DIR` environment variable.
+It can be downloaded on [the XNAT store](https://central.xnat.org/app/template/Index.vm) after creating an account.
+The project is OASIS3.
+
 
 # Citation
 This work will be presented at the International Symposium on Biomedical Imaging (ISBI) in April 2020.
