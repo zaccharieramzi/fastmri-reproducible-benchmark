@@ -48,6 +48,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         'multicoil': True,
         'n_layers': 3,
         'layers_n_channels': [16, 32, 64],
+        'n_iter': n_iter,
     }
     additional_info = f'af{af}'
     if contrast is not None:
