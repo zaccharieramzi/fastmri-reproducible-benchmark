@@ -22,14 +22,31 @@ You just need to install the package and its dependencies:
 pip install . &&\
 pip install -r requirements.txt
 ```
-TensorFlow is not listed as a dependency to let you chose if you want gpu supported TensorFlow.
 
 
 ## How to write a new neural network for reconstruction
-A good example of a simple neural network on which you can improve is the `zerofill_net` which is simply performing zero-filled reconstruction using `keras`.
-The building blocks can then be found in `fastmri_recon/models/utils/`
+The simplest and most versatile way to write a neural network for reconstruction is to subclass the [`CrossDomainNet` class](fastmri_recon/models/subclassed_models/cross_domain.py).
+An example is the [`PDnet`](fastmri_recon/models/subclassed_models/pdnet.py)
+
+# Data requirements
+
+## fastMRI
+
+The fastMRI data must be located in a directory whose path is stored in the `FASTMRI_DATA_DIR` environment variable.
+It can be downloaded on [the official website](https://fastmri.med.nyu.edu/) after submitting a request (bottom of the page).
+
+The package currently supports public single coil and multi coil knee data.
+
+## OASIS
+
+The OASIS data must be located in a directory whose path is stored in the `OASIS_DATA_DIR` environment variable.
+It can be downloaded on [the XNAT store](https://central.xnat.org/app/template/Index.vm) after creating an account.
+The project is OASIS3.
 
 
 # Citation
 This work will be presented at the International Symposium on Biomedical Imaging (ISBI) in April 2020.
-If you use this package or parts of it, please cite the following work: [Benchmarking Deep Nets MRI Reconstruction Models on the FastMRI Publicly Available Dataset](https://hal.inria.fr/hal-02436223)
+An extended version has been published in MDPI Applied sciences.
+If you use this package or parts of it, please cite one of the following work:
+- [Benchmarking Deep Nets MRI Reconstruction Models on the FastMRI Publicly Available Dataset](https://hal.inria.fr/hal-02436223)
+- [Benchmarking MRI Reconstruction Neural Networks on Large Public Datasets](https://www.mdpi.com/2076-3417/10/5/1816)
