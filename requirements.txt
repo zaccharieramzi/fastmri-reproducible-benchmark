@@ -1,7 +1,7 @@
 numpy >= 1.18
 h5py
 scikit-image
-keras-tqdm
+tqdm >= 4.36.1
 runstats
 nibabel
 Pillow
