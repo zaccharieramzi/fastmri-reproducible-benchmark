@@ -35,6 +35,8 @@ An example is the [`PDnet`](fastmri_recon/models/subclassed_models/pdnet.py)
 The fastMRI data must be located in a directory whose path is stored in the `FASTMRI_DATA_DIR` environment variable.
 It can be downloaded on [the official website](https://fastmri.med.nyu.edu/) after submitting a request (bottom of the page).
 
+The package currently supports public single coil and multi coil knee data.
+
 ## OASIS
 
 The OASIS data must be located in a directory whose path is stored in the `OASIS_DATA_DIR` environment variable.
