@@ -22,7 +22,6 @@ You just need to install the package and its dependencies:
 pip install . &&\
 pip install -r requirements.txt
 ```
-TensorFlow is not listed as a dependency to let you chose if you want gpu supported TensorFlow.
 
 
 ## How to write a new neural network for reconstruction
