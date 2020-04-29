@@ -8,6 +8,7 @@ class UPDNet(CrossDomainNet):
             n_layers=3,
             layers_n_channels=[8, 16, 32],
             res=True,
+            non_linearity='relu',
             n_primal=5,
             n_dual=5,
             n_iter=10,
@@ -18,6 +19,7 @@ class UPDNet(CrossDomainNet):
         self.n_layers = n_layers
         self.layers_n_channels = layers_n_channels
         self.res = res
+        self.non_linearity = non_linearity
         self.n_primal = n_primal
         self.n_dual = n_dual
         self.n_iter = n_iter
@@ -42,6 +44,7 @@ class UPDNet(CrossDomainNet):
             n_input_channels=self.n_primal + 1,
             n_output_channels=self.n_primal,
             res=self.res,
+            non_linearity=self.non_linearity,
             name=f'image_net_{i}',
         ) for i in range(self.n_iter)]
         if not self.primal_only:
@@ -53,6 +56,7 @@ class UPDNet(CrossDomainNet):
                 n_output_channels=self.n_dual,
                 n_input_channels=self.n_dual + 2,
                 res=self.res,
+                non_linearity=self.non_linearity,
                 name=f'kspace_net_{i}',
             ) for i in range(self.n_iter)]
         else:
