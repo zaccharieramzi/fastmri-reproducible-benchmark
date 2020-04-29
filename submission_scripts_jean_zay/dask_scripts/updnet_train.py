@@ -59,11 +59,11 @@ def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epo
         job_cpu=20,
         memory='80GB',
         job_name=job_name,
-        walltime='20:00:00',
+        walltime='60:00:00',
         interface='ib0',
         job_extra=[
             f'--gres=gpu:1',
-            '--qos=qos_gpu-t3',
+            '--qos=qos_gpu-t4',
             '--distribution=block:block',
             '--hint=nomultithread',
             '--output=%x_%j.out',
