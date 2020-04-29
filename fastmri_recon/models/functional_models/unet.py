@@ -15,6 +15,7 @@ def unet_rec(
         layers_n_non_lins=1,
         pool='max',
         non_relu_contract=False,
+        non_linearity='relu',
     ):
     if n_layers == 1:
         last_conv = chained_convolutions(
@@ -31,7 +32,7 @@ def unet_rec(
         if non_relu_contract:
             activation = 'linear'
         else:
-            activation = 'relu'
+            activation = non_linearity
         left_u = chained_convolutions(
             inputs,
             n_channels=n_channels,
@@ -52,15 +53,16 @@ def unet_rec(
             layers_n_non_lins=layers_n_non_lins[1:],
             pool=pool,
             non_relu_contract=non_relu_contract,
+            non_linearity=non_linearity,
         )
         merge = concatenate([
             left_u,
             Conv2D(
                 n_channels,
                 kernel_size - 1,
-                activation='relu',
+                activation=non_linearity,
                 padding='same',
-                kernel_initializer='he_normal',
+                kernel_initializer='glorot_uniform',
             )(UpSampling2D(size=(2, 2))(rec_output))  # up-conv
         ], axis=3)
         output = chained_convolutions(
@@ -81,6 +83,7 @@ def unet(
         layers_n_channels=1,
         layers_n_non_lins=1,
         non_relu_contract=False,
+        non_linearity='relu',
         pool='max',
         lr=1e-3,
         compile=True,
@@ -104,20 +107,21 @@ def unet(
         layers_n_non_lins=layers_n_non_lins,
         pool=pool,
         non_relu_contract=non_relu_contract,
+        non_linearity=non_linearity,
     )
     output = Conv2D(
         4,
         1,
         activation='linear',
         padding='same',
-        kernel_initializer='he_normal',
+        kernel_initializer='glorot_uniform',
     )(output)
     output = Conv2D(
         n_output_channels,
         1,
         activation='linear',
         padding='same',
-        kernel_initializer='he_normal',
+        kernel_initializer='glorot_uniform',
     )(output)
     model = Model(inputs=inputs, outputs=output, name='unet')
     if compile:
@@ -184,7 +188,7 @@ def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, acti
             kernel_size,
             activation=activation,
             padding='same',
-            kernel_initializer='he_normal',
+            kernel_initializer='glorot_uniform',
         )(conv)
         # conv = BatchNormalization()(conv)
     return conv
