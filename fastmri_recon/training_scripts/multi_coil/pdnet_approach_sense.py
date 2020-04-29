@@ -2,7 +2,6 @@ import os
 import os.path as op
 import time
 
-import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
@@ -11,57 +10,13 @@ from fastmri_recon.models.subclassed_models.pdnet import PDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-# paths
-train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-
 n_volumes_train = 973
 
-@click.command()
-@click.option(
-    'af',
-    '-a',
-    default='4',
-    type=click.Choice(['4', '8']),
-    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
-)
-@click.option(
-    'contrast',
-    '-c',
-    default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
-    help='The contrast chosen for this fine-tuning. Defaults to None.',
-)
-@click.option(
-    'cuda_visible_devices',
-    '-gpus',
-    '--cuda-visible-devices',
-    default='0123',
-    type=str,
-    help='The visible GPU devices. Defaults to 0123',
-)
-@click.option(
-    'n_samples',
-    '-ns',
-    default=None,
-    type=int,
-    help='The number of samples to use for this training. Default to None, which means all samples are used.',
-)
-@click.option(
-    'n_epochs',
-    '-e',
-    default=300,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
-)
-@click.option(
-    'n_iter',
-    '-i',
-    default=10,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
-)
 def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+    # paths
+    train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+    val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
     # generators
@@ -127,6 +82,3 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback,],
     )
-
-if __name__ == '__main__':
-    train_pdnet()
