@@ -4,6 +4,7 @@ import time
 
 import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
@@ -14,7 +15,7 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 n_volumes_train = 973
 
-def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=True):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
@@ -22,6 +23,11 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
+
+    # trying mixed precision
+    if use_mixed_precision:
+        policy = mixed_precision.Policy('mixed_float16')
+        mixed_precision.set_policy(policy)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
         train_path,
