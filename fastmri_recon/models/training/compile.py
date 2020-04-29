@@ -1,5 +1,4 @@
 import tensorflow as tf
-from tensorflow.image import ssim_multiscale
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.optimizers import Adam
 
@@ -20,7 +19,7 @@ def default_model_compile(model, lr, loss='mean_absolute_error'):
     )
 
 def compound_l1_mssim_loss(y_true, y_pred, alpha=0.84):
-    mssim = ssim_multiscale(y_true, y_pred, max_val=tf.reduce_max(y_true))
+    mssim = tf.image.ssim_multiscale(y_true, y_pred, max_val=tf.reduce_max(y_true))
     l1 = tf.reduce_mean(tf.abs(y_true - y_pred))
     loss = alpha * (1 - mssim) + (1 - alpha) * l1
     return loss
