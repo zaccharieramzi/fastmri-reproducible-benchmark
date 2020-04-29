@@ -15,7 +15,7 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 n_volumes_train = 973
 
-def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=True):
+def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=True, n_layers=3, base_n_filter=16):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
@@ -27,6 +27,9 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
     # trying mixed precision
     if use_mixed_precision:
         policy = mixed_precision.Policy('mixed_float16')
+        mixed_precision.set_policy(policy)
+    else:
+        policy = mixed_precision.Policy('float32')
         mixed_precision.set_policy(policy)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
@@ -54,8 +57,8 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         'n_dual': 1,
         'primal_only': True,
         'multicoil': True,
-        'n_layers': 3,
-        'layers_n_channels': [16, 32, 64],
+        'n_layers': n_layers,
+        'layers_n_channels': [base_n_filter * 2**i for i in range(n_layers)],
         'n_iter': n_iter,
     }
     additional_info = f'af{af}'
