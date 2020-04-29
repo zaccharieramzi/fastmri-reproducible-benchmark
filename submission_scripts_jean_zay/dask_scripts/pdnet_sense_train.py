@@ -1,8 +1,7 @@
 import click
 
-from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import train_updnet
+from fastmri_recon.training_scripts.multi_coil.pdnet_approach_sense import train_pdnet
 from generic_dask_training import train_on_jz_dask
-
 
 @click.command()
 @click.option(
@@ -48,23 +47,15 @@ from generic_dask_training import train_on_jz_dask
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-@click.option(
-    'non_linearity',
-    '-nl',
-    default='relu',
-    type=str,
-    help='The non linearity to use in the model. Default to relu.',
-)
-def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, non_linearity):
-    job_name = f'train_updnet_sense_{af}'
+def train_pdnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+    job_name = f'train_pdnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
     train_on_jz_dask(
-        train_updnet,
+        train_pdnet,
         af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
-        non_linearity=non_linearity,
     )
 
 
 if __name__ == '__main__':
-    train_updnet_sense_dask()
+    train_pdnet_sense_dask()
