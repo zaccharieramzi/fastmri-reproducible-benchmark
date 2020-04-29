@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from ..functional_models.unet import unet
+from ..utils.complex import to_complex
 
 
 class UnetComplex(Model):
@@ -48,10 +49,7 @@ class UnetComplex(Model):
         outputs = tf.pad(outputs, paddings)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.unet(outputs)
-        outputs = tf.complex(
-            outputs[..., :self.n_output_channels],
-            outputs[..., self.n_output_channels:],
-        )
+        outputs = to_complex(outputs, self.n_output_channels)
         outputs = outputs[:, :, n_pad//2:-n_pad//2]
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
