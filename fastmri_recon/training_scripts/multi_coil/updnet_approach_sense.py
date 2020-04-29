@@ -26,11 +26,11 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
 
     # trying mixed precision
     if use_mixed_precision:
-        policy = mixed_precision.Policy('mixed_float16')
-        mixed_precision.set_policy(policy)
+        policy_type = 'mixed_float16'
     else:
-        policy = mixed_precision.Policy('float32')
-        mixed_precision.set_policy(policy)
+        policy_type = 'float32'
+    policy = mixed_precision.Policy(policy_type)
+    mixed_precision.set_policy(policy)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
         train_path,
