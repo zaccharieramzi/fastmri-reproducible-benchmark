@@ -49,7 +49,14 @@ from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import trai
     type=int,
     help='The number of epochs to train the model. Default to 300.',
 )
-def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+@click.option(
+    'non_linearity',
+    '-nl',
+    default='relu',
+    type=str,
+    help='The non linearity to use in the model. Default to relu.',
+)
+def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, non_linearity):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
@@ -83,6 +90,8 @@ def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epo
         train_updnet,
         # *args
         af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
+        # **kwargs
+        non_linearity=non_linearity,
         # this function has potential side effects
         pure=True,
     )
