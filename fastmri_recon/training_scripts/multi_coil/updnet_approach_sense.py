@@ -69,6 +69,12 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         additional_info += f'_{n_samples}'
     if n_iter != 10:
         additional_info += f'_i{n_iter}'
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+    if n_layers != 3:
+        additional_info += f'_l{n_layers}'
+    if base_n_filter != 16:
+        additional_info += f'_bf{base_n_filter}'
 
     run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
