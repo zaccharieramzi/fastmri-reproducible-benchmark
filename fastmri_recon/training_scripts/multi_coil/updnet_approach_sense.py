@@ -15,7 +15,7 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 n_volumes_train = 973
 
-def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=False, n_layers=3, base_n_filter=16, non_linearity='relu'):
+def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=False, n_layers=3, base_n_filter=16, non_linearity='relu', loss='mae'):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
@@ -75,6 +75,8 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         additional_info += f'_l{n_layers}'
     if base_n_filter != 16:
         additional_info += f'_bf{base_n_filter}'
+    if loss != 'mae':
+        additional_info += f'_{loss}'
 
     run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
@@ -91,7 +93,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
     tqdm_cback = TQDMProgressBar()
 
     model = UPDNet(**run_params)
-    default_model_compile(model, lr=1e-3)
+    default_model_compile(model, lr=1e-3, loss=loss)
     print(run_id)
 
     model.fit(
@@ -103,54 +105,6 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
-
-
-@click.command()
-@click.option(
-    'af',
-    '-a',
-    default='4',
-    type=click.Choice(['4', '8']),
-    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
-)
-@click.option(
-    'contrast',
-    '-c',
-    default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
-    help='The contrast chosen for this fine-tuning. Defaults to None.',
-)
-@click.option(
-    'cuda_visible_devices',
-    '-gpus',
-    '--cuda-visible-devices',
-    default='0123',
-    type=str,
-    help='The visible GPU devices. Defaults to 0123',
-)
-@click.option(
-    'n_samples',
-    '-ns',
-    default=None,
-    type=int,
-    help='The number of samples to use for this training. Default to None, which means all samples are used.',
-)
-@click.option(
-    'n_epochs',
-    '-e',
-    default=300,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
-)
-@click.option(
-    'n_iter',
-    '-i',
-    default=10,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
-)
-def train_updnet_click(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
-    return train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
 
 if __name__ == '__main__':
     train_updnet_click()
