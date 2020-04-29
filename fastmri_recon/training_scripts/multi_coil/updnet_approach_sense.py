@@ -2,7 +2,6 @@ import os
 import os.path as op
 import time
 
-import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
