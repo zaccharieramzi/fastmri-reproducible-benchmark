@@ -15,7 +15,7 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 n_volumes_train = 973
 
-def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=True, n_layers=3, base_n_filter=16, non_linearity='relu'):
+def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=False, n_layers=3, base_n_filter=16, non_linearity='relu'):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
