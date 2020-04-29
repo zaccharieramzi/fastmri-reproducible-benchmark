@@ -89,14 +89,14 @@ def create_full_fastmri_test_tmp_dataset(monkeysession, tmpdir_factory):
         )
     return {
         'fastmri_tmp_data_dir': str(fastmri_tmp_data_dir) + '/',
-        'logs_tmp_dir': str(logs_tmp_dir) + '/',
-        'checkpoints_tmp_dir': str(checkpoints_tmp_dir) + '/',
+        'logs_tmp_dir': str(tmpdir_factory.getbasetemp()) + '/',
+        'checkpoints_tmp_dir': str(tmpdir_factory.getbasetemp()) + '/',
         'fastmri_tmp_singlecoil_train': str(fastmri_tmp_singlecoil_train) + '/',
         'fastmri_tmp_singlecoil_val': str(fastmri_tmp_singlecoil_val) + '/',
         'fastmri_tmp_multicoil_train': str(fastmri_tmp_multicoil_train) + '/',
-        'fastmri_tmp_multicoil_train': str(fastmri_tmp_multicoil_train) + '/',
+        'fastmri_tmp_multicoil_val': str(fastmri_tmp_multicoil_val) + '/',
         'K_shape_single_coil': K_shape_single_coil,
-        'K_shape_single_coil': K_shape_single_coil,
+        'K_shape_multi_coil': K_shape_multi_coil,
         'I_shape': I_shape,
         'contrast': contrast,
     }
