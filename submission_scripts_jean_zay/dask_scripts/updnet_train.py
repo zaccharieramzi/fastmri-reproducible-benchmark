@@ -60,6 +60,7 @@ def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epo
     if contrast is not None:
         job_name += f'_{contrast}'
     train_on_jz_dask(
+        job_name,
         train_updnet,
         af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
         non_linearity=non_linearity,

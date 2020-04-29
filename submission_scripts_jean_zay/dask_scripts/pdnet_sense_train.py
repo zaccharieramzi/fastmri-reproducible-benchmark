@@ -52,6 +52,7 @@ def train_pdnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epoc
     if contrast is not None:
         job_name += f'_{contrast}'
     train_on_jz_dask(
+        job_name,
         train_pdnet,
         af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
     )
