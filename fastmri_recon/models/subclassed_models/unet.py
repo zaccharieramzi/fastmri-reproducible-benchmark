@@ -30,7 +30,7 @@ class UnetComplex(Model):
         if non_linearity == 'lrelu':
             self.non_linearity = LeakyReLU(0.1)
         elif non_linearity == 'prelu':
-            self.non_linearity = PReLU()
+            self.non_linearity = PReLU(shared_axes=[1, 2])
         else:
             self.non_linearity = non_linearity
         self.unet = unet(

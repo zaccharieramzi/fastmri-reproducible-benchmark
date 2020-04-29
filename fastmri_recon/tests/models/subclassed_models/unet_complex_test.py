@@ -8,6 +8,7 @@ from fastmri_recon.models.subclassed_models.unet import UnetComplex
     {},
     {'n_input_channels': 6},
     {'res': True},
+    {'non_linearity': 'prelu'}
 ])
 def test_cnn_complex_init_call(model_kwargs):
     model = UnetComplex(**model_kwargs)
