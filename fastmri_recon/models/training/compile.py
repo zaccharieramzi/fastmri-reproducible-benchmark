@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.optimizers import Adam
+import tensorflow_addons as tfa
 
 from ...evaluate.metrics.tf_metrics import keras_psnr, keras_ssim
 
@@ -13,7 +14,7 @@ def default_model_compile(model, lr, loss='mean_absolute_error'):
     if loss == 'compound_mssim':
         loss = compound_l1_mssim_loss
     model.compile(
-        optimizer=Adam(lr=lr, **opt_kwargs),
+        optimizer=tfa.optimizers.RectifiedAdam(lr=lr, **opt_kwargs),
         loss=loss,
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
     )
