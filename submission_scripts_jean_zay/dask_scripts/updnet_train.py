@@ -55,7 +55,21 @@ from generic_dask_training import train_on_jz_dask
     type=str,
     help='The non linearity to use in the model. Default to relu.',
 )
-def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, non_linearity):
+@click.option(
+    'n_layers',
+    '-la',
+    default=3,
+    type=int,
+    help='The number of layers in the u-net. Default to 3.',
+)
+@click.option(
+    'base_n_filter',
+    '-nf',
+    default=16,
+    type=int,
+    help='The number of base filters in the u-net (x2 each layer). Default to 16.',
+)
+def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, non_linearity, n_layers, base_n_filter):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
@@ -64,6 +78,8 @@ def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epo
         train_updnet,
         af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
         non_linearity=non_linearity,
+        n_layers=n_layers,
+        base_n_filter=base_n_filter,
     )
 
 
