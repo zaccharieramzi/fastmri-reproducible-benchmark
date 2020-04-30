@@ -23,6 +23,7 @@ def unet_rec(
             n_channels=layers_n_channels[0],
             n_non_lins=layers_n_non_lins[0],
             kernel_size=kernel_size,
+            activation=non_linearity,
         )
         output = last_conv
     else:
