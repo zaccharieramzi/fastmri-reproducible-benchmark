@@ -92,7 +92,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
     tqdm_cback = TQDMProgressBar()
 
     model = UPDNet(**run_params)
-    default_model_compile(model, lr=1e-3, loss=loss)
+    default_model_compile(model, lr=1e-4, loss=loss)
     print(run_id)
 
     model.fit(
