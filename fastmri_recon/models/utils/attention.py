@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Layer, GlobalAveragePooling2D, Activation, L
 
 def _conv1d(conv_layer):
     def _conv1d_fun(inputs):
-        return conv_layer(inputs[None, None, :])
+        return conv_layer(inputs[:, None, :])
     return _conv1d_fun
 
 class ChannelAttentionBlock(Layer):
