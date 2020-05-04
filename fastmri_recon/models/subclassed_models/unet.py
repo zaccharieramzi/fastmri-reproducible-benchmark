@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import LeakyReLU, PReLU
 
 from ..functional_models.unet import unet
 from ..utils.complex import to_complex
@@ -27,12 +26,7 @@ class UnetComplex(Model):
         self.layers_n_channels = layers_n_channels
         self.layers_n_non_lins = layers_n_non_lins
         self.res = res
-        if non_linearity == 'lrelu':
-            self.non_linearity = LeakyReLU(0.1)
-        elif non_linearity == 'prelu':
-            self.non_linearity = PReLU(shared_axes=[1, 2])
-        else:
-            self.non_linearity = non_linearity
+        self.non_linearity = non_linearity
         self.unet = unet(
             input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag
             n_output_channels=2 * self.n_output_channels,

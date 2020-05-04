@@ -1,11 +1,32 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
+from tensorflow.keras.layers import (
+    Conv2D,
+    MaxPooling2D,
+    concatenate,
+    Dropout,
+    UpSampling2D,
+    Input,
+    AveragePooling2D,
+    BatchNormalization,
+    Lambda,
+    LeakyReLU,
+    PReLU,
+)
 from tensorflow.keras.models import Model
 
 from ..training.compile import default_model_compile
 from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.fourier import tf_unmasked_adj_op
 
+
+def _instantiate_non_linearity(non_linearity):
+    if non_linearity == 'lrelu':
+        non_linearity_inst = LeakyReLU(0.1)
+    elif non_linearity == 'prelu':
+        non_linearity_inst = PReLU(shared_axes=[1, 2])
+    else:
+        non_linearity_inst = non_linearity
+    return non_linearity_inst
 
 def unet_rec(
         inputs,
@@ -56,12 +77,13 @@ def unet_rec(
             non_relu_contract=non_relu_contract,
             non_linearity=non_linearity,
         )
+        activation = _instantiate_non_linearity(non_linearity)
         merge = concatenate([
             left_u,
             Conv2D(
                 n_channels,
                 kernel_size - 1,
-                activation=non_linearity,
+                activation=activation,
                 padding='same',
                 kernel_initializer='glorot_uniform',
             )(UpSampling2D(size=(2, 2))(rec_output))  # up-conv
@@ -71,6 +93,7 @@ def unet_rec(
             n_channels=n_channels,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
+            activation=non_linearity,
         )
     return output
 
@@ -110,10 +133,13 @@ def unet(
         non_relu_contract=non_relu_contract,
         non_linearity=non_linearity,
     )
+    activation = _instantiate_non_linearity(non_linearity)
     output = Conv2D(
-        4,
+        max(4, 2*n_output_channels),
         1,
-        activation='linear',
+        # NOTE: this is a breaking change for the results for fastMRI and OASIS
+        # we would need to retrain to get the proper results.
+        activation=activation,
         padding='same',
         kernel_initializer='glorot_uniform',
     )(output)
@@ -184,10 +210,11 @@ def old_unet(pretrained_weights=None, input_size=(256, 256, 1), dropout=0.5, ker
 def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, activation='relu'):
     conv = inputs
     for _ in range(n_non_lins):
+        activation_inst = _instantiate_non_linearity(activation)
         conv = Conv2D(
             n_channels,
             kernel_size,
-            activation=activation,
+            activation=activation_inst,
             padding='same',
             kernel_initializer='glorot_uniform',
         )(conv)
