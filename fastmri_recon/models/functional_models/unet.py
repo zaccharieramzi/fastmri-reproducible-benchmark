@@ -149,10 +149,11 @@ def unet(
         padding='same',
         kernel_initializer='glorot_uniform',
     )(output)
-    output = ChannelAttentionBlock(
-        activation=non_linearity,
-        **channel_attention_kwargs,
-    )(output)
+    if channel_attention_kwargs:
+        output = ChannelAttentionBlock(
+            activation=non_linearity,
+            **channel_attention_kwargs,
+        )(output)
     output = Conv2D(
         n_output_channels,
         1,
@@ -236,8 +237,11 @@ def chained_convolutions(
             kernel_initializer='glorot_uniform',
         )(conv)
         # conv = BatchNormalization()(conv)
-    output = ChannelAttentionBlock(
-        activation=activation,
-        **channel_attention_kwargs,
-    )(conv)
+    if channel_attention_kwargs:
+        output = ChannelAttentionBlock(
+            activation=activation,
+            **channel_attention_kwargs,
+        )(conv)
+    else:
+        output = conv
     return output
