@@ -14,7 +14,20 @@ from fastmri_recon.models.training.compile import default_model_compile
 
 n_volumes_train = 973
 
-def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, use_mixed_precision=False, n_layers=3, base_n_filter=16, non_linearity='relu', loss='mae'):
+def train_updnet(
+        af,
+        contrast,
+        cuda_visible_devices,
+        n_samples,
+        n_epochs,
+        n_iter,
+        use_mixed_precision=False,
+        n_layers=3,
+        base_n_filter=16,
+        non_linearity='relu',
+        channel_attention_kwargs=None,
+        loss='mae',
+    ):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
@@ -60,6 +73,7 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         'layers_n_channels': [base_n_filter * 2**i for i in range(n_layers)],
         'non_linearity': non_linearity,
         'n_iter': n_iter,
+        'channel_attention_kwargs': channel_attention_kwargs,
     }
     additional_info = f'af{af}'
     if contrast is not None:
@@ -76,6 +90,8 @@ def train_updnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter
         additional_info += f'_bf{base_n_filter}'
     if loss != 'mae':
         additional_info += f'_{loss}'
+    if channel_attention_kwargs:
+        additional_info += '_ca'
 
     run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
