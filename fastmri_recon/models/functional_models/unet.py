@@ -15,6 +15,7 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.models import Model
 
 from ..training.compile import default_model_compile
+from ..utils.attention import ChannelAttentionBlock
 from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.fourier import tf_unmasked_adj_op
 
@@ -37,6 +38,7 @@ def unet_rec(
         pool='max',
         non_relu_contract=False,
         non_linearity='relu',
+        **channel_attention_kwargs,
     ):
     if n_layers == 1:
         last_conv = chained_convolutions(
@@ -61,6 +63,7 @@ def unet_rec(
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
             activation=activation,
+            **channel_attention_kwargs,
         )
         if pool == 'average':
             pooling = AveragePooling2D
@@ -94,6 +97,7 @@ def unet_rec(
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
             activation=non_linearity,
+            **channel_attention_kwargs,
         )
     return output
 
@@ -111,6 +115,7 @@ def unet(
         pool='max',
         lr=1e-3,
         compile=True,
+        **channel_attention_kwargs,
     ):
     if isinstance(layers_n_channels, int):
         layers_n_channels = [layers_n_channels] * n_layers
@@ -132,6 +137,7 @@ def unet(
         pool=pool,
         non_relu_contract=non_relu_contract,
         non_linearity=non_linearity,
+        **channel_attention_kwargs,
     )
     activation = _instantiate_non_linearity(non_linearity)
     output = Conv2D(
@@ -142,6 +148,10 @@ def unet(
         activation=activation,
         padding='same',
         kernel_initializer='glorot_uniform',
+    )(output)
+    output = ChannelAttentionBlock(
+        activation=non_linearity,
+        **channel_attention_kwargs,
     )(output)
     output = Conv2D(
         n_output_channels,
@@ -207,7 +217,14 @@ def old_unet(pretrained_weights=None, input_size=(256, 256, 1), dropout=0.5, ker
     return model
 
 
-def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, activation='relu'):
+def chained_convolutions(
+        inputs,
+        n_channels=1,
+        n_non_lins=1,
+        kernel_size=3,
+        activation='relu',
+        **channel_attention_kwargs,
+    ):
     conv = inputs
     for _ in range(n_non_lins):
         activation_inst = _instantiate_non_linearity(activation)
@@ -219,4 +236,8 @@ def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, acti
             kernel_initializer='glorot_uniform',
         )(conv)
         # conv = BatchNormalization()(conv)
-    return conv
+    output = ChannelAttentionBlock(
+        activation=activation,
+        **channel_attention_kwargs,
+    )(conv)
+    return output
