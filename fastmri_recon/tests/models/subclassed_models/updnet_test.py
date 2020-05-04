@@ -16,8 +16,12 @@ def test_pdnet_init_and_call(model_kwargs, n_phase_encoding):
         tf.zeros([1, 640, n_phase_encoding], dtype=tf.complex64),  # mask
     ])
 
-def test_pdnet_multicoil_init_and_call():
-    model = UPDNet(primal_only=True, multicoil=True)
+@pytest.mark.parametrize('model_kwargs', [
+    {},
+    {'channel_attention_kwargs': {'dense': True}},
+])
+def test_pdnet_multicoil_init_and_call(model_kwargs):
+    model = UPDNet(primal_only=True, multicoil=True, **model_kwargs)
     model([
         tf.zeros([1, 5, 640, 320, 1], dtype=tf.complex64),  # kspace
         tf.zeros([1, 5, 640, 320], dtype=tf.complex64),  # mask
