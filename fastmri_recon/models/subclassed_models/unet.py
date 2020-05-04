@@ -16,6 +16,7 @@ class UnetComplex(Model):
             layers_n_non_lins=1,
             res=False,
             non_linearity='relu',
+            channel_attention_kwargs=None,
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
@@ -27,6 +28,10 @@ class UnetComplex(Model):
         self.layers_n_non_lins = layers_n_non_lins
         self.res = res
         self.non_linearity = non_linearity
+        if channel_attention_kwargs is None:
+            self.channel_attention_kwargs = {}
+        else:
+            self.channel_attention_kwargs = channel_attention_kwargs
         self.unet = unet(
             input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag
             n_output_channels=2 * self.n_output_channels,
@@ -38,6 +43,7 @@ class UnetComplex(Model):
             non_linearity=self.non_linearity,
             pool='max',
             compile=False,
+            **self.channel_attention_kwargs,
         )
 
     def call(self, inputs):
