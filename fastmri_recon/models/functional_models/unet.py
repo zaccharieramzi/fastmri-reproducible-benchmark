@@ -135,7 +135,7 @@ def unet(
     )
     activation = _instantiate_non_linearity(non_linearity)
     output = Conv2D(
-        max(4, 2*n_output_channels),
+        max(4, n_output_channels),
         1,
         # NOTE: this is a breaking change for the results for fastMRI and OASIS
         # we would need to retrain to get the proper results.
