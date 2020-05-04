@@ -76,6 +76,13 @@ from generic_dask_training import train_on_jz_dask
     type=click.Choice([None, 'dense', 'conv']),
     help='The type of channel attention to use. Default to None.',
 )
+@click.option(
+    'loss',
+    '-l',
+    default='mae',
+    type=click.Choice(['mae', 'mse', 'compound_mssim']),
+    help='The loss on which to train. Default to mae.',
+)
 def train_updnet_sense_dask(
         af,
         contrast,
@@ -87,6 +94,7 @@ def train_updnet_sense_dask(
         n_layers,
         base_n_filter,
         channel_attention,
+        loss,
     ):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
@@ -105,6 +113,7 @@ def train_updnet_sense_dask(
         n_layers=n_layers,
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
+        loss=loss,
     )
 
 
