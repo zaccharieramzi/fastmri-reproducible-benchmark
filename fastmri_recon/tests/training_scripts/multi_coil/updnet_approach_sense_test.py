@@ -7,7 +7,7 @@ from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import trai
     ('1', None, '0123', 2, 1, 2, True, 2, 2),
     ('1', None, '0123', 2, 1, 2, False, 2, 2),
     ('1', None, '0123', 2, 1, 2, False, 2, 2, 'relu', 'compound_mssim'),
-    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'prelu', 'compound_mssim'),
+    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'prelu', 'mae'),
 ])
 def test_train_updnet(create_full_fastmri_test_tmp_dataset, args):
     updnet_approach_sense.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
