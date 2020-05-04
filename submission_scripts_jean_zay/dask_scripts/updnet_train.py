@@ -69,10 +69,34 @@ from generic_dask_training import train_on_jz_dask
     type=int,
     help='The number of base filters in the u-net (x2 each layer). Default to 16.',
 )
-def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter, non_linearity, n_layers, base_n_filter):
+@click.option(
+    'channel_attention',
+    '-ca',
+    default=None,
+    type=click.Choice([None, 'dense', 'conv']),
+    help='The type of channel attention to use. Default to None.',
+)
+def train_updnet_sense_dask(
+        af,
+        contrast,
+        cuda_visible_devices,
+        n_samples,
+        n_epochs,
+        n_iter,
+        non_linearity,
+        n_layers,
+        base_n_filter,
+        channel_attention,
+    ):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
+    if channel_attention == 'dense':
+        channel_attention_kwargs = {'dense': True}
+    elif channel_attention == 'conv':
+        channel_attention_kwargs = {'dense': False}
+    else:
+        channel_attention_kwargs = None
     train_on_jz_dask(
         job_name,
         train_updnet,
@@ -80,6 +104,7 @@ def train_updnet_sense_dask(af, contrast, cuda_visible_devices, n_samples, n_epo
         non_linearity=non_linearity,
         n_layers=n_layers,
         base_n_filter=base_n_filter,
+        channel_attention_kwargs=channel_attention_kwargs,
     )
 
 
