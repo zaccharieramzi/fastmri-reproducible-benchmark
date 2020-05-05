@@ -89,6 +89,13 @@ def evaluate_updnet_sense(
     help='The run id of the trained network. Defaults to updnet_sense_af4_1588609141.',
 )
 @click.option(
+    'n_epochs',
+    '-e',
+    default=200,
+    type=int,
+    help='The number of epochs for which the model was trained or fine-tuned. Defaults to 200.',
+)
+@click.option(
     'contrast',
     '-c',
     default=None,
@@ -154,6 +161,7 @@ def evaluate_updnet_sense(
 )
 def evaluate_updnet_sense_click(
         run_id,
+        n_epochs,
         contrast,
         af,
         n_iter,
@@ -172,6 +180,7 @@ def evaluate_updnet_sense_click(
         channel_attention_kwargs = None
     metrics_names, eval_res = evaluate_updnet_sense(
         run_id=run_id,
+        n_epochs=n_epochs,
         contrast=contrast,
         af=af,
         n_iter=n_iter,
