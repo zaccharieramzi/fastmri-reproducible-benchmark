@@ -27,6 +27,7 @@ def train_updnet(
         non_linearity='relu',
         channel_attention_kwargs=None,
         loss='mae',
+        original_run_id=None,
     ):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
@@ -108,12 +109,18 @@ def train_updnet(
     tqdm_cback = TQDMProgressBar()
 
     model = UPDNet(**run_params)
-    default_model_compile(model, lr=1e-4, loss=loss)
+    if original_run_id is not None:
+        lr = 1e-6
+    else:
+        lr = 1e-4
+    default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
+    if original_run_id is not None:
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-200.hdf5')
 
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train,
+        steps_per_epoch=n_volumes_train//2,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=2,
