@@ -6,6 +6,13 @@ from generic_dask_training import train_on_jz_dask
 
 @click.command()
 @click.option(
+    'original_run_id',
+    '-id',
+    default=None,
+    type=str,
+    help='The original run id for fine tuning. Defaults to None.',
+)
+@click.option(
     'af',
     '-a',
     default='4',
@@ -84,6 +91,7 @@ from generic_dask_training import train_on_jz_dask
     help='The loss on which to train. Default to mae.',
 )
 def train_updnet_sense_dask(
+        original_run_id,
         af,
         contrast,
         cuda_visible_devices,
@@ -114,6 +122,7 @@ def train_updnet_sense_dask(
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
         loss=loss,
+        original_run_id=original_run_id,
     )
 
 
