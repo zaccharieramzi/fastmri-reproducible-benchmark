@@ -99,7 +99,7 @@ def evaluate_updnet_sense(
     'contrast',
     '-c',
     default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
+    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK',], case_sensitive=False),
     help='The contrast chosen for this evaluation. Defaults to CORPDFS_FBK.',
 )
 @click.option(
