@@ -26,6 +26,7 @@ def train_updnet(
         base_n_filter=16,
         non_linearity='relu',
         channel_attention_kwargs=None,
+        refine_smaps=False,
         loss='mae',
         original_run_id=None,
     ):
@@ -75,6 +76,7 @@ def train_updnet(
         'non_linearity': non_linearity,
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
+        'refine_smaps': refine_smaps,
     }
     additional_info = f'af{af}'
     if contrast is not None:
@@ -93,6 +95,8 @@ def train_updnet(
         additional_info += f'_{loss}'
     if channel_attention_kwargs:
         additional_info += '_ca'
+    if refine_smaps:
+        additional_info += '_rf_sm'
 
     run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
