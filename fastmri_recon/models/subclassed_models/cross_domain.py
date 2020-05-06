@@ -34,8 +34,8 @@ class CrossDomainNet(Model):
                 n_layers=3,
                 layers_n_channels=[4 * 2**i for i in range(3)],
                 layers_n_non_lins=2,
-                n_input_channels=2,
-                n_output_channels=2,
+                n_input_channels=1,
+                n_output_channels=1,
                 res=True,
                 non_linearity='lrelu',
                 channel_attention_kwargs=None,
@@ -43,7 +43,6 @@ class CrossDomainNet(Model):
             )
 
     def call(self, inputs):
-        # TODO: deal with the potential sensitivity maps
         if self.multicoil:
             original_kspace, mask, smaps = inputs
             if self.refine_smaps:
