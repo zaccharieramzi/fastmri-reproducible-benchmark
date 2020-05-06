@@ -15,6 +15,7 @@ class UPDNet(CrossDomainNet):
             n_iter=10,
             primal_only=False,
             multicoil=False,
+            refine_smaps=False,
             **kwargs,
         ):
         self.n_layers = n_layers
@@ -27,6 +28,7 @@ class UPDNet(CrossDomainNet):
         self.n_iter = n_iter
         self.primal_only = primal_only
         self.multicoil = multicoil
+        self.refine_smaps = refine_smaps
         super(UPDNet, self).__init__(
             domain_sequence='KI'*self.n_iter,
             data_consistency_mode='measurements_residual',
@@ -35,6 +37,7 @@ class UPDNet(CrossDomainNet):
             i_buffer_size=self.n_primal,
             k_buffer_size=self.n_dual,
             multicoil=self.multicoil,
+            refine_smaps=self.refine_smaps,
             **kwargs,
         )
         self.op = FFT(masked=True, multicoil=self.multicoil)
