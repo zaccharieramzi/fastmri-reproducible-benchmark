@@ -90,6 +90,12 @@ from generic_dask_training import train_on_jz_dask
     type=click.Choice(['mae', 'mse', 'compound_mssim']),
     help='The loss on which to train. Default to mae.',
 )
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to refine sensitivity maps using a trained unet.',
+)
 def train_updnet_sense_dask(
         original_run_id,
         af,
@@ -103,6 +109,7 @@ def train_updnet_sense_dask(
         base_n_filter,
         channel_attention,
         loss,
+        refine_smaps,
     ):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
@@ -123,6 +130,7 @@ def train_updnet_sense_dask(
         channel_attention_kwargs=channel_attention_kwargs,
         loss=loss,
         original_run_id=original_run_id,
+        refine_smaps=refine_smaps,
     )
 
 
