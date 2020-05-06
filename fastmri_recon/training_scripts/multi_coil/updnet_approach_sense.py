@@ -3,22 +3,47 @@ import os.path as op
 import time
 
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
-from fastmri_recon.models.subclassed_models.pdnet import PDNet
+from fastmri_recon.models.subclassed_models.updnet import UPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
 n_volumes_train = 973
 
-def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter):
+def train_updnet(
+        af,
+        contrast,
+        cuda_visible_devices,
+        n_samples,
+        n_epochs,
+        n_iter,
+        use_mixed_precision=False,
+        n_layers=3,
+        base_n_filter=16,
+        non_linearity='relu',
+        channel_attention_kwargs=None,
+        loss='mae',
+        original_run_id=None,
+    ):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
+
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
+
+    # trying mixed precision
+    if use_mixed_precision:
+        policy_type = 'mixed_float16'
+    else:
+        policy_type = 'float32'
+    policy = mixed_precision.Policy(policy_type)
+    mixed_precision.set_policy(policy)
     # generators
     train_set = train_masked_kspace_dataset_from_indexable(
         train_path,
@@ -44,9 +69,12 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         'n_primal': 5,
         'n_dual': 1,
         'primal_only': True,
-        'n_iter': n_iter,
         'multicoil': True,
-        'n_filters': 32,
+        'n_layers': n_layers,
+        'layers_n_channels': [base_n_filter * 2**i for i in range(n_layers)],
+        'non_linearity': non_linearity,
+        'n_iter': n_iter,
+        'channel_attention_kwargs': channel_attention_kwargs,
     }
     additional_info = f'af{af}'
     if contrast is not None:
@@ -55,8 +83,18 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         additional_info += f'_{n_samples}'
     if n_iter != 10:
         additional_info += f'_i{n_iter}'
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+    if n_layers != 3:
+        additional_info += f'_l{n_layers}'
+    if base_n_filter != 16:
+        additional_info += f'_bf{base_n_filter}'
+    if loss != 'mae':
+        additional_info += f'_{loss}'
+    if channel_attention_kwargs:
+        additional_info += '_ca'
 
-    run_id = f'pdnet_sense_{additional_info}_{int(time.time())}'
+    run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
@@ -68,17 +106,27 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         write_graph=False,
         write_images=False,
     )
+    tqdm_cback = TQDMProgressBar()
 
-    model = PDNet(**run_params)
-    default_model_compile(model, lr=1e-3)
+    model = UPDNet(**run_params)
+    if original_run_id is not None:
+        lr = 1e-6
+    else:
+        lr = 1e-4
+    default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
+    if original_run_id is not None:
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-200.hdf5')
 
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train,
+        steps_per_epoch=n_volumes_train//2,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=2,
         verbose=0,
-        callbacks=[tboard_cback, chkpt_cback,],
+        callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+
+if __name__ == '__main__':
+    train_updnet_click()

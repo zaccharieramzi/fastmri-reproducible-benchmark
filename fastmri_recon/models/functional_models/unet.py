@@ -1,11 +1,33 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
+from tensorflow.keras.layers import (
+    Conv2D,
+    MaxPooling2D,
+    concatenate,
+    Dropout,
+    UpSampling2D,
+    Input,
+    AveragePooling2D,
+    BatchNormalization,
+    Lambda,
+    LeakyReLU,
+    PReLU,
+)
 from tensorflow.keras.models import Model
 
 from ..training.compile import default_model_compile
+from ..utils.attention import ChannelAttentionBlock
 from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.fourier import tf_unmasked_adj_op
 
+
+def _instantiate_non_linearity(non_linearity):
+    if non_linearity == 'lrelu':
+        non_linearity_inst = LeakyReLU(0.1)
+    elif non_linearity == 'prelu':
+        non_linearity_inst = PReLU(shared_axes=[1, 2])
+    else:
+        non_linearity_inst = non_linearity
+    return non_linearity_inst
 
 def unet_rec(
         inputs,
@@ -15,6 +37,8 @@ def unet_rec(
         layers_n_non_lins=1,
         pool='max',
         non_relu_contract=False,
+        non_linearity='relu',
+        **channel_attention_kwargs,
     ):
     if n_layers == 1:
         last_conv = chained_convolutions(
@@ -22,6 +46,7 @@ def unet_rec(
             n_channels=layers_n_channels[0],
             n_non_lins=layers_n_non_lins[0],
             kernel_size=kernel_size,
+            activation=non_linearity,
         )
         output = last_conv
     else:
@@ -31,13 +56,14 @@ def unet_rec(
         if non_relu_contract:
             activation = 'linear'
         else:
-            activation = 'relu'
+            activation = non_linearity
         left_u = chained_convolutions(
             inputs,
             n_channels=n_channels,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
             activation=activation,
+            **channel_attention_kwargs,
         )
         if pool == 'average':
             pooling = AveragePooling2D
@@ -52,15 +78,17 @@ def unet_rec(
             layers_n_non_lins=layers_n_non_lins[1:],
             pool=pool,
             non_relu_contract=non_relu_contract,
+            non_linearity=non_linearity,
         )
+        activation = _instantiate_non_linearity(non_linearity)
         merge = concatenate([
             left_u,
             Conv2D(
                 n_channels,
                 kernel_size - 1,
-                activation='relu',
+                activation=activation,
                 padding='same',
-                kernel_initializer='he_normal',
+                kernel_initializer='glorot_uniform',
             )(UpSampling2D(size=(2, 2))(rec_output))  # up-conv
         ], axis=3)
         output = chained_convolutions(
@@ -68,6 +96,8 @@ def unet_rec(
             n_channels=n_channels,
             n_non_lins=n_non_lins,
             kernel_size=kernel_size,
+            activation=non_linearity,
+            **channel_attention_kwargs,
         )
     return output
 
@@ -75,14 +105,17 @@ def unet_rec(
 def unet(
         pretrained_weights=None,
         input_size=(256, 256, 1),
+        n_output_channels=None,
         kernel_size=3,
         n_layers=1,
         layers_n_channels=1,
         layers_n_non_lins=1,
         non_relu_contract=False,
+        non_linearity='relu',
         pool='max',
         lr=1e-3,
         compile=True,
+        **channel_attention_kwargs,
     ):
     if isinstance(layers_n_channels, int):
         layers_n_channels = [layers_n_channels] * n_layers
@@ -92,6 +125,8 @@ def unet(
         layers_n_non_lins = [layers_n_non_lins] * n_layers
     else:
         assert len(layers_n_non_lins) == n_layers
+    if n_output_channels is None:
+        n_output_channels = input_size[-1]
     inputs = Input(input_size)
     output = unet_rec(
         inputs,
@@ -101,20 +136,30 @@ def unet(
         layers_n_non_lins=layers_n_non_lins,
         pool=pool,
         non_relu_contract=non_relu_contract,
+        non_linearity=non_linearity,
+        **channel_attention_kwargs,
     )
+    activation = _instantiate_non_linearity(non_linearity)
     output = Conv2D(
-        4,
+        max(4, n_output_channels),
         1,
-        activation='linear',
+        # NOTE: this is a breaking change for the results for fastMRI and OASIS
+        # we would need to retrain to get the proper results.
+        activation=activation,
         padding='same',
-        kernel_initializer='he_normal',
+        kernel_initializer='glorot_uniform',
     )(output)
+    if channel_attention_kwargs:
+        output = ChannelAttentionBlock(
+            activation=non_linearity,
+            **channel_attention_kwargs,
+        )(output)
     output = Conv2D(
-        input_size[-1],
+        n_output_channels,
         1,
         activation='linear',
         padding='same',
-        kernel_initializer='he_normal',
+        kernel_initializer='glorot_uniform',
     )(output)
     model = Model(inputs=inputs, outputs=output, name='unet')
     if compile:
@@ -173,15 +218,30 @@ def old_unet(pretrained_weights=None, input_size=(256, 256, 1), dropout=0.5, ker
     return model
 
 
-def chained_convolutions(inputs, n_channels=1, n_non_lins=1, kernel_size=3, activation='relu'):
+def chained_convolutions(
+        inputs,
+        n_channels=1,
+        n_non_lins=1,
+        kernel_size=3,
+        activation='relu',
+        **channel_attention_kwargs,
+    ):
     conv = inputs
     for _ in range(n_non_lins):
+        activation_inst = _instantiate_non_linearity(activation)
         conv = Conv2D(
             n_channels,
             kernel_size,
-            activation=activation,
+            activation=activation_inst,
             padding='same',
-            kernel_initializer='he_normal',
+            kernel_initializer='glorot_uniform',
         )(conv)
         # conv = BatchNormalization()(conv)
-    return conv
+    if channel_attention_kwargs:
+        output = ChannelAttentionBlock(
+            activation=activation,
+            **channel_attention_kwargs,
+        )(conv)
+    else:
+        output = conv
+    return output
