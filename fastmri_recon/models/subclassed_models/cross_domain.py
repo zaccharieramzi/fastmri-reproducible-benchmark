@@ -53,7 +53,7 @@ class CrossDomainNet(Model):
                 n_coils = smaps_shape[1]
                 smaps_contig = tf.reshape(
                     smaps,
-                    [batch_size * n_coils, smaps_shape[2], smaps_shape[3]],
+                    [batch_size * n_coils, smaps_shape[2], smaps_shape[3], 1],
                 )
                 smaps_refined = self.smaps_refiner(smaps_contig)
                 smaps_refined = tf.reshape(
