@@ -19,7 +19,7 @@ def default_model_compile(model, lr, loss='mean_absolute_error'):
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
     )
 
-def compound_l1_mssim_loss(y_true, y_pred, alpha=0.84):
+def compound_l1_mssim_loss(y_true, y_pred, alpha=0.98):
     mssim = tf.image.ssim_multiscale(y_true, y_pred, max_val=tf.reduce_max(y_true))
     l1 = tf.reduce_mean(tf.abs(y_true - y_pred))
     loss = alpha * (1 - mssim) + (1 - alpha) * l1
