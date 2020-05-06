@@ -2,6 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D
 
+from ..utils.complex import to_complex
+
 
 class CNNComplex(Model):
     def __init__(
@@ -43,10 +45,7 @@ class CNNComplex(Model):
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         for conv in self.convs:
             outputs = conv(outputs)
-        outputs = tf.complex(
-            outputs[..., :self.n_output_channels],
-            outputs[..., self.n_output_channels:],
-        )
+        outputs = to_complex(outputs, self.n_output_channels)
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         return outputs

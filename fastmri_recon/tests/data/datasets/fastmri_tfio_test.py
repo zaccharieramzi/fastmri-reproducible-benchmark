@@ -30,4 +30,4 @@ def test_train_masked_kspace_dataset_io_graph_mode(create_full_fastmri_test_tmp_
     ds = train_masked_kspace_dataset_io(path, rand=True)
     model = PDNet(primal_only=True, n_iter=1, n_filters=8, n_primal=1, n_dual=1)
     default_model_compile(model, lr=1e-3)
-    model.fit(ds, steps_per_epoch=1, epochs=2)
+    model.fit(ds, steps_per_epoch=1, epochs=2, verbose=0)

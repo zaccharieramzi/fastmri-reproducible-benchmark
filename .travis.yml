@@ -1,8 +1,9 @@
 language: python
+cache: pip
 install:
   - pip install pytest
   - pip install -r requirements.txt
   - pip install .
 
 script:
-  - pytest fastmri_recon/tests
+  - pytest -s fastmri_recon/tests
