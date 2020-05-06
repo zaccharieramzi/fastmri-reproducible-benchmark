@@ -115,8 +115,10 @@ def train_updnet(
     model = UPDNet(**run_params)
     if original_run_id is not None:
         lr = 1e-6
+        n_steps = n_volumes_train//2
     else:
         lr = 1e-4
+        n_steps = n_volumes_train
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
@@ -124,7 +126,7 @@ def train_updnet(
 
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train//2,
+        steps_per_epoch=n_steps,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=2,
