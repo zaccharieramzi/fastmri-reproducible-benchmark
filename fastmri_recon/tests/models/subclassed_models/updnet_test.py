@@ -19,6 +19,7 @@ def test_pdnet_init_and_call(model_kwargs, n_phase_encoding):
 @pytest.mark.parametrize('model_kwargs', [
     {},
     {'channel_attention_kwargs': {'dense': True}},
+    {'refine_smaps': True},
 ])
 def test_pdnet_multicoil_init_and_call(model_kwargs):
     model = UPDNet(primal_only=True, multicoil=True, **model_kwargs)

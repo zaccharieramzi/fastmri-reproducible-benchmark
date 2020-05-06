@@ -6,8 +6,9 @@ from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import trai
 @pytest.mark.parametrize('args',[
     ('1', None, '0123', 2, 1, 2, True, 2, 2),
     ('1', None, '0123', 2, 1, 2, False, 2, 2),
-    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'relu', None, 'compound_mssim'),
-    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'prelu', None, 'mae'),
+    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'relu', None, False, 'compound_mssim'),
+    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'prelu', None, False, 'mae'),
+    ('1', None, '0123', 2, 1, 2, False, 2, 2, 'prelu', None, True),
 ])
 def test_train_updnet(create_full_fastmri_test_tmp_dataset, args):
     updnet_approach_sense.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
