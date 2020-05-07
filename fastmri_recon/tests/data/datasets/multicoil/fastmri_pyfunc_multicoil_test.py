@@ -1,9 +1,7 @@
-import os
-
 import pytest
 import tensorflow as tf
 
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable, test_masked_kspace_dataset_from_indexable
 
 
 kspace_shape = [2, 15, 640, 322, 1]
@@ -35,5 +33,22 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
         assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
     # content verifications
     tf_tester = tf.test.TestCase()
-    tf_tester.assertAllInSet(mask, [1 + 0.j])  # this because we set af to 1
+    tf_tester.assertAllInSet(mask, [1])  # this because we set af to 1
     # TODO: implement adjoint fourier multicoil
+
+@pytest.mark.parametrize('ds_kwargs, expected_kspace_shape', [
+    ({}, kspace_shape),
+    ({'contrast': file_contrast}, kspace_shape),
+    ({'n_samples': 1}, kspace_shape)
+])
+def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
+    path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
+    ds = test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
+    kspace, mask, smaps = next(iter(ds))
+    # shape verifications
+    assert kspace.shape.as_list() == expected_kspace_shape
+    assert mask.shape.as_list() == [expected_kspace_shape[0]] + [1 for _ in expected_kspace_shape[1:-2]] + [expected_kspace_shape[-2]]
+    assert smaps.shape.as_list() == expected_kspace_shape[:-1]
+    # content verifications
+    tf_tester = tf.test.TestCase()
+    tf_tester.assertAllInSet(mask, [1])  # this because we set af to 1
