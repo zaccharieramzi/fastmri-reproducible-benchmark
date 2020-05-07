@@ -1,7 +1,7 @@
 import click
 
 from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import train_updnet
-from generic_dask_training import train_on_jz_dask
+from generic_dask import train_on_jz_dask
 
 
 @click.command()
