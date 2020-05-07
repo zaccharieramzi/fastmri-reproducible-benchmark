@@ -80,7 +80,7 @@ from generic_dask_training import train_on_jz_dask
     'channel_attention',
     '-ca',
     default=None,
-    type=click.Choice([None, 'dense', 'conv']),
+    type=click.Choice(['dense', 'conv']),
     help='The type of channel attention to use. Default to None.',
 )
 @click.option(
