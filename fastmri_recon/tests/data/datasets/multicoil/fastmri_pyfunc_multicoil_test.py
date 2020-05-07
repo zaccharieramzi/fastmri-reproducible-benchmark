@@ -1,8 +1,9 @@
+import numpy as np
 import pytest
 import tensorflow as tf
 
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable, test_masked_kspace_dataset_from_indexable
-
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable, test_masked_kspace_dataset_from_indexable, test_filenames
+from fastmri_recon.data.utils.h5 import from_test_file_to_mask_and_contrast
 
 kspace_shape = [2, 15, 640, 322, 1]
 file_contrast = 'CORPD_FBK'
@@ -14,7 +15,7 @@ file_contrast = 'CORPD_FBK'
     ({'inner_slices': 1, 'rand': True}, [1,] + kspace_shape[2:]),
     ({'inner_slices': 1, 'rand': True, 'parallel': False}, [1,] + kspace_shape[1:]),
     ({'contrast': file_contrast, 'parallel': False}, kspace_shape),
-    ({'n_samples': 1, 'parallel': False}, kspace_shape)
+    ({'n_samples': 1, 'parallel': False}, kspace_shape),
 ])
 def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_train']
@@ -39,7 +40,7 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
 @pytest.mark.parametrize('ds_kwargs, expected_kspace_shape', [
     ({}, kspace_shape),
     ({'contrast': file_contrast}, kspace_shape),
-    ({'n_samples': 1}, kspace_shape)
+    ({'n_samples': 1}, kspace_shape),
 ])
 def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
@@ -52,3 +53,16 @@ def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_
     # content verifications
     tf_tester = tf.test.TestCase()
     tf_tester.assertAllInSet(mask, [1])  # this because we set af to 1
+
+@pytest.mark.parametrize('ds_kwargs', [
+    {},
+    {'n_samples': 1},
+])
+def test_test_filenames(create_full_fastmri_test_tmp_dataset, ds_kwargs):
+    path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
+    files_ds = test_filenames(path, **ds_kwargs)
+    ds = test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
+    filename = next(iter(files_ds))
+    _, mask, _ = next(iter(ds))
+    mask_from_file, _ = from_test_file_to_mask_and_contrast(filename)
+    np.testing.assert_equal(mask.numpy(), mask_from_file)
