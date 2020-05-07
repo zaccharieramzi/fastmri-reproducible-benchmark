@@ -23,7 +23,7 @@ from generic_dask_training import train_on_jz_dask
     'contrast',
     '-c',
     default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK', None], case_sensitive=False),
+    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK'], case_sensitive=False),
     help='The contrast chosen for this fine-tuning. Defaults to None.',
 )
 @click.option(
