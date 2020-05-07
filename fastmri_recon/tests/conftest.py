@@ -57,6 +57,9 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     fastmri_tmp_singlecoil_val = tmpdir_factory.mktemp(str(
         fastmri_tmp_data_dir.join('singlecoil_val')
     ), numbered=False)
+    fastmri_tmp_singlecoil_test = tmpdir_factory.mktemp(str(
+        fastmri_tmp_data_dir.join('singlecoil_test')
+    ), numbered=False)
     n_files = 2
     # train
     for i in tqdm(range(n_files), 'Creating single coil train files'):
@@ -69,7 +72,7 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     for i in tqdm(range(n_files), 'Creating single coil test files'):
         data_filename = f"test_singlecoil_{i}.h5"
         create_data(
-            str(fastmri_tmp_multicoil_val.join(data_filename)),
+            str(fastmri_tmp_singlecoil_test.join(data_filename)),
             multicoil=False,
             train=False,
         )
@@ -79,6 +82,9 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     ), numbered=False)
     fastmri_tmp_multicoil_val = tmpdir_factory.mktemp(str(
         fastmri_tmp_data_dir.join('multicoil_val')
+    ), numbered=False)
+    fastmri_tmp_multicoil_test = tmpdir_factory.mktemp(str(
+        fastmri_tmp_data_dir.join('multicoil_test')
     ), numbered=False)
     n_files = 2
     # train
@@ -98,7 +104,7 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     for i in tqdm(range(n_files), 'Creating multi coil test files'):
         data_filename = f"test_multicoil_{i}.h5"
         create_data(
-            str(fastmri_tmp_multicoil_val.join(data_filename)),
+            str(fastmri_tmp_multicoil_test.join(data_filename)),
             multicoil=True,
             train=False,
         )
@@ -108,8 +114,10 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
         'checkpoints_tmp_dir': str(tmpdir_factory.getbasetemp()) + '/',
         'fastmri_tmp_singlecoil_train': str(fastmri_tmp_singlecoil_train) + '/',
         'fastmri_tmp_singlecoil_val': str(fastmri_tmp_singlecoil_val) + '/',
+        'fastmri_tmp_singlecoil_test': str(fastmri_tmp_singlecoil_test) + '/',
         'fastmri_tmp_multicoil_train': str(fastmri_tmp_multicoil_train) + '/',
         'fastmri_tmp_multicoil_val': str(fastmri_tmp_multicoil_val) + '/',
+        'fastmri_tmp_multicoil_test': str(fastmri_tmp_multicoil_test) + '/',
         'K_shape_single_coil': K_shape_single_coil,
         'K_shape_multi_coil': K_shape_multi_coil,
         'I_shape': I_shape,
