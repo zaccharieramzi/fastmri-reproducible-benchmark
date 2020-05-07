@@ -25,14 +25,9 @@ def create_data(filename, multicoil=False):
         h5_obj.create_dataset(image_ds, data=image)
         h5_obj.attrs['acquisition'] = contrast
 
-@pytest.fixture(scope="session")
-def monkeysession(request):
-    mpatch = MonkeyPatch()
-    yield mpatch
-    mpatch.undo()
 
 @pytest.fixture(scope="session", autouse=True)
-def create_full_fastmri_test_tmp_dataset(monkeysession, tmpdir_factory):
+def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     # main dirs
     fastmri_tmp_data_dir = tmpdir_factory.mktemp(
         "fastmri_test_tmp_data",
