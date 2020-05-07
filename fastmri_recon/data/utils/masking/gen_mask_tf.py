@@ -27,5 +27,11 @@ def gen_mask_tf(kspace, accel_factor, multicoil=False):
         tf.expand_dims(num_cols, axis=0),
     ], axis=0)
     final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
+    # we need the batch dimension for cases where we split the batch accross
+    # multiple GPUs
+    if multicoil:
+        final_mask_reshaped = tf.tile(final_mask_reshaped, [shape[0], 1, 1, 1])
+    else:
+        final_mask_reshaped = tf.tile(final_mask_reshaped, [shape[0], 1, 1])
     fourier_mask = tf.cast(final_mask_reshaped, tf.uint8)
     return fourier_mask
