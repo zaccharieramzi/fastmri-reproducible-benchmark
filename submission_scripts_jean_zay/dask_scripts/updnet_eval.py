@@ -96,7 +96,7 @@ def eval_updnet_sense_dask(
         base_n_filter,
         channel_attention,
     ):
-    job_name = f'train_updnet_sense_{af}'
+    job_name = f'eval_updnet_sense_{af}'
     if contrast is not None:
         job_name += f'_{contrast}'
     if channel_attention == 'dense':
