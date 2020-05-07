@@ -22,7 +22,7 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
     (kspace, mask), image = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
-    assert mask.shape.as_list() == [1 for _ in expected_kspace_shape[:-2]] + [expected_kspace_shape[-2]]
+    assert mask.shape.as_list() == [expected_kspace_shape[0]] + [1 for _ in expected_kspace_shape[1:-2]] + [expected_kspace_shape[-2]]
     assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
     # content verifications
     tf_tester = tf.test.TestCase()

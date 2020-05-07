@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 
+from .unet import  UnetComplex
 from ..utils.data_consistency import _replace_values_on_mask
 from ..utils.fastmri_format import tf_fastmri_format
 
@@ -15,6 +16,7 @@ class CrossDomainNet(Model):
             i_buffer_size=1,
             k_buffer_size=1,
             multicoil=False,
+            refine_smaps=False,
             **kwargs,
         ):
         super(CrossDomainNet, self).__init__(**kwargs)
@@ -26,11 +28,40 @@ class CrossDomainNet(Model):
         self.i_buffer_size = i_buffer_size
         self.k_buffer_size = k_buffer_size
         self.multicoil = multicoil
+        self.refine_smaps = refine_smaps
+        if self.refine_smaps:
+            self.smaps_refiner = UnetComplex(
+                n_layers=3,
+                layers_n_channels=[4 * 2**i for i in range(3)],
+                layers_n_non_lins=2,
+                n_input_channels=1,
+                n_output_channels=1,
+                res=True,
+                non_linearity='lrelu',
+                channel_attention_kwargs=None,
+                name=f'smaps_refiner',
+            )
 
     def call(self, inputs):
-        # TODO: deal with the potential sensitivity maps
         if self.multicoil:
             original_kspace, mask, smaps = inputs
+            if self.refine_smaps:
+                # we deal with each smap independently
+                smaps_shape = tf.shape(smaps)
+                batch_size = smaps_shape[0]
+                n_coils = smaps_shape[1]
+                smaps_contig = tf.reshape(
+                    smaps,
+                    [batch_size * n_coils, smaps_shape[2], smaps_shape[3], 1],
+                )
+                smaps_refined = self.smaps_refiner(smaps_contig)
+                smaps_refined = tf.reshape(
+                    smaps_refined,
+                    [batch_size, n_coils, smaps_shape[2], smaps_shape[3]],
+                )
+                rss = tf.norm(smaps_refined, axis=1, keepdims=True)
+                smaps_refined_normalized = smaps_refined / rss
+                smaps = smaps_refined_normalized
         else:
             original_kspace, mask = inputs
             smaps = None
