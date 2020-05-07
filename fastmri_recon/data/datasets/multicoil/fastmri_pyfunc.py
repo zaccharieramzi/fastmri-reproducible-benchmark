@@ -105,6 +105,7 @@ def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contra
     masked_kspace_ds = mask_and_kspace_ds.map(
         generic_prepare_mask_and_kspace(
             scale_factor=scale_factor,
+            AF=AF,
         )
     )
 
