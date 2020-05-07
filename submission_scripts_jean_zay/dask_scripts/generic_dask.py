@@ -46,7 +46,9 @@ def eval_on_jz_dask(job_name, eval_function, *args, **kwargs):
         walltime='20:00:00',
         interface='ib0',
         job_extra=[
-            f'--gres=gpu:4',
+            # for now we can't use 4 GPUs because of
+            # https://github.com/tensorflow/tensorflow/issues/39268
+            f'--gres=gpu:1',
             '--qos=qos_gpu-t3',
             '--distribution=block:block',
             '--hint=nomultithread',
