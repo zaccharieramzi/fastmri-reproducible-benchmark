@@ -93,7 +93,7 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
 
     return masked_kspace_ds
 
-def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contrast=None):
+def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contrast=None, n_samples=None):
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0, shuffle=False)
     mask_and_kspace_and_contrast_ds = files_ds.map(
         tf_filename_to_mask_and_kspace_and_contrast,
@@ -115,6 +115,8 @@ def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contra
         mask_and_kspace_ds = mask_and_kspace_ds.filter(
             lambda mask, kspace: tf_af(mask) > 5.5
         )
+    if n_samples is not None:
+        mask_and_kspace_ds = mask_and_kspace_ds.take(n_samples)
     masked_kspace_ds = mask_and_kspace_ds.map(
         generic_prepare_mask_and_kspace(
             scale_factor=scale_factor,
@@ -124,7 +126,7 @@ def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contra
 
     return masked_kspace_ds
 
-def test_filenames(path, AF=4, contrast=None):
+def test_filenames(path, AF=4, contrast=None, n_samples=None):
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0, shuffle=False)
     mask_and_contrast_and_filename_ds = files_ds.map(
         tf_filename_to_mask_and_contrast_and_filename,
@@ -149,4 +151,6 @@ def test_filenames(path, AF=4, contrast=None):
     filename_ds = mask_and_contrast_and_filename_ds.map(
         lambda mask, filename: filename,
     )
+    if n_samples is not None:
+        filename_ds = filename_ds.take(n_samples)
     return filename_ds
