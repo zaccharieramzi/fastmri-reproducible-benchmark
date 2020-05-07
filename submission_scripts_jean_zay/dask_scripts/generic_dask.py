@@ -76,3 +76,39 @@ def eval_on_jz_dask(job_name, eval_function, *args, **kwargs):
     print(metrics_names)
     print(eval_res)
     print('Shutting down dask workers')
+
+def infer_on_jz_dask(job_name, infer_function, *args, **kwargs):
+    cluster = SLURMCluster(
+        cores=1,
+        job_cpu=40,
+        memory='80GB',
+        job_name=job_name,
+        walltime='20:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:4',
+            '--qos=qos_gpu-t3',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    cluster.scale(1)
+
+    print(cluster.job_script())
+
+    client = Client(cluster)
+    futures = client.submit(
+        # function to execute
+        infer_function,
+        *args,
+        **kwargs,
+        # this function has potential side effects
+        pure=True,
+    )
+    client.gather(futures)
+    print('Shutting down dask workers')
