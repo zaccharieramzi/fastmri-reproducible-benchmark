@@ -78,5 +78,5 @@ def test_test_filenames(create_full_fastmri_test_tmp_dataset, ds_kwargs):
     ds = _test_masked_kspace_dataset_from_indexable(path, AF=AF, **ds_kwargs)
     filename = next(iter(files_ds))
     _, mask, _ = next(iter(ds))
-    mask_from_file, _ = from_test_file_to_mask_and_contrast(filename)
+    mask_from_file, _ = from_test_file_to_mask_and_contrast(filename.numpy())
     np.testing.assert_equal(mask.numpy(), mask_from_file)
