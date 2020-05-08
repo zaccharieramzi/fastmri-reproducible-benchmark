@@ -26,10 +26,11 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, parallel
 def generic_prepare_mask_and_kspace(scale_factor=1, AF=4):
     def prepare(mask, kspaces):
         shape = tf.shape(kspaces)
-        fourier_mask = tf.tile(mask, [shape[0], 1, 1, 1])
+        mask_expanded = mask[None, None, None, 1]
+        fourier_mask = tf.tile(mask_expanded, [shape[0], 1, 1, 1])
         fourier_mask = tf.dtypes.cast(fourier_mask, tf.uint8)
+        smaps = extract_smaps(kspaces, low_freq_percentage=AF)
         kspaces_scaled = kspaces * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
-        smaps = extract_smaps(kspaces, low_freq_percentage=AF)
         return kspaces_channeled, fourier_mask, smaps
     return prepare
