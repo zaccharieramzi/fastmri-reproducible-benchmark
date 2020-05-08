@@ -64,6 +64,13 @@ def updnet_sense_inference(
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5')
     tqdm_total = 199 if n_samples is None else None
+
+    # TODO: change when the following issue has been dealt with
+    # https://github.com/tensorflow/tensorflow/issues/38561
+    @tf.function(experimental_relax_shapes=True)
+    def predict(t):
+        return model(t)
+
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
-        res = model.predict(data_example)
-        write_result(exp_id, res, filename.numpy().decode('utf-8'))
+        res = predict(data_example)
+        write_result(exp_id, res.numpy(), filename.numpy().decode('utf-8'))
