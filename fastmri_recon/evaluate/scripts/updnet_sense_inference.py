@@ -66,4 +66,4 @@ def updnet_sense_inference(
     tqdm_total = 199 if n_samples is None else None
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
         res = model.predict(data_example)
-        write_result(exp_id, res, filename.numpy())
+        write_result(exp_id, res, filename.numpy().decode('utf-8'))
