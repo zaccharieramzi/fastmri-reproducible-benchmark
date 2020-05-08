@@ -31,7 +31,8 @@ def create_data(filename, multicoil=False, train=True):
         else:
             h5_obj.create_dataset('mask', data=mask)
         h5_obj.attrs['acquisition'] = contrast
-    return af
+    if not train:
+        return af
 
 
 @pytest.fixture(scope="session", autouse=False)
