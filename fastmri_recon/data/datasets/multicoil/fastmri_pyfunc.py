@@ -148,7 +148,7 @@ def test_filenames(path, AF=4, contrast=None, n_samples=None):
         mask_and_filename_ds = mask_and_filename_ds.filter(
             lambda mask, filename: tf_af(mask) > 5.5
         )
-    filename_ds = mask_and_contrast_and_filename_ds.map(
+    filename_ds = mask_and_filename_ds.map(
         lambda mask, filename: filename,
     )
     if n_samples is not None:
