@@ -77,7 +77,7 @@ def eval_on_jz_dask(job_name, eval_function, *args, **kwargs):
     print(eval_res)
     print('Shutting down dask workers')
 
-def infer_on_jz_dask(job_name, infer_function, *args, **kwargs):
+def infer_on_jz_dask(job_name, infer_function, runs, *args, **kwargs):
     cluster = SLURMCluster(
         cores=1,
         job_cpu=40,
@@ -97,18 +97,20 @@ def infer_on_jz_dask(job_name, infer_function, *args, **kwargs):
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    cluster.scale(1)
+    cluster.scale(len(runs))
 
     print(cluster.job_script())
 
     client = Client(cluster)
-    futures = client.submit(
+    futures = [client.submit(
         # function to execute
         infer_function,
         *args,
+        contrast=contrast,
+        run_id=run_id,
         **kwargs,
         # this function has potential side effects
         pure=True,
-    )
+    ) for contrast, af, run_id in runs]
     client.gather(futures)
     print('Shutting down dask workers')

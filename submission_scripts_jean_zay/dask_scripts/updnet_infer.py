@@ -5,12 +5,19 @@ from generic_dask import infer_on_jz_dask
 
 
 @click.command()
-@click.option(
-    'run_id',
-    '-r',
-    default='updnet_sense_af4_1588609141',
+@click.argument(
+    'runs',
+    nargs=-1,
     type=str,
-    help='The run id of the trained network. Defaults to updnet_sense_af4_1588609141.',
+    help='The runs you want to infer from. They should be given in triplets of '
+    'contrast, af, run_id.'
+)
+@click.option(
+    'exp_id',
+    '-x',
+    default='updnet',
+    type=str,
+    help='The exp id of the experiment. Defaults to updnet.',
 )
 @click.option(
     'n_epochs',
@@ -18,20 +25,6 @@ from generic_dask import infer_on_jz_dask
     default=200,
     type=int,
     help='The number of epochs for which the model was trained or fine-tuned. Defaults to 200.',
-)
-@click.option(
-    'contrast',
-    '-c',
-    default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK',], case_sensitive=False),
-    help='The contrast chosen for this evaluation. Defaults to CORPDFS_FBK.',
-)
-@click.option(
-    'af',
-    '-a',
-    default='4',
-    type=click.Choice(['4', '8']),
-    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
 )
 @click.option(
     'n_iter',
@@ -84,10 +77,9 @@ from generic_dask import infer_on_jz_dask
     help='The type of channel attention to use. Default to None.',
 )
 def infer_updnet_sense_dask(
-        run_id,
+        runs,
+        exp_id,
         n_epochs,
-        contrast,
-        af,
         n_iter,
         cuda_visible_devices,
         n_samples,
@@ -96,20 +88,29 @@ def infer_updnet_sense_dask(
         base_n_filter,
         channel_attention,
     ):
-    job_name = f'eval_updnet_sense_{af}'
-    if contrast is not None:
-        job_name += f'_{contrast}'
+    job_name = f'eval_{exp_id}'
+    n_runs = len(runs)
+    if n_runs % 3 != 0:
+        raise ValueError('You need to give the runs in triplets')
+    runs_list = []
+    for i in range(n_runs // 3):
+        runs_list.append((
+            runs[3*i],  # contrast
+            runs[3*i + 1],  # af
+            runs[3*i + 2],  # run id
+        ))
     if channel_attention == 'dense':
         channel_attention_kwargs = {'dense': True}
     elif channel_attention == 'conv':
         channel_attention_kwargs = {'dense': False}
     else:
         channel_attention_kwargs = None
+
     infer_on_jz_dask(
         job_name,
         updnet_sense_inference,
-        af=af,
-        contrast=contrast,
+        runs,
+        exp_id=exp_id,
         cuda_visible_devices=cuda_visible_devices,
         n_samples=n_samples,
         n_epochs=n_epochs,
@@ -118,7 +119,6 @@ def infer_updnet_sense_dask(
         n_layers=n_layers,
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
-        run_id=run_id,
     )
 
 
