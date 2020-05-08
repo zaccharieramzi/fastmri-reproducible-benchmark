@@ -1,6 +1,5 @@
 import os
 
-import click
 import tensorflow as tf
 from tqdm import tqdm
 
