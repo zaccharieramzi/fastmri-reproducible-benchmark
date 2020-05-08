@@ -12,8 +12,8 @@ def _filename_submission(filename):
     name += '_v2.h5'
     return name
 
-def write_result(run_id, result, filename, coiltype='multicoil', scale_factor=1e6):
-    res_path = f'{FASTMRI_DATA_DIR}{coiltype}_test/{run_id}/'
+def write_result(exp_id, result, filename, coiltype='multicoil', scale_factor=1e6):
+    res_path = f'{FASTMRI_DATA_DIR}{coiltype}_test/{exp_id}/'
     Path(res_path).mkdir(parents=True, exist_ok=True)
     res_formatted = result[..., 0] / scale_factor
     res_filename = _filename_submission(filename)

@@ -12,6 +12,7 @@ from ..utils.write_results import write_result
 
 def updnet_sense_inference(
         run_id='updnet_sense_af4_1588609141',
+        exp_id='updnet',
         n_epochs=200,
         contrast=None,
         af=4,
@@ -66,4 +67,4 @@ def updnet_sense_inference(
     tqdm_total = 199 if n_samples is None else None
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
         res = model.predict(data_example)
-        write_result(run_id, res, filename)
+        write_result(exp_id, res, filename)
