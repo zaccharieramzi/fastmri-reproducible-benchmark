@@ -9,7 +9,10 @@ from fastmri_recon.config import FASTMRI_DATA_DIR
 def _filename_submission(filename):
     relative_filename = filename.split('/')[-1]
     name = relative_filename.split('.')[0]
-    name += '_v2.h5'
+    if 'v2' in name:
+        name = relative_filename
+    else:
+        name += '_v2.h5'
     return name
 
 def write_result(exp_id, result, filename, coiltype='multicoil', scale_factor=1e6):
