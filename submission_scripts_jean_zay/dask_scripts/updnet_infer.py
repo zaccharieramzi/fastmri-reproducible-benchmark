@@ -9,8 +9,6 @@ from generic_dask import infer_on_jz_dask
     'runs',
     nargs=-1,
     type=str,
-    help='The runs you want to infer from. They should be given in triplets of '
-    'contrast, af, run_id.'
 )
 @click.option(
     'exp_id',
