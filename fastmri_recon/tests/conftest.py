@@ -21,6 +21,7 @@ def create_data(filename, multicoil=False, train=True):
     else:
         mask_shape = [K_shape_multi_coil[-1]]
         mask = np.random.choice(a=[True, False], size=mask_shape)
+        af = np.sum(mask.astype(int)) / mask_shape[0]
     kspace = np.random.normal(size=k_shape) + 1j * np.random.normal(size=k_shape)
     kspace = kspace.astype(np.complex64)
     with h5py.File(filename, "w") as h5_obj:
@@ -30,6 +31,7 @@ def create_data(filename, multicoil=False, train=True):
         else:
             h5_obj.create_dataset('mask', data=mask)
         h5_obj.attrs['acquisition'] = contrast
+    return af
 
 
 @pytest.fixture(scope="session", autouse=False)
@@ -69,13 +71,16 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
     for i in tqdm(range(n_files), 'Creating single coil val files'):
         data_filename = f"val_singlecoil_{i}.h5"
         create_data(str(fastmri_tmp_singlecoil_val.join(data_filename)))
+    # test
+    af_single_coil = []
     for i in tqdm(range(n_files), 'Creating single coil test files'):
         data_filename = f"test_singlecoil_{i}.h5"
-        create_data(
+        af = create_data(
             str(fastmri_tmp_singlecoil_test.join(data_filename)),
             multicoil=False,
             train=False,
         )
+        af_single_coil.append(af)
     #### multi coil
     fastmri_tmp_multicoil_train = tmpdir_factory.mktemp(str(
         fastmri_tmp_data_dir.join('multicoil_train')
@@ -101,13 +106,17 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
             str(fastmri_tmp_multicoil_val.join(data_filename)),
             multicoil=True,
         )
+    # test
+    af_multi_coil = []
     for i in tqdm(range(n_files), 'Creating multi coil test files'):
         data_filename = f"test_multicoil_{i}.h5"
-        create_data(
+        af = create_data(
             str(fastmri_tmp_multicoil_test.join(data_filename)),
             multicoil=True,
             train=False,
         )
+        af_multi_coil.append(af)
+
     return {
         'fastmri_tmp_data_dir': str(fastmri_tmp_data_dir) + '/',
         'logs_tmp_dir': str(tmpdir_factory.getbasetemp()) + '/',
@@ -118,6 +127,8 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
         'fastmri_tmp_multicoil_train': str(fastmri_tmp_multicoil_train) + '/',
         'fastmri_tmp_multicoil_val': str(fastmri_tmp_multicoil_val) + '/',
         'fastmri_tmp_multicoil_test': str(fastmri_tmp_multicoil_test) + '/',
+        'af_single_coil': af_single_coil,
+        'af_multi_coil': af_multi_coil,
         'K_shape_single_coil': K_shape_single_coil,
         'K_shape_multi_coil': K_shape_multi_coil,
         'I_shape': I_shape,
