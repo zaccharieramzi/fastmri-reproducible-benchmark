@@ -48,7 +48,12 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
 ])
 def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
-    ds = _test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
+    af = create_full_fastmri_test_tmp_dataset['af_multi_coil'][0]
+    if af > 5.5:
+        AF = 8
+    else:
+        AF = 4
+    ds = _test_masked_kspace_dataset_from_indexable(path, AF=AF, **ds_kwargs)
     kspace, mask, smaps = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
@@ -64,8 +69,13 @@ def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_
 ])
 def test_test_filenames(create_full_fastmri_test_tmp_dataset, ds_kwargs):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
-    files_ds = _test_filenames(path, **ds_kwargs)
-    ds = test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
+    af = create_full_fastmri_test_tmp_dataset['af_multi_coil'][0]
+    if af > 5.5:
+        AF = 8
+    else:
+        AF = 4
+    files_ds = _test_filenames(path, AF=AF, **ds_kwargs)
+    ds = _test_masked_kspace_dataset_from_indexable(path, AF=AF, **ds_kwargs)
     filename = next(iter(files_ds))
     _, mask, _ = next(iter(ds))
     mask_from_file, _ = from_test_file_to_mask_and_contrast(filename)
