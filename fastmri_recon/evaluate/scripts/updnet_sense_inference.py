@@ -63,7 +63,7 @@ def updnet_sense_inference(
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5')
-    tqdm_total = 199 if n_samples is None else None
+    tqdm_total = 30 if n_samples is None else n_samples
 
     # TODO: change when the following issue has been dealt with
     # https://github.com/tensorflow/tensorflow/issues/38561
