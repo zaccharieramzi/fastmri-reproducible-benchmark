@@ -64,6 +64,7 @@ def updnet_sense_inference(
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5')
     tqdm_total = 30 if n_samples is None else n_samples
+    tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
     # TODO: change when the following issue has been dealt with
     # https://github.com/tensorflow/tensorflow/issues/38561
@@ -71,6 +72,6 @@ def updnet_sense_inference(
     def predict(t):
         return model(t)
 
-    for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
+    for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total, desc=tqdm_desc):
         res = predict(data_example)
         write_result(exp_id, res.numpy(), filename.numpy().decode('utf-8'))
