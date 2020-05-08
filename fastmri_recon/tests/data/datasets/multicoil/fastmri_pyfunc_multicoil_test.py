@@ -61,7 +61,7 @@ def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_
     assert smaps.shape.as_list() == expected_kspace_shape[:-1]
     # content verifications
     tf_tester = tf.test.TestCase()
-    tf_tester.assertAllInSet(mask, [1])  # this because we set af to 1
+    tf_tester.assertAllInSet(mask, [1, 0])  # this because we set af to 1
 
 @pytest.mark.parametrize('ds_kwargs', [
     {},
