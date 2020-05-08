@@ -86,7 +86,7 @@ def infer_updnet_sense_dask(
         base_n_filter,
         channel_attention,
     ):
-    job_name = f'eval_{exp_id}'
+    job_name = f'infer_{exp_id}'
     n_runs = len(runs)
     if n_runs % 3 != 0:
         raise ValueError('You need to give the runs in triplets')
