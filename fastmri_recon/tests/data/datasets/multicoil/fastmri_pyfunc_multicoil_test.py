@@ -2,7 +2,11 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable, test_masked_kspace_dataset_from_indexable, test_filenames
+# NOTE: functions beginning with test will be marked as tests by pytest
+# so I need to import them with a slightly different name
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable as _test_masked_kspace_dataset_from_indexable
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_filenames as _test_filenames
 from fastmri_recon.data.utils.h5 import from_test_file_to_mask_and_contrast
 
 kspace_shape = [2, 15, 640, 322, 1]
@@ -44,7 +48,7 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
 ])
 def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
-    ds = test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
+    ds = _test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
     kspace, mask, smaps = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
@@ -60,7 +64,7 @@ def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_
 ])
 def test_test_filenames(create_full_fastmri_test_tmp_dataset, ds_kwargs):
     path = create_full_fastmri_test_tmp_dataset['fastmri_tmp_multicoil_test']
-    files_ds = test_filenames(path, **ds_kwargs)
+    files_ds = _test_filenames(path, **ds_kwargs)
     ds = test_masked_kspace_dataset_from_indexable(path, AF=1, **ds_kwargs)
     filename = next(iter(files_ds))
     _, mask, _ = next(iter(ds))
