@@ -107,7 +107,7 @@ def infer_updnet_sense_dask(
     infer_on_jz_dask(
         job_name,
         updnet_sense_inference,
-        runs,
+        runs_list,
         exp_id=exp_id,
         cuda_visible_devices=cuda_visible_devices,
         n_samples=n_samples,
