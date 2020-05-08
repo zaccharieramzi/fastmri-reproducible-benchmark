@@ -24,7 +24,7 @@ def updnet_sense_inference(
         n_samples=None,
         cuda_visible_devices='0123',
     ):
-    test_path = f'{FASTMRI_DATA_DIR}multicoil_test/'
+    test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
