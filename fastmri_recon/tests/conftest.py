@@ -11,10 +11,11 @@ contrast = 'CORPD_FBK'
 
 def create_data(filename, multicoil=False, train=True):
     k_shape = K_shape_single_coil
+    if multicoil:
+        k_shape = K_shape_multi_coil
     if train:
         image_ds = "reconstruction_esc"
         if multicoil:
-            k_shape = K_shape_multi_coil
             image_ds = "reconstruction_rss"
         image = np.random.normal(size=I_shape)
         image = image.astype(np.float32)
