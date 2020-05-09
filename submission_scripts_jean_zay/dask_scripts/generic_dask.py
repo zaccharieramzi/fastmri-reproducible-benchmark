@@ -34,7 +34,8 @@ def train_on_jz_dask(job_name, train_function, *args, **kwargs):
         # this function has potential side effects
         pure=True,
     )
-    client.gather(futures)
+    run_id = client.gather(futures)
+    print(f'Train run id: {run_id}')
     print('Shutting down dask workers')
 
 def eval_on_jz_dask(job_name, eval_function, *args, **kwargs):
