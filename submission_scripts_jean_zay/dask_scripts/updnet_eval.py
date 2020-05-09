@@ -83,6 +83,12 @@ from generic_dask import eval_on_jz_dask
     type=click.Choice([None, 'dense', 'conv']),
     help='The type of channel attention to use. Default to None.',
 )
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to refine sensitivity maps using a trained unet.',
+)
 def eval_updnet_sense_dask(
         run_id,
         n_epochs,
@@ -95,6 +101,7 @@ def eval_updnet_sense_dask(
         n_layers,
         base_n_filter,
         channel_attention,
+        refine_smaps,
     ):
     job_name = f'eval_updnet_sense_{af}'
     if contrast is not None:
@@ -118,6 +125,7 @@ def eval_updnet_sense_dask(
         n_layers=n_layers,
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
+        refine_smaps=refine_smaps,
         run_id=run_id,
     )
 

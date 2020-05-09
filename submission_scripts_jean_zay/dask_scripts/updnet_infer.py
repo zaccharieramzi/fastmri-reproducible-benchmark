@@ -74,6 +74,12 @@ from generic_dask import infer_on_jz_dask
     type=click.Choice([None, 'dense', 'conv']),
     help='The type of channel attention to use. Default to None.',
 )
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to refine sensitivity maps using a trained unet.',
+)
 def infer_updnet_sense_dask(
         runs,
         exp_id,
@@ -85,6 +91,7 @@ def infer_updnet_sense_dask(
         n_layers,
         base_n_filter,
         channel_attention,
+        refine_smaps,
     ):
     job_name = f'infer_{exp_id}'
     n_runs = len(runs)
@@ -117,6 +124,7 @@ def infer_updnet_sense_dask(
         n_layers=n_layers,
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
+        refine_smaps=refine_smaps,
     )
 
 
