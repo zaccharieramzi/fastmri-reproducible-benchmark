@@ -108,6 +108,7 @@ def infer_on_jz_dask(job_name, infer_function, runs, *args, **kwargs):
         infer_function,
         *args,
         contrast=contrast,
+        af=af,
         run_id=run_id,
         **kwargs,
         # this function has potential side effects
