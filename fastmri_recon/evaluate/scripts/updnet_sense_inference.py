@@ -20,6 +20,7 @@ def updnet_sense_inference(
         base_n_filter=16,
         non_linearity='relu',
         channel_attention_kwargs=None,
+        refine_smaps=False,
         n_samples=None,
         cuda_visible_devices='0123',
     ):
@@ -38,6 +39,7 @@ def updnet_sense_inference(
         'non_linearity': non_linearity,
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
+        'refine_smaps': refine_smaps,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(

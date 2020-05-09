@@ -18,6 +18,7 @@ def evaluate_updnet_sense(
         base_n_filter=16,
         non_linearity='relu',
         channel_attention_kwargs=None,
+        refine_smaps=False,
         n_samples=None,
         cuda_visible_devices='0123',
     ):
@@ -36,6 +37,7 @@ def evaluate_updnet_sense(
         'non_linearity': non_linearity,
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
+        'refine_smaps': refine_smaps,
     }
 
     val_set = train_masked_kspace_dataset_from_indexable(
