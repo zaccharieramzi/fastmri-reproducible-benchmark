@@ -15,12 +15,12 @@ from fastmri_recon.models.training.compile import default_model_compile
 n_volumes_train = 973
 
 def train_updnet(
-        af,
-        contrast,
-        cuda_visible_devices,
-        n_samples,
-        n_epochs,
-        n_iter,
+        af=4,
+        contrast=None,
+        cuda_visible_devices='0123',
+        n_samples=None,
+        n_epochs=200,
+        n_iter=10,
         use_mixed_precision=False,
         n_layers=3,
         base_n_filter=16,
