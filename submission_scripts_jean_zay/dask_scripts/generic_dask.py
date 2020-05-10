@@ -116,3 +116,125 @@ def infer_on_jz_dask(job_name, infer_function, runs, *args, **kwargs):
     ) for contrast, af, run_id in runs]
     client.gather(futures)
     print('Shutting down dask workers')
+
+def full_pipeline_dask(job_name, train_function, eval_function, infer_function, **kwargs):
+    # original training
+    train_cluster = SLURMCluster(
+        cores=1,
+        job_cpu=20,
+        memory='80GB',
+        job_name=job_name,
+        walltime='60:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:1',
+            '--qos=qos_gpu-t4',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    train_cluster.scale(2)
+    client = Client(train_cluster)
+    acceleration_factors = [4, 8]
+    futures = [client.submit(
+        # function to execute
+        train_function,
+        af=af,
+        n_epochs=200,
+        **kwargs,
+        # this function has potential side effects
+        pure=True,
+    ) for af in acceleration_factors]
+    run_ids = client.gather(futures)
+    client.close()
+    # fine tuning
+    train_cluster.scale(4)
+    client = Client(train_cluster)
+    contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
+    futures = []
+    for af, run_id in zip(acceleration_factors, run_ids):
+        for contrast in contrasts:
+            futures += [client.submit(
+                # function to execute
+                train_function,
+                af=af,
+                contrast=contrast,
+                original_run_id=run_id,
+                n_epochs=50,
+                **kwargs,
+                # this function has potential side effects
+                pure=True,
+            ) for af in acceleration_factors]
+    fine_tuned_run_ids = client.gather(futures)
+    client.close()
+    train_cluster.close()
+    # inference and eval
+    inference_eval_cluster = SLURMCluster(
+        cores=1,
+        job_cpu=40,
+        memory='80GB',
+        job_name=job_name,
+        walltime='20:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:4',
+            '--qos=qos_gpu-t3',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    inference_eval_cluster.scale(8)
+    client = Client(inference_eval_cluster)
+    i_run_id = 0
+    inference_futures = []
+    for af in acceleration_factors:
+        for contrast in contrasts:
+            run_id = fine_tuned_run_ids[i_run_id]
+            inference_futures += [client.submit(
+                # function to execute
+                infer_function,
+                contrast=contrast,
+                af=af,
+                run_id=run_id,
+                n_epochs=50,
+                exp_id=job_name,
+                **kwargs,
+                # this function has potential side effects
+                pure=True,
+            )]
+            eval_futures += [client.submit(
+                # function to execute
+                eval_function,
+                contrast=contrast,
+                af=af,
+                run_id=run_id,
+                n_epochs=50,
+                n_samples=50,
+                **kwargs,
+                # this function has potential side effects
+                pure=True,
+            )]
+            i_run_id += 1
+    client.gather(inference_futures)
+    # eval printing
+    i_run_id = 0
+    for af in acceleration_factors:
+        for contrast in contrasts:
+            metrics_names, eval_res = client.gather(eval_futures[i_run_id])
+            print('AF', af)
+            print('Contrast', contrast)
+            print(metrics_names)
+            print(eval_res)
+    print('Shutting down dask workers')
+    client.close()
+    inference_eval_cluster.close()
