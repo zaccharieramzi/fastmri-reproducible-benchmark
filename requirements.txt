@@ -9,3 +9,4 @@ tensorflow
 tensorflow-io
 tensorflow-addons
 click
+tfkbnufft
