@@ -1,5 +1,6 @@
 from dask.distributed import Client
 from dask_jobqueue import SLURMCluster
+from sklearn.model_selection import ParameterGrid
 
 def train_on_jz_dask(job_name, train_function, *args, **kwargs):
     cluster = SLURMCluster(
@@ -238,3 +239,74 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
     print('Shutting down dask workers')
     client.close()
     inference_eval_cluster.close()
+
+def train_eval_parameter_grid(job_name, train_function, eval_function, parameter_grid):
+    parameters = list(ParameterGrid(parameter_grid))
+    n_parameters_config = len(parameters)
+    train_cluster = SLURMCluster(
+        cores=1,
+        job_cpu=20,
+        memory='80GB',
+        job_name=job_name,
+        walltime='60:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:1',
+            '--qos=qos_gpu-t4',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    train_cluster.scale(n_parameters_config)
+    client = Client(train_cluster)
+    futures = [client.submit(
+        # function to execute
+        train_function,
+        **params,
+    ) for params in parameters]
+    run_ids = client.gather(futures)
+    client.close()
+    train_cluster.close()
+    # eval
+    eval_cluster = SLURMCluster(
+        cores=1,
+        job_cpu=40,
+        memory='80GB',
+        job_name=job_name,
+        walltime='20:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:4',
+            '--qos=qos_gpu-t3',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    eval_cluster.scale(n_parameters_config)
+    client = Client(eval_cluster)
+    futures = [client.submit(
+        # function to execute
+        eval_function,
+        run_id=run_id,
+        n_samples=50,
+        **params,
+    ) for run_id, params in zip(run_ids, parameters)]
+
+    for params, future in zip(parameters, futures):
+        metrics_names, eval_res = client.gather(future)
+        print('Parameters', params)
+        print(metrics_names)
+        print(eval_res)
+    print('Shutting down dask workers')
+    client.close()
+    eval_cluster.close()
