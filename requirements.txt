@@ -6,6 +6,6 @@ runstats
 nibabel
 Pillow
 tensorflow
-tensorflow-io
+tensorflow-io == 0.12
 tensorflow-addons
 click
