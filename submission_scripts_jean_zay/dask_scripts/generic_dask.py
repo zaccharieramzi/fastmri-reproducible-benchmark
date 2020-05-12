@@ -2,6 +2,9 @@ from dask.distributed import Client
 from dask_jobqueue import SLURMCluster
 from sklearn.model_selection import ParameterGrid
 
+import os
+
+
 def train_on_jz_dask(job_name, train_function, *args, **kwargs):
     cluster = SLURMCluster(
         cores=1,
@@ -120,6 +123,16 @@ def infer_on_jz_dask(job_name, infer_function, runs, *args, **kwargs):
 
 def full_pipeline_dask(job_name, train_function, eval_function, infer_function, **kwargs):
     # original training
+    if os.environ.get('FASTMRI_DEBUG'):
+        n_epochs_train = 1
+        n_epochs_fine_tune = 1
+        n_eval_samples = 1
+        n_inference_samples = 1
+    else:
+        n_epochs_train = 200
+        n_epochs_fine_tune = 50
+        n_eval_samples = 50
+        n_inference_samples = None
     train_cluster = SLURMCluster(
         cores=1,
         job_cpu=20,
@@ -146,16 +159,15 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         # function to execute
         train_function,
         af=af,
-        n_epochs=200,
+        n_epochs=n_epochs_train,
         **kwargs,
         # this function has potential side effects
         pure=True,
     ) for af in acceleration_factors]
     run_ids = client.gather(futures)
-    client.close()
+    train_cluster.scale(0)
     # fine tuning
     train_cluster.scale(4)
-    client = Client(train_cluster)
     contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
@@ -166,7 +178,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
                 af=af,
                 contrast=contrast,
                 original_run_id=run_id,
-                n_epochs=50,
+                n_epochs=n_epochs_fine_tune,
                 **kwargs,
                 # this function has potential side effects
                 pure=True,
@@ -207,7 +219,8 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
                 contrast=contrast,
                 af=af,
                 run_id=run_id,
-                n_epochs=50,
+                n_epochs=n_epochs_fine_tune,
+                n_samples=n_inference_samples,
                 exp_id=job_name,
                 **kwargs,
                 # this function has potential side effects
@@ -219,8 +232,8 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
                 contrast=contrast,
                 af=af,
                 run_id=run_id,
-                n_epochs=50,
-                n_samples=50,
+                n_epochs=n_epochs_fine_tune,
+                n_samples=n_eval_samples,
                 **kwargs,
                 # this function has potential side effects
                 pure=True,
