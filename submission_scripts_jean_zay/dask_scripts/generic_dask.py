@@ -210,7 +210,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
     i_run_id = 0
     inference_futures = []
     eval_futures = []
-    kwargs = kwargs.pop('loss')
+    kwargs.pop('loss')
     for af in acceleration_factors:
         for contrast in contrasts:
             run_id = fine_tuned_run_ids[i_run_id]
