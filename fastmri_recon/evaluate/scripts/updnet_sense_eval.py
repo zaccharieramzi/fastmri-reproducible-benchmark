@@ -78,7 +78,7 @@ def evaluate_updnet_sense(
             return ssim
 
         model.compile(loss=tf_psnr, metrics=[tf_ssim])
-    model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5')
+    model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
     return model.metrics_names, eval_res
 
