@@ -181,7 +181,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
                 **kwargs,
                 # this function has potential side effects
                 pure=True,
-            ) for af in acceleration_factors]
+            )]
     fine_tuned_run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
