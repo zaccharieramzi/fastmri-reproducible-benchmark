@@ -138,7 +138,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         job_cpu=20,
         memory='80GB',
         job_name=job_name,
-        walltime='60:00:00',
+        walltime='80:00:00',
         interface='ib0',
         job_extra=[
             f'--gres=gpu:1',
@@ -165,10 +165,8 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         pure=True,
     ) for af in acceleration_factors]
     run_ids = client.gather(futures)
-    client.close()
     # fine tuning
     train_cluster.scale(4)
-    client = Client(train_cluster)
     contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
