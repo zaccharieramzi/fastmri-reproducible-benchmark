@@ -250,6 +250,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
             print('Contrast', contrast)
             print(metrics_names)
             print(eval_res)
+            i_run_id += 1
     print('Shutting down dask workers')
     client.close()
     inference_eval_cluster.close()
