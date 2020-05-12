@@ -122,7 +122,11 @@ def train_updnet(
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-200.hdf5')
+        if os.environ.get('FASTMRI_DEBUG'):
+            n_epochs_original = 1
+        else:
+            n_epochs_original = 200
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original}.hdf5')
 
     model.fit(
         train_set,
