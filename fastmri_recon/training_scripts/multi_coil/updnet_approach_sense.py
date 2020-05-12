@@ -126,8 +126,7 @@ def train_updnet(
             n_epochs_original = 1
         else:
             n_epochs_original = 200
-        n_epochs_original = str(n_epochs_original).zill(2)
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original}.hdf5')
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
         train_set,
