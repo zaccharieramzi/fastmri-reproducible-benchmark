@@ -23,7 +23,6 @@ def test_updnet_init_and_call(model_kwargs, n_phase_encoding):
     {
         'channel_attention_kwargs': {'dense': True},
         'refine_smaps': True,
-        'loss': 'compound_mssim',
         'non_linearity': 'prelu',
     }
 ])
