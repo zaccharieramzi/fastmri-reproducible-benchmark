@@ -3,9 +3,9 @@ import tensorflow as tf
 from ..utils.masking.gen_mask_tf import gen_mask_tf
 
 
-def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1):
+def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        mask = gen_mask_tf(kspaces, accel_factor=AF)
+        mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor

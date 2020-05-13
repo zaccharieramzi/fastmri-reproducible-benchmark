@@ -20,7 +20,16 @@ def tf_filename_to_mask_and_kspace_and_contrast(filename):
     return mask, kspace, contrast
 
 
-def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None, n_samples=None):
+def train_masked_kspace_dataset_from_indexable(
+        path,
+        AF=4,
+        inner_slices=None,
+        rand=False,
+        scale_factor=1,
+        contrast=None,
+        n_samples=None,
+        fixed_masks=False,
+    ):
     selection = [{'inner_slices': inner_slices, 'rand': rand}]
     def _tf_filename_to_image_and_kspace_and_contrast(filename):
         def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
@@ -65,6 +74,7 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
         generic_from_kspace_to_masked_kspace_and_mask(
             AF=AF,
             scale_factor=scale_factor,
+            fixed_masks=fixed_masks,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
