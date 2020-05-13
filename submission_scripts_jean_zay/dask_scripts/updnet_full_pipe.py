@@ -2,7 +2,7 @@ import click
 
 from fastmri_recon.evaluate.scripts.updnet_sense_eval import evaluate_updnet_sense
 from fastmri_recon.evaluate.scripts.updnet_sense_inference import updnet_sense_inference
-from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import train_updnet
+from fastmri_recon.training_scripts.updnet_train import train_updnet
 
 from generic_dask import full_pipeline_dask
 
