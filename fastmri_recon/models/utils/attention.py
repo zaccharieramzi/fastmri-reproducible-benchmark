@@ -18,7 +18,7 @@ class ChannelAttentionBlock(Layer):
         if self.activation_str == 'lrelu':
             self.activation = LeakyReLU(0.1)
         elif self.activation_str == 'prelu':
-            self.activation = PReLU(shared_axes=[1, 2])
+            self.activation = PReLU(shared_axes=[])
         else:
             self.activation = Activation(activation)
 

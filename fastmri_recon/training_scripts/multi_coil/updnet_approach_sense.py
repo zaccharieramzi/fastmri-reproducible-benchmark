@@ -15,12 +15,12 @@ from fastmri_recon.models.training.compile import default_model_compile
 n_volumes_train = 973
 
 def train_updnet(
-        af,
-        contrast,
-        cuda_visible_devices,
-        n_samples,
-        n_epochs,
-        n_iter,
+        af=4,
+        contrast=None,
+        cuda_visible_devices='0123',
+        n_samples=None,
+        n_epochs=200,
+        n_iter=10,
         use_mixed_precision=False,
         n_layers=3,
         base_n_filter=16,
@@ -122,7 +122,11 @@ def train_updnet(
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-200.hdf5')
+        if os.environ.get('FASTMRI_DEBUG'):
+            n_epochs_original = 1
+        else:
+            n_epochs_original = 200
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
         train_set,
@@ -133,6 +137,7 @@ def train_updnet(
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+    return run_id
 
 if __name__ == '__main__':
     train_updnet_click()

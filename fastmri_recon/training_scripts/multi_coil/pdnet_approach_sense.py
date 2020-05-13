@@ -82,3 +82,4 @@ def train_pdnet(af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter)
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback,],
     )
+    return run_id
