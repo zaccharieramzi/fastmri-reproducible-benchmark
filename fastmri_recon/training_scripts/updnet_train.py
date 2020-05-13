@@ -38,8 +38,8 @@ def train_updnet(
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
-        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
+        val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
