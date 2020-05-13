@@ -60,6 +60,12 @@ from generic_dask import full_pipeline_dask
     is_flag=True,
     help='Whether you want to refine sensitivity maps using a trained unet.',
 )
+@click.option(
+    'single_coil',
+    '-sc',
+    is_flag=True,
+    help='Whether you want to use single coil data.',
+)
 def full_pipe_updnet_sense_dask(
         exp_id,
         n_iter,
@@ -69,6 +75,7 @@ def full_pipe_updnet_sense_dask(
         channel_attention,
         loss,
         refine_smaps,
+        single_coil,
     ):
     job_name = f'updnet_sense_{exp_id}'
     if channel_attention == 'dense':
@@ -89,6 +96,7 @@ def full_pipe_updnet_sense_dask(
         channel_attention_kwargs=channel_attention_kwargs,
         loss=loss,
         refine_smaps=refine_smaps,
+        multicoil=not single_coil,
     )
 
 
