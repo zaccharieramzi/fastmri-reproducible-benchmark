@@ -29,6 +29,7 @@ def train_updnet(
         refine_smaps=False,
         loss='mae',
         original_run_id=None,
+        fixed_masks=False,
     ):
     # paths
     train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
@@ -55,6 +56,7 @@ def train_updnet(
         scale_factor=1e6,
         n_samples=n_samples,
         parallel=False,
+        fixed_masks=fixed_masks,
     )
     val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
@@ -97,6 +99,8 @@ def train_updnet(
         additional_info += '_ca'
     if refine_smaps:
         additional_info += '_rf_sm'
+    if fixed_masks:
+        additional_info += '_fixed_masks'
 
     run_id = f'updnet_sense_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
