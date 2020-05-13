@@ -311,6 +311,7 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
     client = Client(eval_cluster)
     for params in parameters:
         params.pop('n_samples')
+        params.pop('loss')
     futures = [client.submit(
         # function to execute
         eval_function,
