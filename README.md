@@ -1,5 +1,6 @@
 # fastMRI reproducible benchmark
 
+[![Build status](travis-ci.com/zaccharieramzi/fastmri-reproducible-benchmark.svg?branch=master)](https://travis-ci.org/zaccharieramzi/fastmri-reproducible-benchmark)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master)
 
 The idea of this repository is to have a way to rapidly benchmark new solutions against existing reconstruction algorithms on the fastMRI dataset single-coil track.
