@@ -114,7 +114,7 @@ def train_updnet(
 
     model = UPDNet(**run_params)
     if original_run_id is not None:
-        lr = 1e-6
+        lr = 1e-7
         n_steps = n_volumes_train//2
     else:
         lr = 1e-4
