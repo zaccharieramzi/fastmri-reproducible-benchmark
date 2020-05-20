@@ -135,7 +135,7 @@ def train_updnet(
 
     model = UPDNet(**run_params)
     if original_run_id is not None:
-        lr = 1e-6
+        lr = 1e-7
         n_steps = n_volumes_train//2
     else:
         lr = 1e-4
@@ -146,7 +146,7 @@ def train_updnet(
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
         else:
-            n_epochs_original = 200
+            n_epochs_original = 250
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
