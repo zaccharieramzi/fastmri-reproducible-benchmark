@@ -13,4 +13,4 @@ def test_gen_mask_tf(fixed_masks, multicoil):
     if fixed_masks:
         mask_again = gen_mask_tf(kspace, accel_factor, multicoil, fixed_masks)
         tf_tester = tf.test.TestCase()
-        tf_tester.assertEqual(mask, mask_again)
+        tf_tester.assertAllEqual(mask, mask_again)
