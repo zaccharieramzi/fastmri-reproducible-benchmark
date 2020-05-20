@@ -129,7 +129,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         n_eval_samples = 1
         n_inference_samples = 1
     else:
-        n_epochs_train = 200
+        n_epochs_train = 250
         n_epochs_fine_tune = 50
         n_eval_samples = 50
         n_inference_samples = None

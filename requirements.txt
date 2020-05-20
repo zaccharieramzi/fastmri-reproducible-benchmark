@@ -7,5 +7,5 @@ nibabel
 Pillow
 tensorflow == 2.1
 tensorflow-io == 0.12
-tensorflow-addons
+tensorflow-addons == 0.9.1
 click
