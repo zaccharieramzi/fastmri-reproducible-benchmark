@@ -318,7 +318,7 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
         walltime='20:00:00',
         interface='ib0',
         job_extra=[
-            f'--gres=gpu:4',
+            f'--gres=gpu:1',
             '--qos=qos_gpu-t3',
             '--distribution=block:block',
             '--hint=nomultithread',
