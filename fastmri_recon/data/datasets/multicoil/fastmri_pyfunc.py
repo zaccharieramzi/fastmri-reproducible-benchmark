@@ -64,7 +64,14 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
         image.set_shape(n_slices + image_size)
         kspace.set_shape(n_slices + kspace_size)
         return image, kspace, contrast
-    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0)
+    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', shuffle=False)
+    # this makes sure the file selection is happening once when using less than
+    # all samples
+    files_ds = files_ds.shuffle(
+        buffer_size=1000,
+        seed=0,
+        reshuffle_each_iteration=False,
+    )
     image_and_kspace_and_contrast_ds = files_ds.map(
         _tf_filename_to_image_and_kspace_and_contrast,
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
