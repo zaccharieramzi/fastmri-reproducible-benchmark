@@ -3,10 +3,6 @@ module purge
 module load python/3.7.5 cuda/10.1.2 cudnn/7.6.5.32-cuda-10.1 nccl/2.5.6-2-cuda
 conda activate fastmri-tf-2.1.0
 
-export TMPDIR=$SCRATCH/tmp
-pip install --no-cache-dir ./
-pip install -r requirements.txt
-
 export FASTMRI_DATA_DIR=$SCRATCH/
 export OASIS_DATA_DIR=$SCRATCH/
 export LOGS_DIR=$SCRATCH/
