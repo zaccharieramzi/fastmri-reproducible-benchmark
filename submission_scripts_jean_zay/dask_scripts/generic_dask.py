@@ -138,7 +138,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         job_cpu=20,
         memory='80GB',
         job_name=job_name,
-        walltime='80:00:00',
+        walltime='100:00:00',
         interface='ib0',
         job_extra=[
             f'--gres=gpu:1',
@@ -165,8 +165,30 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         pure=True,
     ) for af in acceleration_factors]
     run_ids = client.gather(futures)
+    client.close()
+    train_cluster.close()
     # fine tuning
-    train_cluster.scale(4)
+    fine_tuning_cluster = SLURMCluster(
+        cores=1,
+        job_cpu=20,
+        memory='80GB',
+        job_name=job_name,
+        walltime='20:00:00',
+        interface='ib0',
+        job_extra=[
+            f'--gres=gpu:1',
+            '--qos=qos_gpu-t3',
+            '--distribution=block:block',
+            '--hint=nomultithread',
+            '--output=%x_%j.out',
+        ],
+        env_extra=[
+            'cd $WORK/fastmri-reproducible-benchmark',
+            '. ./submission_scripts_jean_zay/env_config.sh',
+        ],
+    )
+    fine_tuning_cluster.scale(4)
+    client = Client(fine_tuning_cluster)
     contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
@@ -184,7 +206,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
             )]
     fine_tuned_run_ids = client.gather(futures)
     client.close()
-    train_cluster.close()
+    fine_tuning_cluster.close()
     # inference and eval
     inference_eval_cluster = SLURMCluster(
         cores=1,
@@ -296,7 +318,7 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
         walltime='20:00:00',
         interface='ib0',
         job_extra=[
-            f'--gres=gpu:4',
+            f'--gres=gpu:1',
             '--qos=qos_gpu-t3',
             '--distribution=block:block',
             '--hint=nomultithread',
