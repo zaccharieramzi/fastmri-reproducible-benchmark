@@ -1,5 +1,3 @@
-"""From https://github.com/zaccharieramzi/tf-mwcnn/blob/master/mwcnn.py
-"""
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
@@ -67,12 +65,14 @@ class IWT(Layer):
         batch_size = in_shape[0]
         height = in_shape[1]
         width = in_shape[2]
-        outputs = tf.zeros([batch_size, 2 * height, 2* width, 1])
+        # the number of channels can't be unknown for the convolutions
+        n_channels = inputs.shape[3] // 4
+        outputs = tf.zeros([batch_size, 2 * height, 2 * width, n_channels])
         # for now we only consider greyscale
-        x1 = inputs[..., 0:1] / 2
-        x2 = inputs[..., 1:2] / 2
-        x3 = inputs[..., 2:3] / 2
-        x4 = inputs[..., 3:4] / 2
+        x1 = inputs[..., 0:n_channels] / 2
+        x2 = inputs[..., n_channels:2*n_channels] / 2
+        x3 = inputs[..., 2*n_channels:3*n_channels] / 2
+        x4 = inputs[..., 3*n_channels:4*n_channels] / 2
         # in the following, E denotes even and O denotes odd
         x_EE = x1 - x2 - x3 + x4
         x_OE = x1 - x2 + x3 - x4
@@ -162,7 +162,10 @@ class MWCNN(Model):
     def n_filters_for_conv_for_scale(self, i_scale, i_conv):
         n_filters = self.n_filters_per_scale[i_scale]
         if i_conv == self.n_convs_per_scale[i_scale] * 2 - 1:
-            n_filters *= 4
+            if i_scale == 0:
+                n_filters = 4 * self.first_conv_n_filters
+            else:
+                n_filters = 4 * self.n_filters_per_scale[i_scale-1]
         return n_filters
 
     def call(self, inputs):
@@ -171,6 +174,7 @@ class MWCNN(Model):
         if self.n_first_convs > 0:
             for conv in self.first_convs[:self.n_first_convs]:
                 current_feature = conv(current_feature)
+            first_conv_feature = current_feature
         for i_scale in range(self.n_scales):
             current_feature = self.pooling(current_feature)
             n_convs = self.n_convs_per_scale[i_scale]
@@ -186,6 +190,7 @@ class MWCNN(Model):
                 current_feature = conv(current_feature)
         current_feature = self.unpooling(current_feature)
         if self.n_first_convs > 0:
+            current_feature = current_feature + first_conv_feature
             for conv in self.first_convs[self.n_first_convs:]:
                 current_feature = conv(current_feature)
         outputs = inputs + current_feature
