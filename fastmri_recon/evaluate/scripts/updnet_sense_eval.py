@@ -70,11 +70,13 @@ def evaluate_updnet(
         else:
             kspace_size = [1, 640, 372]
         model = UPDNet(**run_params)
-        model([
+        inputs = [
             tf.zeros(kspace_size + [1], dtype=tf.complex64),
             tf.zeros(kspace_size, dtype=tf.complex64),
-            tf.zeros(kspace_size, dtype=tf.complex64),
-        ])
+        ]
+        if multicoil:
+            inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        model()
         def tf_psnr(y_true, y_pred):
             perm_psnr = [3, 1, 2, 0]
             psnr = tf.image.psnr(
