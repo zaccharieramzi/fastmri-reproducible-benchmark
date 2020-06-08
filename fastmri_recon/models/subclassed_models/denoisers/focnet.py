@@ -1,6 +1,7 @@
 """From https://github.com/zaccharieramzi/tf-focnet/blob/master/focnet.py
 """
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
     Layer,
@@ -59,7 +60,7 @@ class SwitchLayer(Layer):
     def __init__(self, **kwargs):
         super(SwitchLayer, self).__init__(**kwargs)
         self.switch = self.add_weight(
-            'switch',
+            'switch_' + str(K.get_uid('switch')),
             shape=(),
             initializer=tf.constant_initializer(10),  # we add a big initializer
             # to take into account the adjacent scales by default
