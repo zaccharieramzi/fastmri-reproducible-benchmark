@@ -17,7 +17,6 @@ def test_train_unet(create_full_fastmri_test_tmp_dataset):
         "layers_n_channels": [16, 32,],
         'layers_n_non_lins': 1,
         'res': True,
-        'input_size': (None, None, 1),
     }
     train_unet(
         train_kwargs=train_kwargs,
