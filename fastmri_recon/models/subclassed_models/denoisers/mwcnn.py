@@ -208,4 +208,6 @@ class MWCNN(Model):
                 current_feature = conv(current_feature)
         if self.res:
             outputs = inputs + current_feature
+        else:
+            outputs = current_feature
         return outputs
