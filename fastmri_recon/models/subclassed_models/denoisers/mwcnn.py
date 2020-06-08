@@ -1,3 +1,5 @@
+"""From https://github.com/zaccharieramzi/tf-mwcnn/blob/master/mwcnn.py
+"""
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
@@ -106,7 +108,7 @@ class IWT(Layer):
             outputs_reshaped = tf.tensor_scatter_nd_add(
                 outputs_reshaped,
                 indices=combo_indices,
-                updates=tf.reshape(combo_reshaped, (-1, batch_size, 1)),
+                updates=tf.reshape(combo_reshaped, (-1, n_channels, batch_size)),
             )
 
         inverse_scatter_nd_perm = [3, 1, 0, 2]
@@ -140,6 +142,12 @@ class MWCNN(Model):
                 kernel_size=self.kernel_size,
                 bn=self.bn,
             ) for _ in range(2 * self.n_first_convs)]
+            self.first_convs[-1] =  Conv2D(
+                1,
+                self.kernel_size,
+                padding='same',
+                use_bias=True,
+            )
         self.conv_blocks_per_scale = [
             [MWCNNConvBlock(
                 n_filters=self.n_filters_for_conv_for_scale(i_scale, i_conv),
@@ -150,12 +158,13 @@ class MWCNN(Model):
         ]
         # the last convolution is without bn and relu, and also has only
         # 4 filters, that's why we treat it separately
-        self.conv_blocks_per_scale[0][-1] = Conv2D(
-            4,
-            self.kernel_size,
-            padding='same',
-            use_bias=True,
-        )
+        if self.n_first_convs < 1:
+            self.conv_blocks_per_scale[0][-1] = Conv2D(
+                max(4 * self.first_conv_n_filters, 4),
+                self.kernel_size,
+                padding='same',
+                use_bias=True,
+            )
         self.pooling = DWT()
         self.unpooling = IWT()
 
@@ -163,7 +172,7 @@ class MWCNN(Model):
         n_filters = self.n_filters_per_scale[i_scale]
         if i_conv == self.n_convs_per_scale[i_scale] * 2 - 1:
             if i_scale == 0:
-                n_filters = 4 * self.first_conv_n_filters
+                n_filters = max(4 * self.first_conv_n_filters, 4)
             else:
                 n_filters = 4 * self.n_filters_per_scale[i_scale-1]
         return n_filters
