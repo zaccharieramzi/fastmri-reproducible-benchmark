@@ -14,7 +14,6 @@ class XPDNet(CrossDomainNet):
             refine_smaps=False,
             **kwargs,
         ):
-        self.model = model
         self.res = res
         self.n_scales = n_scales
         self.n_primal = n_primal
@@ -32,6 +31,7 @@ class XPDNet(CrossDomainNet):
             refine_smaps=self.refine_smaps,
             **kwargs,
         )
+        self.model = model
         self.op = FFT(masked=True, multicoil=self.multicoil)
         self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
         self.image_net = [MultiscaleComplex(
