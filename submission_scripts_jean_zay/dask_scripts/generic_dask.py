@@ -331,8 +331,13 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
     )
     eval_cluster.scale(n_parameters_config)
     client = Client(eval_cluster)
+    original_parameters = []
     for params in parameters:
-        params.pop('n_samples')
+        original_params = {}
+        original_params['n_samples'] = params.pop('n_samples', None)
+        original_params['loss'] = params.pop('loss', 'mae')
+        original_params['fixed_masks'] = params.pop('fixed_masks', False)
+        original_parameters.append(original_params)
     futures = [client.submit(
         # function to execute
         eval_function,
@@ -341,8 +346,9 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
         **params,
     ) for run_id, params in zip(run_ids, parameters)]
 
-    for params, future in zip(parameters, futures):
+    for params, original_params, future in zip(parameters, original_parameters, futures):
         metrics_names, eval_res = client.gather(future)
+        params.update(original_params)
         print('Parameters', params)
         print(metrics_names)
         print(eval_res)

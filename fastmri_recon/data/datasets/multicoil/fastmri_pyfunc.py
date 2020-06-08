@@ -34,7 +34,17 @@ def tf_filename_to_mask_and_contrast_and_filename(filename):
     return mask, contrast, filename
 
 
-def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, rand=False, scale_factor=1, contrast=None, n_samples=None, parallel=True):
+def train_masked_kspace_dataset_from_indexable(
+        path,
+        AF=4,
+        inner_slices=None,
+        rand=False,
+        scale_factor=1,
+        contrast=None,
+        n_samples=None,
+        parallel=True,
+        fixed_masks=False,
+    ):
     selection = [
         {'inner_slices': inner_slices, 'rand': rand},  # slice selection
         {'rand': parallel, 'keep_dim': False},  # coil selection
@@ -92,6 +102,7 @@ def train_masked_kspace_dataset_from_indexable(path, AF=4, inner_slices=None, ra
             AF=AF,
             scale_factor=scale_factor,
             parallel=parallel,
+            fixed_masks=fixed_masks,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     ).repeat()

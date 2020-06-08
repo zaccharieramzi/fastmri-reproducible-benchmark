@@ -2,7 +2,7 @@ import click
 
 from fastmri_recon.evaluate.scripts.updnet_sense_eval import evaluate_updnet_sense
 from fastmri_recon.evaluate.scripts.updnet_sense_inference import updnet_sense_inference
-from fastmri_recon.training_scripts.multi_coil.updnet_approach_sense import train_updnet
+from fastmri_recon.training_scripts.updnet_train import train_updnet
 
 from generic_dask import full_pipeline_dask
 
@@ -60,6 +60,12 @@ from generic_dask import full_pipeline_dask
     is_flag=True,
     help='Whether you want to refine sensitivity maps using a trained unet.',
 )
+@click.option(
+    'single_coil',
+    '-sc',
+    is_flag=True,
+    help='Whether you want to use single coil data.',
+)
 def full_pipe_updnet_sense_dask(
         exp_id,
         n_iter,
@@ -69,6 +75,7 @@ def full_pipe_updnet_sense_dask(
         channel_attention,
         loss,
         refine_smaps,
+        single_coil,
     ):
     job_name = f'updnet_sense_{exp_id}'
     if channel_attention == 'dense':
@@ -89,6 +96,7 @@ def full_pipe_updnet_sense_dask(
         channel_attention_kwargs=channel_attention_kwargs,
         loss=loss,
         refine_smaps=refine_smaps,
+        multicoil=not single_coil,
     )
 
 

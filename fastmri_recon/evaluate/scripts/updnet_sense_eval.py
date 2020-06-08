@@ -4,11 +4,13 @@ import click
 import tensorflow as tf
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
+from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.models.subclassed_models.updnet import UPDNet
 
 
-def evaluate_updnet_sense(
+def evaluate_updnet(
+        multicoil=True,
         run_id='updnet_sense_af4_1588609141',
         n_epochs=200,
         contrast=None,
@@ -22,7 +24,10 @@ def evaluate_updnet_sense(
         n_samples=None,
         cuda_visible_devices='0123',
     ):
-    val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+    if multicoil:
+        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+    else:
+        val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
@@ -31,7 +36,7 @@ def evaluate_updnet_sense(
         'n_primal': 5,
         'n_dual': 1,
         'primal_only': True,
-        'multicoil': True,
+        'multicoil': multicoil,
         'n_layers': n_layers,
         'layers_n_channels': [base_n_filter * 2**i for i in range(n_layers)],
         'non_linearity': non_linearity,
@@ -40,26 +45,38 @@ def evaluate_updnet_sense(
         'refine_smaps': refine_smaps,
     }
 
-    val_set = train_masked_kspace_dataset_from_indexable(
+    if multicoil:
+        dataset = multicoil_dataset
+        kwargs = {'parallel': False}
+    else:
+        dataset = singlecoil_dataset
+        kwargs = {}
+    val_set = dataset(
         val_path,
         AF=af,
         contrast=contrast,
         inner_slices=None,
         rand=False,
         scale_factor=1e6,
-        parallel=False,
+        **kwargs,
     )
     if n_samples is not None:
         val_set = val_set.take(n_samples)
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
+        if multicoil:
+            kspace_size = [1, 15, 640, 372]
+        else:
+            kspace_size = [1, 640, 372]
         model = UPDNet(**run_params)
-        model([
-            tf.zeros([1, 15, 640, 372, 1], dtype=tf.complex64),
-            tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
-            tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
-        ])
+        inputs = [
+            tf.zeros(kspace_size + [1], dtype=tf.complex64),
+            tf.zeros(kspace_size, dtype=tf.complex64),
+        ]
+        if multicoil:
+            inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        model(inputs)
         def tf_psnr(y_true, y_pred):
             perm_psnr = [3, 1, 2, 0]
             psnr = tf.image.psnr(
@@ -180,7 +197,7 @@ def evaluate_updnet_sense_click(
         channel_attention_kwargs = {'dense': False}
     else:
         channel_attention_kwargs = None
-    metrics_names, eval_res = evaluate_updnet_sense(
+    metrics_names, eval_res = evaluate_updnet(
         run_id=run_id,
         n_epochs=n_epochs,
         contrast=contrast,
