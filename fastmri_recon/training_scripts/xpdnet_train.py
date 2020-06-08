@@ -82,8 +82,6 @@ def train_xpdnet(
 
     run_params = {
         'n_primal': n_primal,
-        'n_dual': 1,
-        'primal_only': True,
         'multicoil': multicoil,
         'n_scales': n_scales,
         'n_iter': n_iter,
