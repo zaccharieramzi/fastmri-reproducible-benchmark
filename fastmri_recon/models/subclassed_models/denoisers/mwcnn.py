@@ -126,6 +126,8 @@ class MWCNN(Model):
             n_convs_per_scale=DEFAULT_N_CONVS_PER_SCALE,
             n_first_convs=3,
             first_conv_n_filters=64,
+            res=False,
+            n_outputs=1,
             **kwargs,
         ):
         super(MWCNN, self).__init__(**kwargs)
@@ -136,14 +138,16 @@ class MWCNN(Model):
         self.n_convs_per_scale = n_convs_per_scale
         self.n_first_convs = n_first_convs
         self.first_conv_n_filters = first_conv_n_filters
+        self.res = res
+        self.n_outputs = n_outputs
         if self.n_first_convs > 0:
             self.first_convs = [MWCNNConvBlock(
                 n_filters=self.first_conv_n_filters,
                 kernel_size=self.kernel_size,
                 bn=self.bn,
             ) for _ in range(2 * self.n_first_convs)]
-            self.first_convs[-1] =  Conv2D(
-                1,
+            self.first_convs[-1] = Conv2D(
+                self.n_outputs,
                 self.kernel_size,
                 padding='same',
                 use_bias=True,
@@ -160,7 +164,7 @@ class MWCNN(Model):
         # 4 filters, that's why we treat it separately
         if self.n_first_convs < 1:
             self.conv_blocks_per_scale[0][-1] = Conv2D(
-                max(4 * self.first_conv_n_filters, 4),
+                4 * self.n_outputs,
                 self.kernel_size,
                 padding='same',
                 use_bias=True,
@@ -172,7 +176,7 @@ class MWCNN(Model):
         n_filters = self.n_filters_per_scale[i_scale]
         if i_conv == self.n_convs_per_scale[i_scale] * 2 - 1:
             if i_scale == 0:
-                n_filters = max(4 * self.first_conv_n_filters, 4)
+                n_filters = max(4 * self.first_conv_n_filters, 4 * self.n_outputs)
             else:
                 n_filters = 4 * self.n_filters_per_scale[i_scale-1]
         return n_filters
@@ -202,5 +206,6 @@ class MWCNN(Model):
             current_feature = current_feature + first_conv_feature
             for conv in self.first_convs[self.n_first_convs:]:
                 current_feature = conv(current_feature)
-        outputs = inputs + current_feature
+        if self.res:
+            outputs = inputs + current_feature
         return outputs
