@@ -29,7 +29,7 @@ class CrossDomainNet(Model):
         self.k_buffer_size = k_buffer_size
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
-        if self.refine_smaps:
+        if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=3,
                 layers_n_channels=[4 * 2**i for i in range(3)],

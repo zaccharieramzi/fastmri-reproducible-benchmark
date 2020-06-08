@@ -1,14 +1,19 @@
 import tensorflow as tf
 
 
-def gen_mask_tf(kspace, accel_factor, multicoil=False):
+def gen_mask_tf(kspace, accel_factor, multicoil=False, fixed_masks=False):
     shape = tf.shape(kspace)
     num_cols = shape[-1]
     center_fraction = (32 // accel_factor) / 100
     num_low_freqs = tf.dtypes.cast(num_cols, 'float32') * center_fraction
     num_low_freqs = tf.dtypes.cast((tf.round(num_low_freqs)), 'int32')
     prob = (num_cols / accel_factor - tf.dtypes.cast(num_low_freqs, 'float64')) / tf.dtypes.cast((num_cols - num_low_freqs), 'float64')
-    mask = tf.random.uniform(shape=tf.expand_dims(num_cols, axis=0), dtype='float64') < prob
+    if fixed_masks:
+        tf.random.set_seed(0)
+        seed = 0
+    else:
+        seed = None
+    mask = tf.random.uniform(shape=tf.expand_dims(num_cols, axis=0), dtype='float64', seed=seed) < prob
     pad = (num_cols - num_low_freqs + 1) // 2
     final_mask = tf.concat([
         mask[:pad],
