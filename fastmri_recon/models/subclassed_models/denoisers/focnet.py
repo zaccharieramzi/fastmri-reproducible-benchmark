@@ -78,6 +78,7 @@ class FocNet(Model):
             n_convs_per_scale=DEFAULT_N_CONVS_PER_SCALE,
             communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
             beta=0.2,
+            n_outputs=1,
             **kwargs,
         ):
         super(FocNet, self).__init__(**kwargs)
@@ -87,6 +88,7 @@ class FocNet(Model):
         self.n_convs_per_scale = n_convs_per_scale
         self.communications_between_scales = communications_between_scales
         self.beta = beta
+        self.n_outputs = n_outputs
         self.pooling = AveragePooling2D(padding='same')
         self.unpoolings_per_scale = [
             [
@@ -126,7 +128,7 @@ class FocNet(Model):
             for n_conv_blocks in self.n_convs_per_scale
         ]
         self.final_conv = Conv2D(
-            1,  # we output a grayscale image
+            self.n_outputs,
             1,  # we simply do a linear combination of the features
             padding='same',
             use_bias=True,
