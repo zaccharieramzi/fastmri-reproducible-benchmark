@@ -79,7 +79,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 
-    for (model_name, model_size, _, _, _), future in zip(model_specs, futures):
+    for (model_name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
         _, eval_res = client.gather(future)
         df_results = df_results.append(dict(
             model_name=model_name,

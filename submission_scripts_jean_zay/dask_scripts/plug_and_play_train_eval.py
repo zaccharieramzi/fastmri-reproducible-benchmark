@@ -72,7 +72,7 @@ def train_eval_plug_and_play(contrast='CORPD_FBK', n_epochs=200, n_samples=None)
     futures = [client.submit(
         # function to execute
         evaluate_xpdnet,
-        model=model,
+        model=(model_fun, kwargs, n_inputs),
         run_id=run_id,
         n_samples=50,
         contrast=contrast,
@@ -81,7 +81,7 @@ def train_eval_plug_and_play(contrast='CORPD_FBK', n_epochs=200, n_samples=None)
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 
-    for (model_name, model_size, _, _, _), future in zip(model_specs, futures):
+    for (model_name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
         _, eval_res = client.gather(future)
         df_results = df_results.append(dict(
             model_name=model_name,
