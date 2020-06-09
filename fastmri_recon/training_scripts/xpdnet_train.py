@@ -17,6 +17,7 @@ n_volumes_train = 973
 
 def train_xpdnet(
         model,
+        model_size=None,
         multicoil=True,
         af=4,
         contrast=None,
@@ -107,7 +108,10 @@ def train_xpdnet(
     if fixed_masks:
         additional_info += '_fixed_masks'
 
-    run_id = f'{xpdnet_type}_{additional_info}_{model.name}_{int(time.time())}'
+    submodel_info = model.name
+    if model_size is not None:
+        submodel_info += model_size
+    run_id = f'{xpdnet_type}_{additional_info}_{submodel_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
