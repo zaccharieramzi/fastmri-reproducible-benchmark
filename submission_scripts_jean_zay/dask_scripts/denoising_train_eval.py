@@ -86,7 +86,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
             model_size=model_size,
             psnr=eval_res[0],
             ssim=eval_res[1],
-        ))
+        ), ignore_index=True)
 
     print(df_results)
     df_results.to_csv(f'denoising_results_{n_samples}.csv')
