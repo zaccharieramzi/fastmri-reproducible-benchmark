@@ -126,7 +126,7 @@ def get_models(n_primal):
         if model_name == 'U-net':
             extra_kwargs.update({'input_size': (None, None, 2*(n_primal + 1))})
         model_sizes = sorted(params.keys())
-        model_sizes = model_sizes.remove('specs')
+        model_sizes.remove('specs')
         for model_size in tqdm(model_sizes, model_name):
             print(model_name, model_size)
             param_values = params[model_size]
