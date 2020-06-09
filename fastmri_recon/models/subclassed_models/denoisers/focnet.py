@@ -31,7 +31,7 @@ def residual_weights_computation(t, beta):
 
 
 class FocConvBlock(Layer):
-    def __init__(self, n_filters=128, kernel_size=3, **kwargs):
+    def __init__(self, n_filters=128, kernel_size=3, bn=True, **kwargs):
         super(FocConvBlock, self).__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -41,7 +41,10 @@ class FocConvBlock(Layer):
             padding='same',
             use_bias=False,
         )
-        self.bn = BatchNormalization()
+        if bn:
+            self.bn = BatchNormalization()
+        else:
+            self.bn = None
         self.activation = Activation('relu')
 
     def call(self, inputs):
@@ -76,6 +79,7 @@ class FocNet(Model):
             n_scales=4,
             n_filters=128,
             kernel_size=3,
+            bn=False,
             n_convs_per_scale=DEFAULT_N_CONVS_PER_SCALE,
             communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
             beta=0.2,
@@ -86,6 +90,7 @@ class FocNet(Model):
         self.n_scales = n_scales
         self.n_filters = n_filters
         self.kernel_size = kernel_size
+        self.bn = bn
         self.n_convs_per_scale = n_convs_per_scale
         self.communications_between_scales = communications_between_scales
         self.beta = beta
@@ -125,6 +130,7 @@ class FocNet(Model):
             [FocConvBlock(
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                bn=self.bn,
             ) for _ in range(n_conv_blocks)]
             for n_conv_blocks in self.n_convs_per_scale
         ]
