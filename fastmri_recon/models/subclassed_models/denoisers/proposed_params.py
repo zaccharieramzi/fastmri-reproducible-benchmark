@@ -154,9 +154,13 @@ def get_model_specs(n_primal=None, force_res=False):
                 n_scales = kwargs[n_scales_kwarg]
             yield model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res
 
+def build_model_from_specs(model_fun, kwargs, n_inputs):
+    model = model_fun(**kwargs)
+    model(tf.zeros([1, 32, 32, n_inputs]))
+    return model
+
 def get_models(n_primal=None, force_res=False):
     models_specs = get_model_specs(n_primal=n_primal, force_res=force_res)
     for model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res in models_specs:
-        model = model_fun(**kwargs)
-        model(tf.zeros([1, 32, 32, n_inputs]))
+        model = build_model_from_specs(model_fun, kwargs, n_inputs)
         yield model_name, model_size, model, n_scales, res
