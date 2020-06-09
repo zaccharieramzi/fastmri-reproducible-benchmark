@@ -9,6 +9,7 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
@@ -125,6 +126,8 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
+    if isinstance(model, tuple):
+        model = build_model_from_specs(*model)
     model = XPDNet(model, **run_params)
     if original_run_id is not None:
         lr = 1e-7

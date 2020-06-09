@@ -5,6 +5,7 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 from fastmri_recon.models.training.compile import default_model_compile
 
 
@@ -50,6 +51,8 @@ def train_denoiser(
         write_images=False,
     )
     tqdm_cback = TQDMProgressBar()
+    if isinstance(model, tuple):
+        model = build_model_from_specs(*model)
     default_model_compile(model, lr=lr, loss=loss)
     model.fit(
         train_set,

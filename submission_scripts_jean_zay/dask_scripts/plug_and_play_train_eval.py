@@ -3,12 +3,12 @@ from dask_jobqueue import SLURMCluster
 import pandas as pd
 
 from fastmri_recon.evaluate.scripts.xpdnet_eval import evaluate_xpdnet
-from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_models
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.xpdnet_train import train_xpdnet
 
 def train_eval_parameter_grid(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
     job_name = 'plug_and_play'
-    model_specs = list(get_models(force_res=True))
+    model_specs = list(get_model_specs(force_res=True))
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
@@ -34,7 +34,7 @@ def train_eval_parameter_grid(contrast='CORPD_FBK', n_epochs=200, n_samples=None
     futures = [client.submit(
         # function to execute
         train_xpdnet,
-        model=model,
+        model=(model_fun, kwargs, n_inputs),
         model_size=model_size,
         multicoil=False,
         n_scales=n_scales,
@@ -42,7 +42,7 @@ def train_eval_parameter_grid(contrast='CORPD_FBK', n_epochs=200, n_samples=None
         contrast=contrast,
         n_epochs=n_epochs,
         n_samples=n_samples,
-    ) for _, model_size, model, n_scales, res in model_specs]
+    ) for _, model_size, model_fun, kwargs, n_inputs, n_scales, res in model_specs]
     run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
@@ -77,7 +77,7 @@ def train_eval_parameter_grid(contrast='CORPD_FBK', n_epochs=200, n_samples=None
         n_samples=50,
         contrast=contrast,
         n_epochs=n_epochs,
-    ) for run_id, (_, _, model, n_scales, res) in zip(run_ids, model_specs)]
+    ) for run_id, (_, _, model_fun, kwargs, n_inputs, n_scales, res) in zip(run_ids, model_specs)]
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 

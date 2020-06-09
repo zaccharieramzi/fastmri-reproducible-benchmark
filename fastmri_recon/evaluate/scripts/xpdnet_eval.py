@@ -6,6 +6,7 @@ from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 
 
 def evaluate_xpdnet(
@@ -62,6 +63,8 @@ def evaluate_xpdnet(
         kspace_size = [1, 15, 640, 372]
     else:
         kspace_size = [1, 640, 372]
+    if isinstance(model, tuple):
+        model = build_model_from_specs(*model)
     model = XPDNet(model, **run_params)
     inputs = [
         tf.zeros(kspace_size + [1], dtype=tf.complex64),

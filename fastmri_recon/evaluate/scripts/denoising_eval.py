@@ -4,6 +4,7 @@ import tensorflow as tf
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 
 
 def evaluate_xpdnet_denoising(
@@ -48,7 +49,8 @@ def evaluate_xpdnet_denoising(
             tf.reduce_max(y_true),
         )
         return ssim
-
+    if isinstance(model, tuple):
+        model = build_model_from_specs(*model)
     model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
