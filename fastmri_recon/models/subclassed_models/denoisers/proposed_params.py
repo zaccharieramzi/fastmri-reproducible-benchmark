@@ -10,7 +10,7 @@ from fastmri_recon.models.subclassed_models.denoisers.mwcnn import DEFAULT_N_CON
 
 
 params_per_model = {
-    model_name: {} for model_name in 'DnCNN, U-net, MWCNN, FocNet'.split()
+    model_name: {} for model_name in 'DnCNN U-net MWCNN FocNet'.split()
 }
 
 params_per_model['DnCNN']['big'] = dict(
