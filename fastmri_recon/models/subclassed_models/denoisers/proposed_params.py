@@ -114,7 +114,9 @@ params_per_model['FocNet']['specs'] = dict(
 
 
 def get_models(n_primal):
-    for model_name, params in tqdm(params_per_model.items(), 'Models'):
+    model_names = sorted(params_per_model.keys())
+    for model_name in tqdm(model_names, 'Models'):
+        params = params_per_model[model_name]
         model_specs = params['specs']
         model_fun = model_specs['model']
         n_scales_kwarg = model_specs['n_scales']
@@ -123,10 +125,11 @@ def get_models(n_primal):
         extra_kwargs.update({model_specs['output_kwarg']: 2*n_primal})
         if model_name == 'U-net':
             extra_kwargs.update({'input_size': (None, None, 2*(n_primal + 1))})
-        for model_size, param_values in tqdm(params.items(), model_name):
-            if model_size == 'specs':
-                continue
+        model_sizes = sorted(params.keys())
+        model_sizes = model_sizes.remove('specs')
+        for model_size in tqdm(model_sizes, model_name):
             print(model_name, model_size)
+            param_values = params[model_size]
             kwargs = param_values
             kwargs.update(extra_kwargs)
             if n_scales_kwarg == 0:
