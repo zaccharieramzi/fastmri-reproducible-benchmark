@@ -16,14 +16,17 @@ params_per_model = {
 params_per_model['DnCNN']['big'] = dict(
     n_convs=20,
     n_filters=64,
+    res=False,
 )
 params_per_model['DnCNN']['medium'] = dict(
     n_convs=10,
     n_filters=32,
+    res=False,
 )
 params_per_model['DnCNN']['small'] = dict(
     n_convs=5,
     n_filters=16,
+    res=False,
 )
 params_per_model['DnCNN']['specs'] = dict(
     model=DnCNN,
@@ -37,16 +40,19 @@ params_per_model['U-net']['big'] = dict(
     n_layers=4,
     layers_n_channels=[32, 64, 128, 256],
     layers_n_non_lins=2,
+    res=False,
 )
 params_per_model['U-net']['medium'] = dict(
     n_layers=4,
     layers_n_channels=[16, 32, 64, 128],
     layers_n_non_lins=2,
+    res=False,
 )
 params_per_model['U-net']['small'] = dict(
     n_layers=3,
     layers_n_channels=[16, 32, 64],
     layers_n_non_lins=1,
+    res=False,
 )
 params_per_model['U-net']['specs'] = dict(
     model=unet,
@@ -64,6 +70,7 @@ params_per_model['MWCNN']['big'] = dict(
     n_convs_per_scale=default_n_convs_mwcnn,
     n_first_convs=3,
     first_conv_n_filters=64,
+    res=False,
 )
 params_per_model['MWCNN']['medium'] = dict(
     n_scales=3,
@@ -71,6 +78,7 @@ params_per_model['MWCNN']['medium'] = dict(
     n_convs_per_scale=default_n_convs_mwcnn,
     n_first_convs=2,
     first_conv_n_filters=32,
+    res=False,
 )
 params_per_model['MWCNN']['small'] = dict(
     n_scales=2,
@@ -78,6 +86,7 @@ params_per_model['MWCNN']['small'] = dict(
     n_convs_per_scale=[2, 2],
     n_first_convs=2,
     first_conv_n_filters=32,
+    res=False,
 )
 params_per_model['MWCNN']['specs'] = dict(
     model=MWCNN,
@@ -113,7 +122,7 @@ params_per_model['FocNet']['specs'] = dict(
 )
 
 
-def get_models(n_primal=None):
+def get_models(n_primal=None, force_res=False):
     if n_primal is None:
         n_outputs = 1
         n_inputs = 1
@@ -136,6 +145,8 @@ def get_models(n_primal=None):
         for model_size in tqdm(model_sizes, model_name):
             print(model_name, model_size)
             param_values = params[model_size]
+            if 'res' in param_values:
+                param_values['res'] = param_values['res'] or force_res
             kwargs = param_values
             kwargs.update(extra_kwargs)
             if n_scales_kwarg == 0:
