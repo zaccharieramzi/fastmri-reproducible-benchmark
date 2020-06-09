@@ -49,7 +49,8 @@ class FocConvBlock(Layer):
 
     def call(self, inputs):
         outputs = self.conv(inputs)
-        outputs = self.bn(outputs)
+        if self.bn is not None:
+            outputs = self.bn(outputs)
         outputs = self.activation(outputs)
         return outputs
 
