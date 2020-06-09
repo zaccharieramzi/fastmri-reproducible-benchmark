@@ -6,7 +6,7 @@ from fastmri_recon.evaluate.scripts.xpdnet_eval import evaluate_xpdnet
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.xpdnet_train import train_xpdnet
 
-def train_eval_parameter_grid(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
+def train_eval_plug_and_play(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
     job_name = 'plug_and_play'
     model_specs = list(get_model_specs(force_res=True))
     n_models = len(model_specs)
