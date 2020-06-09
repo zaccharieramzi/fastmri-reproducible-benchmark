@@ -119,7 +119,7 @@ def get_models(n_primal):
         model_fun = model_specs['model']
         n_scales_kwarg = model_specs['n_scales']
         res = model_specs['res']
-        extra_kwargs = model_specs['extra_kwargs']
+        extra_kwargs = model_specs.get('extra_kwargs', {})
         extra_kwargs.update({model_specs['output_kwarg']: 2*n_primal})
         if model_name == 'U-net':
             extra_kwargs.update({'input_size': (None, None, 2*(n_primal + 1))})
