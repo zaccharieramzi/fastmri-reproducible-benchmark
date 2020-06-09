@@ -113,7 +113,13 @@ params_per_model['FocNet']['specs'] = dict(
 )
 
 
-def get_models(n_primal):
+def get_models(n_primal=None):
+    if n_primal is None:
+        n_outputs = 1
+        n_inputs = 1
+    else:
+        n_outputs = 2*n_primal
+        n_inputs = 2*(n_primal+1)
     model_names = sorted(params_per_model.keys())
     for model_name in tqdm(model_names, 'Models'):
         params = params_per_model[model_name]
@@ -122,9 +128,9 @@ def get_models(n_primal):
         n_scales_kwarg = model_specs['n_scales']
         res = model_specs['res']
         extra_kwargs = model_specs.get('extra_kwargs', {})
-        extra_kwargs.update({model_specs['output_kwarg']: 2*n_primal})
+        extra_kwargs.update({model_specs['output_kwarg']: n_outputs})
         if model_name == 'U-net':
-            extra_kwargs.update({'input_size': (None, None, 2*(n_primal + 1))})
+            extra_kwargs.update({'input_size': (None, None, n_inputs)})
         model_sizes = sorted(params.keys())
         model_sizes.remove('specs')
         for model_size in tqdm(model_sizes, model_name):
@@ -137,5 +143,5 @@ def get_models(n_primal):
             else:
                 n_scales = kwargs[n_scales_kwarg]
             model = model_fun(**kwargs)
-            model(tf.zeros([1, 32, 32, 2*(n_primal + 1)]))
+            model(tf.zeros([1, 32, 32, n_inputs]))
             yield model_name, model_size, model, n_scales, res
