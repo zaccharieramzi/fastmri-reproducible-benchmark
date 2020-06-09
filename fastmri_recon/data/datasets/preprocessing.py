@@ -37,5 +37,5 @@ def create_noisy_training_pair_fun(noise_std=30, scale_factor=1):
         noise = tf.random.normal(tf.shape(images), stddev=noise_std)
         images_scaled = images * scale_factor
         images_noisy = images_scaled + noise
-        return images_noisy[..., None], images[..., None]
+        return images_noisy[..., None], images_scaled[..., None]
     return create_noisy_training_pair
