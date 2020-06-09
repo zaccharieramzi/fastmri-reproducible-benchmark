@@ -82,6 +82,9 @@ def train_xpdnet(
         **kwargs
     )
 
+    if isinstance(model, tuple):
+        model = build_model_from_specs(*model)
+
     run_params = {
         'n_primal': n_primal,
         'multicoil': multicoil,
@@ -126,8 +129,6 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    if isinstance(model, tuple):
-        model = build_model_from_specs(*model)
     model = XPDNet(model, **run_params)
     if original_run_id is not None:
         lr = 1e-7
