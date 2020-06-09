@@ -103,10 +103,10 @@ params_per_model['MWCNN']['specs'] = dict(
 #     communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
 # )
 params_per_model['FocNet']['medium'] = dict(
-    n_scales=3,
-    n_filters=64,
-    n_convs_per_scale=default_n_convs_focnet[:-1],
-    communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES[:-1],
+    n_scales=4,
+    n_filters=32,
+    n_convs_per_scale=default_n_convs_focnet,
+    communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
 )
 params_per_model['FocNet']['small'] = dict(
     n_scales=3,
