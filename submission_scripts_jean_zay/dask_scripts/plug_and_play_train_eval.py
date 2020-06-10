@@ -79,6 +79,7 @@ def train_eval_plug_and_play(contrast='CORPD_FBK', n_epochs=200, n_samples=None,
         n_samples=50,
         contrast=contrast,
         n_epochs=n_epochs,
+        n_scales=n_scales,
     ) for run_id, (_, _, model_fun, kwargs, n_inputs, n_scales, res) in zip(run_ids, model_specs)]
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
