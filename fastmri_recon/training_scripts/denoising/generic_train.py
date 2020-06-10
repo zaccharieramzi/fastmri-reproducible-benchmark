@@ -19,7 +19,7 @@ def train_denoiser(
         n_samples=None,
         n_epochs=200,
         loss='mae',
-        lr=1e-3,
+        lr=1e-4,
     ):
     train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
