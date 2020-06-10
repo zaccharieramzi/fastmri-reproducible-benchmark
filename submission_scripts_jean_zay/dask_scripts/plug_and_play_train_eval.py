@@ -12,6 +12,7 @@ def train_eval_plug_and_play(
         n_samples=None,
         n_primal=5,
         loss='compound_mssim',
+        train_partition='gpu_p1',
     ):
     job_name = 'plug_and_play'
     model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
@@ -24,11 +25,12 @@ def train_eval_plug_and_play(
         walltime='60:00:00',
         interface='ib0',
         job_extra=[
-            f'--gres=gpu:1',
+            '--gres=gpu:1',
             '--qos=qos_gpu-t4',
             '--distribution=block:block',
             '--hint=nomultithread',
             '--output=%x_%j.out',
+            f'--partition {train_partition}',
         ],
         env_extra=[
             'cd $WORK/fastmri-reproducible-benchmark',
