@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from ..utils.complex import to_complex
+from ..utils.pad_for_pool import pad_for_pool
 
 
 class MultiscaleComplex(Model):
@@ -25,14 +26,7 @@ class MultiscaleComplex(Model):
     def call(self, inputs):
         outputs = inputs
         if self.n_scales > 0:
-            n_pad = 2**self.n_scales - tf.math.floormod(tf.shape(inputs)[-2], 2**(self.n_scales-1))
-            paddings = [
-                (0, 0),
-                (0, 0),  # here in the context of fastMRI there is nothing to worry about because the dim is 640 (128 x 5)
-                (n_pad//2, n_pad//2),
-                (0, 0),
-            ]
-            outputs = tf.pad(outputs, paddings)
+            outputs, n_pad = pad_for_pool(inputs, self.n_scales)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.model(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
