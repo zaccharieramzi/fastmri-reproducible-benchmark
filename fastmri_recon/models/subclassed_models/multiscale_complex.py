@@ -33,8 +33,8 @@ class MultiscaleComplex(Model):
         if self.n_scales > 0:
             outputs = tf.cond(
                 n_pad == 0,
-                outputs,
-                outputs[:, :, n_pad//2:-n_pad//2],
+                lambda: outputs,
+                lambda: outputs[:, :, n_pad//2:-n_pad//2],
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
