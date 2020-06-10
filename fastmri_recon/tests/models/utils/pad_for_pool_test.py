@@ -10,6 +10,7 @@ from fastmri_recon.models.utils.pad_for_pool import pad_for_pool
     (320, 3, 0),
     (322, 3, 6),
     (372, 4, 12),
+    (320, 0, 0),
 ])
 def test_pad_for_pool(dim, n_pools, n_pad_expected):
     inputs = tf.zeros([1, 640, dim, 1])
