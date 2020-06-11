@@ -153,7 +153,7 @@ params_per_model['DIDN']['small'] = dict(
 params_per_model['DIDN']['specs'] = dict(
     model=DIDN,
     output_kwarg='n_outputs',
-    res=False,
+    res=True,
     n_scales='n_scales',
 )
 
