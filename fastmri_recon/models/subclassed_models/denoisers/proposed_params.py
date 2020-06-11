@@ -134,7 +134,6 @@ params_per_model['DIDN']['medium'] = dict(
     n_filters=64,
     n_dubs=4,
     n_convs_recon=4,
-    n_filters_recon=64,
     res=False,
 )
 params_per_model['DIDN']['small'] = dict(
@@ -142,7 +141,6 @@ params_per_model['DIDN']['small'] = dict(
     n_filters=32,
     n_dubs=2,
     n_convs_recon=2,
-    n_filters_recon=32,
     res=False,
 )
 params_per_model['DIDN']['specs'] = dict(

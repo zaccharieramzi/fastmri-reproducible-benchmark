@@ -18,7 +18,6 @@ n_primal = 2
         n_filters=4,
         n_dubs=2,
         n_convs_recon=2,
-        n_filters_recon=64,
         res=False,
         n_outputs=2*n_primal,
     ), 4, True),

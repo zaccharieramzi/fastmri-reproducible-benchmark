@@ -7,7 +7,6 @@ def test_didn():
     n_out = 2
     model = DIDN(
         n_filters=4,
-        n_filters_recon=4,
         n_dubs=2,
         n_convs_recon=2,
         n_outputs=n_out,
