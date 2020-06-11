@@ -18,9 +18,6 @@ class MultiscaleComplex(Model):
         self.model = model
         self.res = res
         self.n_scales = n_scales
-        # NOTE: very ad-hoc fix for my current workflow
-        if model.name == 'mwcnn':
-            self.n_scales += 1
         self.n_output_channels = n_output_channels
 
     def call(self, inputs):
