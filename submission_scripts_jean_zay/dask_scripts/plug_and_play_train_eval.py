@@ -37,7 +37,7 @@ def train_eval_plug_and_play(
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    train_cluster.scale(min(n_models, 8))
+    train_cluster.scale(n_models)
     client = Client(train_cluster)
     futures = [client.submit(
         # function to execute
