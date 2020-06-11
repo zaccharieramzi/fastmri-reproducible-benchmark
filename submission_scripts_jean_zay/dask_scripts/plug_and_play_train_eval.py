@@ -89,6 +89,7 @@ def train_eval_plug_and_play(
         contrast=contrast,
         n_epochs=n_epochs,
         n_scales=n_scales,
+        res=res,
     ) for run_id, (_, _, model_fun, kwargs, n_inputs, n_scales, res) in zip(run_ids, model_specs)]
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
