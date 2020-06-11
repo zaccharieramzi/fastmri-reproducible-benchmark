@@ -145,7 +145,6 @@ class DIDN(Model):
             n_filters=256,
             # the number of dubs is inferred from the code not the paper
             n_dubs=6,
-            n_filters_dub=256,
             n_filters_recon=256,
             n_convs_recon=9,
             n_scales=3,
@@ -157,7 +156,6 @@ class DIDN(Model):
         super(DIDN, self).__init__(**kwargs)
         self.n_filters = n_filters
         self.n_dubs = n_dubs
-        self.n_filters_dub = n_filters_dub
         self.n_scales = n_scales
         self.convs_per_scale = convs_per_scale
         self.n_filters_recon = n_filters_recon
@@ -166,7 +164,7 @@ class DIDN(Model):
         self.res = res
         self.dubs = [
             DUB(
-                n_filters=self.n_filters_dub,
+                n_filters=self.n_filters,
                 n_scales=self.n_scales,
                 convs_per_scale=self.convs_per_scale,
             ) for _ in range(self.n_dubs)
