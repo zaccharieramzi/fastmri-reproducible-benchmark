@@ -59,7 +59,7 @@ def train_denoiser(
         steps_per_epoch=n_volumes_train,
         epochs=n_epochs,
         validation_data=val_set,
-        validation_steps=2,
+        validation_steps=10,
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )

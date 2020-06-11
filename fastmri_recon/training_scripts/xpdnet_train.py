@@ -150,7 +150,8 @@ def train_xpdnet(
         steps_per_epoch=n_steps,
         epochs=n_epochs,
         validation_data=val_set,
-        validation_steps=2,
+        validation_steps=5,
+        validation_freq=5,
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
