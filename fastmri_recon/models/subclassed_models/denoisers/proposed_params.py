@@ -2,6 +2,7 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from fastmri_recon.models.functional_models.unet import unet
+from fastmri_recon.models.subclassed_models.denoisers.didn import DIDN
 from fastmri_recon.models.subclassed_models.denoisers.dncnn import DnCNN
 from fastmri_recon.models.subclassed_models.denoisers.focnet import FocNet, DEFAULT_COMMUNICATION_BETWEEN_SCALES
 from fastmri_recon.models.subclassed_models.denoisers.focnet import DEFAULT_N_CONVS_PER_SCALE as default_n_convs_focnet
@@ -10,7 +11,7 @@ from fastmri_recon.models.subclassed_models.denoisers.mwcnn import DEFAULT_N_CON
 
 
 params_per_model = {
-    model_name: {} for model_name in 'DnCNN U-net MWCNN FocNet'.split()
+    model_name: {} for model_name in 'DnCNN U-net MWCNN FocNet DIDN'.split()
 }
 
 params_per_model['DnCNN']['big'] = dict(
@@ -128,6 +129,30 @@ params_per_model['FocNet']['specs'] = dict(
     n_scales='n_scales',
 )
 
+params_per_model['DIDN']['medium'] = dict(
+    n_scales=3,
+    n_filters=64,
+    n_dubs=4,
+    n_convs_recon=4,
+    n_filters_recon=64,
+    res=False,
+)
+params_per_model['DIDN']['small'] = dict(
+    n_scales=3,
+    n_filters=32,
+    n_dubs=2,
+    n_convs_recon=2,
+    n_filters_recon=32,
+    res=False,
+)
+params_per_model['DIDN']['specs'] = dict(
+    model=DIDN,
+    output_kwarg='n_outputs',
+    res=False,
+    n_scales='n_scales',
+)
+
+
 def get_model_specs(n_primal=None, force_res=False):
     if n_primal is None:
         n_outputs = 1
@@ -159,6 +184,8 @@ def get_model_specs(n_primal=None, force_res=False):
                 n_scales = 0
             else:
                 n_scales = kwargs[n_scales_kwarg]
+                if model_name in 'MWCNN DIDN'.split():
+                    n_scales += 1
             yield model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res
 
 def build_model_from_specs(model_fun, kwargs, n_inputs):
