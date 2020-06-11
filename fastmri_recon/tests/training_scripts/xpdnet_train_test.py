@@ -1,5 +1,6 @@
 import pytest
 
+from fastmri_recon.models.subclassed_models.denoisers.didn import DIDN
 from fastmri_recon.models.subclassed_models.denoisers.dncnn import DnCNN
 from fastmri_recon.models.subclassed_models.denoisers.focnet import FocNet
 from fastmri_recon.models.subclassed_models.denoisers.mwcnn import MWCNN
@@ -11,6 +12,16 @@ from fastmri_recon.training_scripts.xpdnet_train import train_xpdnet
 n_primal = 2
 
 @pytest.mark.parametrize('model, n_scales, res', [
+    # didn
+    (DIDN(
+        n_scales=3,
+        n_filters=4,
+        n_dubs=2,
+        n_convs_recon=2,
+        n_filters_recon=64,
+        res=False,
+        n_outputs=2*n_primal,
+    ), 4, True),
     # dncnn
     (DnCNN(n_convs=2, n_filters=4, res=False, n_outputs=2*n_primal), 0, True),
     # focnet
@@ -26,7 +37,7 @@ n_primal = 2
         first_conv_n_filters=4,
         res=False,
         n_outputs=2*n_primal,
-    ), 3, True),
+    ), 4, True),
     # unet
     (unet(
         n_layers=2,
