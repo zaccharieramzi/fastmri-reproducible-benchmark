@@ -2,6 +2,7 @@ import os
 
 import tensorflow as tf
 
+from ..metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
@@ -92,5 +93,19 @@ def evaluate_xpdnet(
 
     model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
+    n_volumes = 199
+    if contrast is not None:
+        n_volumes //= 2
+        n_volumes += 1
+    try:
+        eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes + 2 if n_samples is None else None)
+    except tf.errors.ResourceExhaustedError:
+        eval_res = Metrics(METRIC_FUNCS)
+        if n_samples is None:
+            val_set = val_set.take(n_volumes)
+        for data in val_set:
+            y_true = data[1].numpy()
+            y_pred = model.predict(data[0], batch_size=1)
+            eval_res.push(y_true[..., 0], y_pred[..., 0])
+        eval_res = [eval_res.means()['PSNR'], eval_res.means()['SSIM']]
     return model.metrics_names, eval_res
