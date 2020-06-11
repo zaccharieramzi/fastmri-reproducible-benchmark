@@ -98,7 +98,7 @@ def evaluate_xpdnet(
         n_volumes //= 2
         n_volumes += 1
     try:
-        eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes + 2 if n_samples is None else None)
+        eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes if n_samples is None else None)
     except tf.errors.ResourceExhaustedError:
         eval_res = Metrics(METRIC_FUNCS)
         if n_samples is None:
