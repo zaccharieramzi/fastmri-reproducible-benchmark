@@ -54,7 +54,7 @@ params_per_model['U-net']['medium-ca'] = dict(
     layers_n_channels=[16, 32, 64, 128],
     layers_n_non_lins=2,
     res=False,
-    channel_attention_kwargs={'dense': True},
+    dense=True,
 )
 params_per_model['U-net']['small'] = dict(
     n_layers=3,
