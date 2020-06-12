@@ -10,9 +10,9 @@ from fastmri_recon.training_scripts.denoising.generic_train import train_denoise
 
 def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None):
     job_name = 'denoising_fastmri'
+    model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
-    model_specs = list(get_model_specs(force_res=True))
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
