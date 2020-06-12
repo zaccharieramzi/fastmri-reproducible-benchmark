@@ -42,7 +42,8 @@ def train_eval_plug_and_play(
     futures = [client.submit(
         # function to execute
         train_xpdnet,
-        model=(model_fun, kwargs, n_inputs),
+        model_fun=model_fun,
+        model_kwargs=kwargs,
         model_size=model_size,
         multicoil=False,
         n_scales=n_scales,
@@ -52,7 +53,7 @@ def train_eval_plug_and_play(
         n_epochs=n_epochs,
         n_samples=n_samples,
         loss=loss,
-    ) for _, model_size, model_fun, kwargs, n_inputs, n_scales, res in model_specs]
+    ) for _, model_size, model_fun, kwargs, _, n_scales, res in model_specs]
     run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
@@ -82,7 +83,8 @@ def train_eval_plug_and_play(
     futures = [client.submit(
         # function to execute
         evaluate_xpdnet,
-        model=(model_fun, kwargs, n_inputs),
+        model_fun=model_fun,
+        model_kwargs=kwargs,
         run_id=run_id,
         multicoil=False,
         n_samples=50,
@@ -90,7 +92,7 @@ def train_eval_plug_and_play(
         n_epochs=n_epochs,
         n_scales=n_scales,
         res=res,
-    ) for run_id, (_, _, model_fun, kwargs, n_inputs, n_scales, res) in zip(run_ids, model_specs)]
+    ) for run_id, (_, _, model_fun, kwargs, _, n_scales, res) in zip(run_ids, model_specs)]
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 
