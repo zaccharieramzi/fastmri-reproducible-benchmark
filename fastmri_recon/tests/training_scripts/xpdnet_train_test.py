@@ -11,9 +11,9 @@ from fastmri_recon.training_scripts.xpdnet_train import train_xpdnet
 
 n_primal = 2
 
-@pytest.mark.parametrize('model, n_scales, res', [
+@pytest.mark.parametrize('model_fun, model_kwargs, n_scales, res', [
     # didn
-    (DIDN(
+    (DIDN, dict(
         n_scales=3,
         n_filters=4,
         n_dubs=2,
@@ -22,11 +22,11 @@ n_primal = 2
         n_outputs=2*n_primal,
     ), 4, True),
     # dncnn
-    (DnCNN(n_convs=2, n_filters=4, res=False, n_outputs=2*n_primal), 0, True),
+    (DnCNN, dict(n_convs=2, n_filters=4, res=False, n_outputs=2*n_primal), 0, True),
     # focnet
-    (FocNet(n_filters=4, n_outputs=2*n_primal), 4, False),
+    (FocNet, dict(n_filters=4, n_outputs=2*n_primal), 4, False),
     # mwcnn
-    (MWCNN(
+    (MWCNN, dict(
         n_scales=3,
         kernel_size=3,
         bn=False,
@@ -38,7 +38,7 @@ n_primal = 2
         n_outputs=2*n_primal,
     ), 4, True),
     # unet
-    (unet(
+    (unet, dict(
         n_layers=2,
         layers_n_channels=[16, 32,],
         res=False,
@@ -47,13 +47,14 @@ n_primal = 2
         input_size=(None, None, 2*(n_primal + 1)),
     ), 2, True),
 ])
-def test_train_xpdnet(create_full_fastmri_test_tmp_dataset, model, n_scales, res):
+def test_train_xpdnet(create_full_fastmri_test_tmp_dataset, model_fun, model_kwargs, n_scales, res):
     xpdnet_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     xpdnet_train.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']
     xpdnet_train.CHECKPOINTS_DIR = create_full_fastmri_test_tmp_dataset['checkpoints_tmp_dir']
     xpdnet_train.n_volumes_train = 2
     train_xpdnet(
-        model=model,
+        model_fun=model_fun,
+        model_kwargs=model_kwargs,
         n_scales=n_scales,
         n_primal=n_primal,
         res=res,

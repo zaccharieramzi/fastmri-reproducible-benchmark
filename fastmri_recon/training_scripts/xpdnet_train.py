@@ -17,7 +17,8 @@ from fastmri_recon.models.training.compile import default_model_compile
 n_volumes_train = 973
 
 def train_xpdnet(
-        model,
+        model_fun,
+        model_kwargs,
         model_size=None,
         multicoil=True,
         af=4,
@@ -82,9 +83,6 @@ def train_xpdnet(
         **kwargs
     )
 
-    if isinstance(model, tuple):
-        model = build_model_from_specs(*model)
-
     run_params = {
         'n_primal': n_primal,
         'multicoil': multicoil,
@@ -112,7 +110,7 @@ def train_xpdnet(
     if fixed_masks:
         additional_info += '_fixed_masks'
 
-    submodel_info = model.name
+    submodel_info = model_fun.__name__
     if model_size is not None:
         submodel_info += model_size
     run_id = f'{xpdnet_type}_{additional_info}_{submodel_info}_{int(time.time())}'
@@ -129,7 +127,7 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    model = XPDNet(model, **run_params)
+    model = XPDNet(model_fun, model_kwargs, **run_params)
     if original_run_id is not None:
         lr = 1e-7
         n_steps = n_volumes_train//2
