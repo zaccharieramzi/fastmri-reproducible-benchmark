@@ -42,9 +42,7 @@ class DUB(Model):
                 kernel_size=3,
                 strides=2,
                 padding='same',
-                # when looking into the code https://github.com/SonghyunYu/DIDN/blob/master/gray_model.py
-                # we can see that no bias is used
-                use_bias=False,
+                use_bias=True,
             ) for i_scale in range(self.n_scales - 1)
         ]
         self.unpoolings = [
@@ -53,7 +51,7 @@ class DUB(Model):
                 kernel_size=1,
                 r=2,
                 padding='same',
-                use_bias=False,
+                use_bias=True,
             ) for i_scale in range(self.n_scales)
         ]
         self.convs = [
@@ -63,7 +61,7 @@ class DUB(Model):
                     kernel_size=3,
                     padding='same',
                     activation=PReLU(shared_axes=[1, 2]),
-                    use_bias=False,
+                    use_bias=True,
                 ) for _ in range(sum(self.convs_per_scale[i_scale]))
             ]
             for i_scale in range(self.n_scales)
@@ -73,7 +71,7 @@ class DUB(Model):
                 filters=self.n_filters*2**i_scale,
                 kernel_size=1,
                 padding='same',
-                use_bias=False,
+                use_bias=True,
             ) for i_scale in range(self.n_scales - 1)
         ]
         self.final_conv = Conv2D(
@@ -81,7 +79,7 @@ class DUB(Model):
             kernel_size=3,
             padding='same',
             activation=PReLU(shared_axes=[1, 2]),
-            use_bias=False,
+            use_bias=True,
         )
 
 
@@ -121,14 +119,14 @@ class ReconBlock(Layer):
                 kernel_size=3,
                 padding='same',
                 activation=PReLU(shared_axes=[1, 2]),
-                use_bias=False,
+                use_bias=True,
             ) for _ in range(self.n_convs - 1)
         ]
         self.convs.append(Conv2D(
             filters=self.n_filters,
             kernel_size=3,
             padding='same',
-            use_bias=False,
+            use_bias=True,
         ))
 
     def call(self, inputs):
@@ -176,27 +174,27 @@ class DIDN(Model):
             kernel_size=3,
             padding='same',
             activation=PReLU(shared_axes=[1, 2]),
-            use_bias=False,
+            use_bias=True,
         )
         self.pooling = Conv2D(
             filters=self.n_filters,
             kernel_size=3,
             strides=2,
             padding='same',
-            use_bias=False,
+            use_bias=True,
         )
         self.post_recon_agg = Conv2D(
             filters=self.n_filters,
             kernel_size=1,
             padding='same',
-            use_bias=False,
+            use_bias=True,
         )
         self.post_recon_conv = Conv2D(
             filters=self.n_filters,
             kernel_size=3,
             padding='same',
             activation=PReLU(shared_axes=[1, 2]),
-            use_bias=False,
+            use_bias=True,
         )
         self.last_conv = Conv2D(
             filters=self.n_outputs,
@@ -204,7 +202,7 @@ class DIDN(Model):
             padding='same',
             # in code the activation is actually linear
             activation='linear',
-            use_bias=False,
+            use_bias=True,
         )
 
     def call(self, inputs):
