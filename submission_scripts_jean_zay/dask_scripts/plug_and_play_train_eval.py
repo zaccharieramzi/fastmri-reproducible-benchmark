@@ -13,9 +13,12 @@ def train_eval_plug_and_play(
         n_primal=5,
         loss='compound_mssim',
         train_partition='gpu_p1',
+        model_name=None,
     ):
     job_name = 'plug_and_play'
     model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
+    if model_name is not None:
+        model_specs = [ms for ms in model_specs if ms[0] == model_name]
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
@@ -96,17 +99,20 @@ def train_eval_plug_and_play(
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 
-    for (model_name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
+    for (name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
         _, eval_res = client.gather(future)
         df_results = df_results.append(dict(
-            model_name=model_name,
+            model_name=name,
             model_size=model_size,
             psnr=eval_res[0],
             ssim=eval_res[1],
         ), ignore_index=True)
 
     print(df_results)
-    df_results.to_csv(f'reconstruction_results_{n_samples}.csv')
+    outputs_file = f'reconstruction_results_{n_samples}.csv'
+    if model_name is not None:
+        outputs_file = f'reconstruction_results_{n_samples}_{model_name}.csv'
+    df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()
     eval_cluster.close()

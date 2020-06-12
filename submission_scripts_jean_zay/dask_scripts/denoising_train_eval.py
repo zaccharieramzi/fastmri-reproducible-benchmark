@@ -8,8 +8,10 @@ from fastmri_recon.evaluate.scripts.denoising_eval import evaluate_xpdnet_denois
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.denoising.generic_train import train_denoiser
 
-def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
+def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None):
     job_name = 'denoising_fastmri'
+    if model_name is not None:
+        model_specs = [ms for ms in model_specs if ms[0] == model_name]
     model_specs = list(get_model_specs(force_res=True))
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
@@ -79,17 +81,20 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None):
 
     df_results = pd.DataFrame(columns='model_name model_size psnr ssim'.split())
 
-    for (model_name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
+    for (name, model_size, _, _, _, _, _), future in zip(model_specs, futures):
         _, eval_res = client.gather(future)
         df_results = df_results.append(dict(
-            model_name=model_name,
+            model_name=name,
             model_size=model_size,
             psnr=eval_res[0],
             ssim=eval_res[1],
         ), ignore_index=True)
 
     print(df_results)
-    df_results.to_csv(f'denoising_results_{n_samples}.csv')
+    outputs_file = f'denoising_results_{n_samples}.csv'
+    if model_name is not None:
+        outputs_file = f'denoising_results_{n_samples}_{model_name}.csv'
+    df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()
     eval_cluster.close()
