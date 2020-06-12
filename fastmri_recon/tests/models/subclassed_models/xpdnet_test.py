@@ -7,7 +7,7 @@ from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 def test_xpdnet():
     n_primal = 2
     n_scales = 3
-    submodel = MWCNN(
+    submodel_kwargs = dict(
         n_scales=n_scales,
         kernel_size=3,
         bn=False,
@@ -19,7 +19,8 @@ def test_xpdnet():
         n_outputs=2*n_primal,
     )
     model = XPDNet(
-        submodel,
+        model_fun=MWCNN,
+        model_kwargs=submodel_kwargs,
         n_primal=n_primal,
         n_iter=2,
         multicoil=True,

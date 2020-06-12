@@ -5,7 +5,8 @@ from ..utils.fourier import FFT, IFFT
 class XPDNet(CrossDomainNet):
     def __init__(
             self,
-            model,
+            model_fun,
+            model_kwargs,
             res=False,
             n_scales=0,
             n_primal=5,
@@ -14,6 +15,8 @@ class XPDNet(CrossDomainNet):
             refine_smaps=False,
             **kwargs,
         ):
+        self.model_fun = model_fun
+        self.model_kwargs = model_kwargs
         self.res = res
         self.n_scales = n_scales
         self.n_primal = n_primal
@@ -31,11 +34,10 @@ class XPDNet(CrossDomainNet):
             refine_smaps=self.refine_smaps,
             **kwargs,
         )
-        self.model = model
         self.op = FFT(masked=True, multicoil=self.multicoil)
         self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
         self.image_net = [MultiscaleComplex(
-            model=self.model,
+            model=self.model_fun(**self.model_kwargs),
             res=self.res,
             n_output_channels=self.n_primal,
             n_scales=self.n_scales,
