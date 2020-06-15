@@ -66,7 +66,7 @@ def train_eval_plug_and_play(
         job_cpu=40,
         memory='80GB',
         job_name=job_name,
-        walltime='20:00:00',
+        walltime='2:00:00',
         interface='ib0',
         job_extra=[
             f'--gres=gpu:1',
