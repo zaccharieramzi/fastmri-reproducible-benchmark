@@ -68,13 +68,17 @@ class CrossDomainNet(Model):
         kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
         image = self.backward_operator(original_kspace, mask, smaps)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
-        # TODO: create a buffer
+        op_args = ()
         for i_domain, domain in enumerate(self.domain_sequence):
             if domain == 'K':
                 if self.k_buffer_mode:
+                    forward_op_res = self.forward_operator(image_buffer, mask, smaps)
+                    if isinstance(forward_op_res, tuple):
+                        op_args = forward_op_res[1]
+                        forward_op_res = forward_op_res[0]
                     kspace_buffer = tf.concat([
                         kspace_buffer,
-                        self.forward_operator(image_buffer, mask, smaps),
+                        forward_op_res,
                     ], axis=-1)
                 else:
                     kspace_buffer = self.forward_operator(image_buffer, mask, smaps)
@@ -87,11 +91,11 @@ class CrossDomainNet(Model):
                 if self.i_buffer_mode:
                     image_buffer = tf.concat([
                         image_buffer,
-                        self.backward_operator(kspace_buffer, mask, smaps),
+                        self.backward_operator(kspace_buffer, mask, smaps, *op_args),
                     ], axis=-1)
                 else:
                     # NOTE: the operator is already doing the channel selection
-                    image_buffer = self.backward_operator(kspace_buffer, mask, smaps)
+                    image_buffer = self.backward_operator(kspace_buffer, mask, smaps, *op_args)
                 image_buffer = self.image_net[i_domain//2](image_buffer)
         image = tf_fastmri_format(image_buffer[..., 0:1])
         return image
@@ -104,8 +108,6 @@ class CrossDomainNet(Model):
 
     def forward_operator(self, image, mask, smaps):
         if self.data_consistency_mode == 'measurements_residual':
-            # TODO: when dealing with non cartesian/pMRI change this to self.op
-            # defined in init
             if self.multicoil:
                 return self.op([image, mask, smaps])
             else:
@@ -116,14 +118,14 @@ class CrossDomainNet(Model):
             else:
                 return self.op(image)
 
-    def backward_operator(self, kspace, mask, smaps):
+    def backward_operator(self, kspace, mask, smaps, *op_args):
         if self.data_consistency_mode == 'measurements_residual':
             if self.multicoil:
-                return self.adj_op([kspace, mask, smaps])
+                return self.adj_op([kspace, mask, smaps, *op_args])
             else:
-                return self.adj_op([kspace, mask])
+                return self.adj_op([kspace, mask, *op_args])
         else:
             if self.multicoil:
-                return self.adj_op([kspace, smaps])
+                return self.adj_op([kspace, smaps, *op_args])
             else:
                 return self.adj_op(kspace)
