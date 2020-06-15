@@ -33,7 +33,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    train_cluster.scale(n_models)
+    train_cluster.adapt(minimum_jobs=0, maximum_jobs=n_models)
     client = Client(train_cluster)
     futures = [client.submit(
         # function to execute
@@ -67,7 +67,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    eval_cluster.scale(n_models)
+    eval_cluster.adapt(minimum_jobs=0, maximum_jobs=n_models)
     client = Client(eval_cluster)
     futures = [client.submit(
         # function to execute
