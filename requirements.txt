@@ -5,8 +5,8 @@ tqdm >= 4.36.1
 runstats
 nibabel
 Pillow
-tensorflow
-tensorflow-io
-tensorflow-addons
+tensorflow == 2.1
+tensorflow-io == 0.12
+tensorflow-addons == 0.9.1
 click
 tfkbnufft

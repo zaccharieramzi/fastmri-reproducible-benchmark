@@ -1,52 +1,16 @@
 import click
 
+from fastmri_recon.evaluate.scripts.updnet_sense_eval import evaluate_updnet_sense
+from fastmri_recon.evaluate.scripts.updnet_sense_inference import updnet_sense_inference
 from fastmri_recon.training_scripts.updnet_train import train_updnet
-from generic_dask import train_on_jz_dask
+
+from generic_dask import full_pipeline_dask
 
 
 @click.command()
-@click.option(
-    'original_run_id',
-    '-id',
-    default=None,
+@click.argument(
+    'exp_id',
     type=str,
-    help='The original run id for fine tuning. Defaults to None.',
-)
-@click.option(
-    'af',
-    '-a',
-    default='4',
-    type=click.Choice(['4', '8']),
-    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
-)
-@click.option(
-    'contrast',
-    '-c',
-    default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK'], case_sensitive=False),
-    help='The contrast chosen for this fine-tuning. Defaults to None.',
-)
-@click.option(
-    'cuda_visible_devices',
-    '-gpus',
-    '--cuda-visible-devices',
-    default='0123',
-    type=str,
-    help='The visible GPU devices. Defaults to 0123',
-)
-@click.option(
-    'n_samples',
-    '-ns',
-    default=None,
-    type=int,
-    help='The number of samples to use for this training. Default to None, which means all samples are used.',
-)
-@click.option(
-    'n_epochs',
-    '-e',
-    default=300,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
 )
 @click.option(
     'n_iter',
@@ -96,13 +60,14 @@ from generic_dask import train_on_jz_dask
     is_flag=True,
     help='Whether you want to refine sensitivity maps using a trained unet.',
 )
-def train_updnet_sense_dask(
-        original_run_id,
-        af,
-        contrast,
-        cuda_visible_devices,
-        n_samples,
-        n_epochs,
+@click.option(
+    'single_coil',
+    '-sc',
+    is_flag=True,
+    help='Whether you want to use single coil data.',
+)
+def full_pipe_updnet_sense_dask(
+        exp_id,
         n_iter,
         non_linearity,
         n_layers,
@@ -110,29 +75,30 @@ def train_updnet_sense_dask(
         channel_attention,
         loss,
         refine_smaps,
+        single_coil,
     ):
-    job_name = f'train_updnet_sense_{af}'
-    if contrast is not None:
-        job_name += f'_{contrast}'
+    job_name = f'updnet_sense_{exp_id}'
     if channel_attention == 'dense':
         channel_attention_kwargs = {'dense': True}
     elif channel_attention == 'conv':
         channel_attention_kwargs = {'dense': False}
     else:
         channel_attention_kwargs = None
-    train_on_jz_dask(
+    full_pipeline_dask(
         job_name,
-        train_updnet,
-        af, contrast, cuda_visible_devices, n_samples, n_epochs, n_iter,
+        train_function=train_updnet,
+        eval_function=evaluate_updnet_sense,
+        infer_function=updnet_sense_inference,
+        n_iter=n_iter,
         non_linearity=non_linearity,
         n_layers=n_layers,
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
         loss=loss,
-        original_run_id=original_run_id,
         refine_smaps=refine_smaps,
+        multicoil=not single_coil,
     )
 
 
 if __name__ == '__main__':
-    train_updnet_sense_dask()
+    full_pipe_updnet_sense_dask()
