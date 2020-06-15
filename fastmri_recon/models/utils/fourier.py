@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.layers import  Layer
 from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftshift
+from tfkbnufft import kbnufft_forward, kbnufft_adjoint
+from tfkbnufft.kbnufft import KbNufftModule
 
 from .masking import _mask_tf
 
@@ -100,5 +102,86 @@ class FFT(FFTBase):
         return self.op(inputs)
 
 class IFFT(FFTBase):
+    def call(self, inputs):
+        return self.adj_op(inputs)
+
+
+class NFFTBase(Layer):
+    def __init__(self, multicoil=False, im_size=(640, 472), **kwargs):
+        super(NFFTBase, self).__init__(**kwargs)
+        self.multicoil = multicoil
+        self.im_size = im_size
+        self.nufft_ob = KbNufftModule(
+            im_size=im_size,
+            grid_size=None,
+            norm='ortho',
+        )
+        self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
+        self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
+
+    def pad_for_nufft(self, image):
+        shape = tf.shape(image)[-1]
+        to_pad = self.im_size[-1] - shape
+        padded_image = tf.pad(
+            image,
+            [
+                (0, 0),
+                (0, 0),
+                (0, 0),
+                (to_pad//2, to_pad//2)
+            ]
+        )
+        return padded_image
+
+    def crop_for_pad(self, image, shape):
+        shape = tf.shape(image)[-1]
+        to_pad = self.im_size[-1] - shape
+        cropped_image = image[..., to_pad//2:-to_pad//2]
+        return cropped_image
+
+    def crop_for_nufft(self, image):
+        shape = tf.shape(image)[-1]
+        to_crop = shape - self.im_size[-1]
+        cropped_image = image[..., to_crop//2:-to_crop//2]
+        return cropped_image
+
+    def op(self, inputs):
+        if self.multicoil:
+            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
+        else:
+            image, ktraj = inputs
+            # for tfkbnufft we need a coil dimension even if there is none
+            image = image[:, None, ..., 0]
+
+        shape = tf.shape(image)[-1]
+        image_adapted = tf.cond(
+            tf.math.greater(shape, self.im_size[-1]),
+            lambda: self.crop_for_nufft(image),
+            lambda: self.pad_for_nufft(image),
+        )
+        kspace = self.forward_op(image_adapted, ktraj)
+        return kspace, shape
+
+    def adj_op(self, inputs):
+        if self.multicoil:
+            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
+        else:
+            kspace, ktraj, shape = inputs
+        image = self.backward_op(kspace, ktraj)
+        if self.multicoil:
+            image = image[:, 0]
+
+        image_adapted = tf.cond(
+            tf.math.greater_equal(shape, self.im_size[-1]),
+            lambda: image,
+            lambda: self.crop_for_pad(image, shape),
+        )
+        return image_adapted
+
+class NFFT(NFFTBase):
+    def call(self, inputs):
+        return self.op(inputs)
+
+class AdjNFFT(NFFTBase):
     def call(self, inputs):
         return self.adj_op(inputs)
