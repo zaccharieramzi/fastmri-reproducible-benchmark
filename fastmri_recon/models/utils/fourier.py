@@ -134,7 +134,6 @@ class NFFTBase(Layer):
         return padded_image
 
     def crop_for_pad(self, image, shape):
-        shape = tf.shape(image)[-1]
         to_pad = self.im_size[-1] - shape
         cropped_image = image[..., to_pad//2:-to_pad//2]
         return cropped_image
@@ -168,7 +167,7 @@ class NFFTBase(Layer):
         else:
             kspace, ktraj, shape = inputs
         image = self.backward_op(kspace, ktraj)
-        if self.multicoil:
+        if not self.multicoil:
             image = image[:, 0]
 
         image_adapted = tf.cond(
@@ -176,6 +175,7 @@ class NFFTBase(Layer):
             lambda: image,
             lambda: self.crop_for_pad(image, shape),
         )
+        image_adapted = image_adapted[..., None]
         return image_adapted
 
 class NFFT(NFFTBase):
