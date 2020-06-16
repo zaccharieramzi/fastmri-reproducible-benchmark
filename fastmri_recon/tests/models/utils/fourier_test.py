@@ -56,8 +56,8 @@ class TestNFFTLayer(tf.test.TestCase):
     # for now we won't do any value tests
     def setUp(self):
         # image creation
-        image_shape = (64, 32)
-        image = np.random.normal(size=image_shape) + 1j * np.random.normal(size=image_shape)
+        self.image_shape = (64, 32)
+        image = np.random.normal(size=self.image_shape) + 1j * np.random.normal(size=self.image_shape)
         # radial trajectory creation
         spokelength = image.shape[-1] * 2
         nspokes = 15
@@ -79,24 +79,30 @@ class TestNFFTLayer(tf.test.TestCase):
         kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
         self.kspace = tf.convert_to_tensor(kspace)[None, None, ...]
         # tensor conversions
-        self.image = tf.convert_to_tensor(image)[None, None, ...]
+        self.image = tf.convert_to_tensor(image)[None, ..., None]
         self.ktraj = tf.convert_to_tensor(ktraj)[None, ...]
 
     def test_nfft_forward(self):
-        nfft_layer = NFFT(im_size=self.image.get_shape().as_list()[-2:])
+        nfft_layer = NFFT(im_size=self.image_shape)
         kdata, shape = nfft_layer([
             self.image,
             self.ktraj,
         ])
+        self.assertAllEqual(tf.rank(kdata), 2)
         self.assertAllEqual(shape, self.image.shape[-1])
 
 
     def test_nfft_adjoint(self):
-        adj_nfft_layer = AdjNFFT(im_size=self.image.get_shape().as_list()[-2:])
+        tf.config.experimental_run_functions_eagerly(True)
+        adj_nfft_layer = AdjNFFT(im_size=self.image_shape)
         for shape in [30, 32, 34]:
             image = adj_nfft_layer([
                 self.kspace,
                 self.ktraj,
                 shape,
             ])
-            self.assertAllLessEqual(image.shape[-1], shape)
+            self.assertAllEqual(tf.rank(image), 4)
+            if shape >= self.image_shape[-1]:
+                self.assertAllEqual(image.shape[-2], self.image_shape[-1])
+            else:
+                self.assertAllEqual(image.shape[-2], shape)
