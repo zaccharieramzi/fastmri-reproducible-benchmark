@@ -63,25 +63,28 @@ class CrossDomainNet(Model):
                 smaps_refined_normalized = smaps_refined / rss
                 smaps = smaps_refined_normalized
         else:
-            original_kspace, mask = inputs
+            if len(inputs) == 2:
+                original_kspace, mask = inputs
+                op_args = ()
+            else:
+                original_kspace, mask, op_args = inputs
             smaps = None
         kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
-        image = self.backward_operator(original_kspace, mask, smaps)
+        image = self.backward_operator(original_kspace, mask, smaps, *op_args)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
-        op_args = ()
         for i_domain, domain in enumerate(self.domain_sequence):
             if domain == 'K':
+                forward_op_res = self.forward_operator(image_buffer, mask, smaps)
+                if isinstance(forward_op_res, tuple):
+                    op_args = forward_op_res[1]
+                    forward_op_res = forward_op_res[0]
                 if self.k_buffer_mode:
-                    forward_op_res = self.forward_operator(image_buffer, mask, smaps)
-                    if isinstance(forward_op_res, tuple):
-                        op_args = forward_op_res[1]
-                        forward_op_res = forward_op_res[0]
                     kspace_buffer = tf.concat([
                         kspace_buffer,
                         forward_op_res,
                     ], axis=-1)
                 else:
-                    kspace_buffer = self.forward_operator(image_buffer, mask, smaps)
+                    kspace_buffer = forward_op_res
                 kspace_buffer = self.apply_data_consistency(kspace_buffer, original_kspace, mask)
                 # NOTE: this i //2 suggest alternating domains, this will need
                 # evolve if we want non-alternating domains. This needs to be

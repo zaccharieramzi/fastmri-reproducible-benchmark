@@ -159,7 +159,7 @@ class NFFTBase(Layer):
             lambda: self.pad_for_nufft(image),
         )
         kspace = self.forward_op(image_adapted, ktraj)
-        return kspace, shape
+        return kspace, [shape]
 
     def adj_op(self, inputs):
         if self.multicoil:

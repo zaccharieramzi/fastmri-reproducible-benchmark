@@ -74,7 +74,7 @@ class TestNFFTLayer(tf.test.TestCase):
 
     def test_nfft_forward(self):
         nfft_layer = NFFT(im_size=self.image_shape)
-        kdata, shape = nfft_layer([
+        kdata, [shape] = nfft_layer([
             self.image,
             self.ktraj(self.image_shape, self.nspokes),
         ])
