@@ -1,6 +1,8 @@
 import tensorflow as tf
 
 from ..utils.masking.gen_mask_tf import gen_mask_tf
+from ..utils.non_cartesian import get_radial_trajectory
+from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op
 
 
 def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False):
@@ -12,6 +14,20 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_ma
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
         return (kspaces_channeled, mask), images_channeled
+    return from_kspace_to_masked_kspace_and_mask
+
+def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_layer, acq_type='radial', scale_factor=1, **acq_kwargs):
+    def from_kspace_to_masked_kspace_and_mask(images, kspaces):
+        if acq_type == 'radial':
+            traj = get_radial_trajectory(**acq_kwargs)
+        else:
+            raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
+        orig_image = tf_unmasked_adj_op(kspaces)
+        nc_kspace = nfft_layer([orig_image[..., None], traj])
+        nc_kspace_scaled = nc_kspace * scale_factor
+        images_scaled = images * scale_factor
+        images_channeled = images_scaled[..., None]
+        return (nc_kspace_scaled, traj), images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 def generic_prepare_mask_and_kspace(scale_factor=1):
