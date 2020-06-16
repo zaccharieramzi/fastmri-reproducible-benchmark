@@ -77,7 +77,7 @@ class TestNFFTLayer(tf.test.TestCase):
         # kspace creation
         kspace_shape = (spokelength * nspokes,)
         kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
-        self.kspace = tf.convert_to_tensor(kspace)[None, ...]
+        self.kspace = tf.convert_to_tensor(kspace)[None, None, ...]
         # tensor conversions
         self.image = tf.convert_to_tensor(image)[None, None, ...]
         self.ktraj = tf.convert_to_tensor(ktraj)[None, ...]
@@ -88,7 +88,7 @@ class TestNFFTLayer(tf.test.TestCase):
             self.image,
             self.ktraj,
         ])
-        self.assertEqual(shape, self.image.shape[-1])
+        self.assertAllEqual(shape, self.image.shape[-1])
 
 
     def test_nfft_adjoint(self):
