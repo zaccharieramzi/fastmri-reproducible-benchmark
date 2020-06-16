@@ -5,7 +5,7 @@ from ..utils.h5 import from_train_file_to_image_and_kspace_and_contrast
 from fastmri_recon.models.utils.fourier import NFFT
 
 
-def train_masked_kspace_dataset_from_indexable(
+def train_nc_kspace_dataset_from_indexable(
         path,
         image_size,
         inner_slices=None,
