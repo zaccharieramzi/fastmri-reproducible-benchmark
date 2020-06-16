@@ -105,6 +105,45 @@ class IFFT(FFTBase):
     def call(self, inputs):
         return self.adj_op(inputs)
 
+def _pad_for_nufft(image, im_size):
+    shape = tf.shape(image)[-1]
+    to_pad = im_size[-1] - shape
+    padded_image = tf.pad(
+        image,
+        [
+            (0, 0),
+            (0, 0),
+            (0, 0),
+            (to_pad//2, to_pad//2)
+        ]
+    )
+    return padded_image
+
+def _crop_for_pad(image, shape, im_size):
+    to_pad = im_size[-1] - shape
+    cropped_image = image[..., to_pad//2:-to_pad//2]
+    return cropped_image
+
+def _crop_for_nufft(image, im_size):
+    shape = tf.shape(image)[-1]
+    to_crop = shape - im_size[-1]
+    cropped_image = image[..., to_crop//2:-to_crop//2]
+    return cropped_image
+
+def nufft(nufft_ob, image, ktraj, image_size=None):
+    forward_op = kbnufft_forward(nufft_ob._extract_nufft_interpob())
+    shape = tf.shape(image)[-1]
+    if image_size is not None:
+        image_adapted = tf.cond(
+            tf.math.greater(shape, image_size[-1]),
+            lambda: _crop_for_nufft(image, image_size),
+            lambda: _pad_for_nufft(image, image_size),
+        )
+    else:
+        image_adapted = image
+    kspace = forward_op(image_adapted, ktraj)
+    return kspace
+
 
 class NFFTBase(Layer):
     def __init__(self, multicoil=False, im_size=(640, 472), **kwargs):
@@ -120,29 +159,13 @@ class NFFTBase(Layer):
         self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
 
     def pad_for_nufft(self, image):
-        shape = tf.shape(image)[-1]
-        to_pad = self.im_size[-1] - shape
-        padded_image = tf.pad(
-            image,
-            [
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                (to_pad//2, to_pad//2)
-            ]
-        )
-        return padded_image
+        return _pad_for_nufft(image, self.im_size)
 
     def crop_for_pad(self, image, shape):
-        to_pad = self.im_size[-1] - shape
-        cropped_image = image[..., to_pad//2:-to_pad//2]
-        return cropped_image
+        return _crop_for_pad(image, shape, self.im_size)
 
     def crop_for_nufft(self, image):
-        shape = tf.shape(image)[-1]
-        to_crop = shape - self.im_size[-1]
-        cropped_image = image[..., to_crop//2:-to_crop//2]
-        return cropped_image
+        return _crop_for_nufft(image, self.im_size)
 
     def op(self, inputs):
         if self.multicoil:
@@ -152,13 +175,8 @@ class NFFTBase(Layer):
             # for tfkbnufft we need a coil dimension even if there is none
             image = image[:, None, ..., 0]
 
+        kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
         shape = tf.shape(image)[-1]
-        image_adapted = tf.cond(
-            tf.math.greater(shape, self.im_size[-1]),
-            lambda: self.crop_for_nufft(image),
-            lambda: self.pad_for_nufft(image),
-        )
-        kspace = self.forward_op(image_adapted, ktraj)
         return kspace, [shape]
 
     def adj_op(self, inputs):
@@ -182,6 +200,15 @@ class NFFT(NFFTBase):
     def call(self, inputs):
         return self.op(inputs)
 
+    def compute_output_shape(self, input_shapes):
+        im_shape = input_shapes[0]
+        ktraj_shape = input_shapes[1]
+        return (im_shape[0], 1, ktraj_shape[-1])
+
 class AdjNFFT(NFFTBase):
     def call(self, inputs):
         return self.adj_op(inputs)
+
+    def compute_output_shape(self, input_shapes):
+        kshape = input_shapes[0]
+        return (kshape[0], None, None, 1)
