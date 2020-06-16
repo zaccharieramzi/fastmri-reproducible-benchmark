@@ -54,7 +54,7 @@ class TestFFTLayers(tf.test.TestCase):
 
 class TestNFFTLayer(tf.test.TestCase):
     # for now we won't do any value tests
-    def setup(self):
+    def setUp(self):
         # image creation
         image_shape = (64, 32)
         image = np.random.normal(size=image_shape) + 1j * np.random.normal(size=image_shape)
@@ -92,7 +92,7 @@ class TestNFFTLayer(tf.test.TestCase):
 
 
     def test_nfft_adjoint(self):
-        adj_nfft_layer = AdjNFFT(im_size=self.image.get_shape().as_list())
+        adj_nfft_layer = AdjNFFT(im_size=self.image.get_shape().as_list()[-2:])
         for shape in [30, 32, 34]:
             image = adj_nfft_layer([
                 self.kspace,
