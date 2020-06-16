@@ -1,8 +1,8 @@
 import tensorflow as tf
+from tfkbnufft.kbnufft import KbNufftModule
 
 from .preprocessing import non_cartesian_from_kspace_to_nc_kspace_and_traj
 from ..utils.h5 import from_train_file_to_image_and_kspace_and_contrast
-from fastmri_recon.models.utils.fourier import NFFT
 
 
 def train_nc_kspace_dataset_from_indexable(
@@ -63,10 +63,15 @@ def train_nc_kspace_dataset_from_indexable(
     )
     if n_samples is not None:
         image_and_kspace_ds = image_and_kspace_ds.take(n_samples)
-    nfft_layer = NFFT(im_size=image_size)
+    nufft_ob = KbNufftModule(
+        im_size=image_size,
+        grid_size=None,
+        norm='ortho',
+    )
     masked_kspace_ds = image_and_kspace_ds.map(
         non_cartesian_from_kspace_to_nc_kspace_and_traj(
-            nfft_layer,
+            nufft_ob,
+            image_size,
             acq_type=acq_type,
             scale_factor=scale_factor,
             **acq_kwargs,
