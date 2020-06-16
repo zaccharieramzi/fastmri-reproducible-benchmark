@@ -60,7 +60,7 @@ class TestNFFTLayer(tf.test.TestCase):
         image = np.random.normal(size=image_shape) + 1j * np.random.normal(size=image_shape)
         # radial trajectory creation
         spokelength = image.shape[-1] * 2
-        nspokes = 45
+        nspokes = 15
 
         ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
         kx = np.zeros(shape=(spokelength, nspokes))
@@ -83,7 +83,7 @@ class TestNFFTLayer(tf.test.TestCase):
         self.ktraj = tf.convert_to_tensor(ktraj)[None, ...]
 
     def test_nfft_forward(self):
-        nfft_layer = NFFT(im_size=self.image.get_shape().as_list())
+        nfft_layer = NFFT(im_size=self.image.get_shape().as_list()[-2:])
         kdata, shape = nfft_layer([
             self.image,
             self.ktraj,
