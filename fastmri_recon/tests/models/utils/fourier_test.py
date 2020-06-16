@@ -88,8 +88,8 @@ class TestNFFTLayer(tf.test.TestCase):
             self.image,
             self.ktraj,
         ])
-        self.assertAllEqual(tf.rank(kdata), 2)
-        self.assertAllEqual(shape, self.image.shape[-1])
+        self.assertAllEqual(tf.rank(kdata), 3)
+        self.assertAllEqual(shape, self.image_shape[-1])
 
 
     def test_nfft_adjoint(self):
