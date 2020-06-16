@@ -93,7 +93,6 @@ class TestNFFTLayer(tf.test.TestCase):
 
 
     def test_nfft_adjoint(self):
-        tf.config.experimental_run_functions_eagerly(True)
         adj_nfft_layer = AdjNFFT(im_size=self.image_shape)
         for shape in [30, 32, 34]:
             image = adj_nfft_layer([
