@@ -15,7 +15,7 @@ def get_radial_trajectory(nspokes, spokelength=None):
         kx = np.transpose(kx)
 
         traj = np.stack((ky.flatten(), kx.flatten()), axis=0)
-        traj = tf.convert_to_tensor(traj)[None, ...]
+        traj = tf.convert_to_tensor(traj, dtype=tf.float32)[None, ...]
         return traj
     traj = tf.py_function(
         _get_radial_trajectory_numpy,
