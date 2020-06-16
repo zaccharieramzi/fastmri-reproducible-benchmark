@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from fastmri_recon.data.utils.fourier import FFT2, ifft
@@ -54,39 +55,28 @@ class TestFFTLayers(tf.test.TestCase):
 
 class TestNFFTLayer(tf.test.TestCase):
     # for now we won't do any value tests
+    @pytest.fixture(autouse=True)
+    def init_ktraj(self, ktraj):
+        self.ktraj = ktraj
+
     def setUp(self):
         # image creation
         self.image_shape = (64, 32)
         image = np.random.normal(size=self.image_shape) + 1j * np.random.normal(size=self.image_shape)
-        # radial trajectory creation
-        spokelength = image.shape[-1] * 2
-        nspokes = 15
-
-        ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
-        kx = np.zeros(shape=(spokelength, nspokes))
-        ky = np.zeros(shape=(spokelength, nspokes))
-        ky[:, 0] = np.linspace(-np.pi, np.pi, spokelength)
-        for i in range(1, nspokes):
-            kx[:, i] = np.cos(ga) * kx[:, i - 1] - np.sin(ga) * ky[:, i - 1]
-            ky[:, i] = np.sin(ga) * kx[:, i - 1] + np.cos(ga) * ky[:, i - 1]
-
-        ky = np.transpose(ky)
-        kx = np.transpose(kx)
-
-        ktraj = np.stack((ky.flatten(), kx.flatten()), axis=0)
         # kspace creation
-        kspace_shape = (spokelength * nspokes,)
+        spokelength = self.image_shape[-1] * 2
+        self.nspokes = 15
+        kspace_shape = (spokelength * self.nspokes,)
         kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
         self.kspace = tf.convert_to_tensor(kspace)[None, None, ...]
         # tensor conversions
         self.image = tf.convert_to_tensor(image)[None, ..., None]
-        self.ktraj = tf.convert_to_tensor(ktraj)[None, ...]
 
     def test_nfft_forward(self):
         nfft_layer = NFFT(im_size=self.image_shape)
         kdata, shape = nfft_layer([
             self.image,
-            self.ktraj,
+            self.ktraj(self.image_shape, self.nspokes),
         ])
         self.assertAllEqual(tf.rank(kdata), 3)
         self.assertAllEqual(shape, self.image_shape[-1])
@@ -97,7 +87,7 @@ class TestNFFTLayer(tf.test.TestCase):
         for shape in [30, 32, 34]:
             image = adj_nfft_layer([
                 self.kspace,
-                self.ktraj,
+                self.ktraj(self.image_shape, self.nspokes),
                 shape,
             ])
             self.assertAllEqual(tf.rank(image), 4)
