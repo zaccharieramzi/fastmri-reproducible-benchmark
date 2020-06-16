@@ -3,12 +3,12 @@ import tensorflow as tf
 
 from fastmri_recon.data.utils.fourier import FFT2, ifft
 from fastmri_recon.data.utils.masking.gen_mask import gen_mask
-from fastmri_recon.models.utils.fourier import FFT, IFFT
+from fastmri_recon.models.utils.fourier import FFT, IFFT, NFFT, AdjNFFT
 
 
 class TestFFTLayers(tf.test.TestCase):
     def setUp(self):
-        kspace_shape = (640, 372)
+        kspace_shape = (64, 34)
         n_coils = 15
         self.kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
         self.image = ifft(self.kspace)
@@ -50,3 +50,53 @@ class TestFFTLayers(tf.test.TestCase):
         inverse_fourier_layer = IFFT(masked=True, multicoil=True)
         aliased_image_sense = inverse_fourier_layer([masked_kspace_multi_coil_tf, mask_tf, smaps_tf])
         self.assertAllClose(self.aliased_image_sense, aliased_image_sense[0, ..., 0])
+
+
+class TestNFFTLayer(tf.test.TestCase):
+    # for now we won't do any value tests
+    def setup(self):
+        # image creation
+        image_shape = (64, 32)
+        image = np.random.normal(size=image_shape) + 1j * np.random.normal(size=image_shape)
+        # radial trajectory creation
+        spokelength = image.shape[-1] * 2
+        nspokes = 45
+
+        ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
+        kx = np.zeros(shape=(spokelength, nspokes))
+        ky = np.zeros(shape=(spokelength, nspokes))
+        ky[:, 0] = np.linspace(-np.pi, np.pi, spokelength)
+        for i in range(1, nspokes):
+            kx[:, i] = np.cos(ga) * kx[:, i - 1] - np.sin(ga) * ky[:, i - 1]
+            ky[:, i] = np.sin(ga) * kx[:, i - 1] + np.cos(ga) * ky[:, i - 1]
+
+        ky = np.transpose(ky)
+        kx = np.transpose(kx)
+
+        ktraj = np.stack((ky.flatten(), kx.flatten()), axis=0)
+        # kspace creation
+        kspace_shape = (spokelength * nspokes,)
+        kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
+        self.kspace = tf.convert_to_tensor(kspace)[None, ...]
+        # tensor conversions
+        self.image = tf.convert_to_tensor(image)[None, None, ...]
+        self.ktraj = tf.convert_to_tensor(ktraj)[None, ...]
+
+    def test_nfft_forward(self):
+        nfft_layer = NFFT(im_size=self.image.get_shape().as_list())
+        kdata, shape = nfft_layer([
+            self.image,
+            self.ktraj,
+        ])
+        self.assertEqual(shape, self.image.shape[-1])
+
+
+    def test_nfft_adjoint(self):
+        adj_nfft_layer = AdjNFFT(im_size=self.image.get_shape().as_list())
+        for shape in [30, 32, 34]:
+            image = adj_nfft_layer([
+                self.kspace,
+                self.ktraj,
+                shape,
+            ])
+            self.assertAllLessEqual(image.shape[-1], shape)
