@@ -79,7 +79,7 @@ class TestNFFTLayer(tf.test.TestCase):
             self.ktraj(self.image_shape, self.nspokes),
         ])
         self.assertAllEqual(tf.rank(kdata), 3)
-        self.assertAllEqual(shape, self.image_shape[-1])
+        self.assertAllEqual(shape[0], self.image_shape[-1])
 
 
     def test_nfft_adjoint(self):

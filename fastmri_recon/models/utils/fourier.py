@@ -176,7 +176,7 @@ class NFFTBase(Layer):
             image = image[:, None, ..., 0]
 
         kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
-        shape = tf.shape(image)[-1]
+        shape = tf.ones([tf.shape(image)[0]], dtype=tf.int32) * tf.shape(image)[-1]
         return kspace, [shape]
 
     def adj_op(self, inputs):
@@ -184,7 +184,7 @@ class NFFTBase(Layer):
             raise NotImplementedError('Multicoil NFFT is not implemented yet.')
         else:
             kspace, ktraj, shape = inputs
-        shape = shape[0]
+        shape = tf.reshape(shape[0], [])
         image = self.backward_op(kspace, ktraj)
         if not self.multicoil:
             image = image[:, 0]
