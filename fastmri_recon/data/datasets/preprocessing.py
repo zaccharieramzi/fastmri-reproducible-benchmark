@@ -28,7 +28,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
         images_channeled = images_scaled[..., None]
-        return (nc_kspace_scaled, traj, tf.shape(kspaces)[-1]), images_channeled
+        return (nc_kspace_scaled, traj, (tf.shape(kspaces)[-1],)), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,
         input_signature=[
