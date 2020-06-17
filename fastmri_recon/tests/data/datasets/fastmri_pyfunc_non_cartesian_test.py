@@ -32,9 +32,9 @@ def test_train_nc_kspace_dataset_from_indexable(
         spokelength=spokelength,
         **ds_kwargs,
     )
-    (kspace, traj, (orig_shape,)), image = next(iter(ds))
+    (kspace, traj, (shape,)), image = next(iter(ds))
     # shape verifications
     assert kspace.shape.as_list() == expected_kspace_shape
-    assert orig_shape.numpy() == orig_shape
+    assert shape.numpy()[0] == orig_shape
     assert traj.shape.as_list() == [expected_kspace_shape[0], 2, nspokes * spokelength]
     assert image.shape.as_list() == expected_kspace_shape[0:1] + [320, 320, 1]
