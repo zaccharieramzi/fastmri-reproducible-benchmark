@@ -11,11 +11,11 @@ image_size = [640, 474]
 file_contrast = 'CORPD_FBK'
 
 @pytest.mark.parametrize('ds_kwargs, expected_kspace_shape', [
-    ({}, (image_shape[0], 2, nspokes*spokelength)),
-    ({'inner_slices': 1}, (1, 2, nspokes*spokelength)),
-    ({'inner_slices': 1, 'rand': True}, (1, 2, nspokes*spokelength)),
-    ({'contrast': file_contrast}, (image_shape[0], 2, nspokes*spokelength)),
-    ({'n_samples': 1}, (image_shape[0], 2, nspokes*spokelength))
+    ({}, (image_shape[0], 1, nspokes*spokelength)),
+    ({'inner_slices': 1}, (1, 1, nspokes*spokelength)),
+    ({'inner_slices': 1, 'rand': True}, (1, 1, nspokes*spokelength)),
+    ({'contrast': file_contrast}, (image_shape[0], 1, nspokes*spokelength)),
+    ({'n_samples': 1}, (image_shape[0], 1, nspokes*spokelength))
 ])
 def test_train_nc_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_dataset, ds_kwargs, expected_kspace_shape):
     tf.config.experimental_run_functions_eagerly(True)
