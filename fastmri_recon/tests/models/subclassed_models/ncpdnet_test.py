@@ -13,5 +13,5 @@ def test_ncpdnet_init_and_call(ktraj):
     model([
         tf.zeros([1, 1, kspace_shape], dtype=tf.complex64),
         traj,
-        tf.constant([image_shape[-1]])
+        (tf.constant(image_shape[-1]),),
     ])
