@@ -184,6 +184,7 @@ class NFFTBase(Layer):
             raise NotImplementedError('Multicoil NFFT is not implemented yet.')
         else:
             kspace, ktraj, shape = inputs
+        shape = shape[0]
         image = self.backward_op(kspace, ktraj)
         if not self.multicoil:
             image = image[:, 0]

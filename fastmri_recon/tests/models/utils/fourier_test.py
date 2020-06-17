@@ -88,7 +88,7 @@ class TestNFFTLayer(tf.test.TestCase):
             image = adj_nfft_layer([
                 self.kspace,
                 self.ktraj(self.image_shape, self.nspokes),
-                shape,
+                tf.constant(shape)[None, ...],
             ])
             self.assertAllEqual(tf.rank(image), 4)
             if shape >= self.image_shape[-1]:
