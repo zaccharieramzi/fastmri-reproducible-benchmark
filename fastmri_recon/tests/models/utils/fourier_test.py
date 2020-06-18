@@ -78,7 +78,7 @@ class TestNFFTLayer(tf.test.TestCase):
             self.image,
             self.ktraj(self.image_shape, self.nspokes),
         ])
-        self.assertAllEqual(tf.rank(kdata), 3)
+        self.assertAllEqual(tf.rank(kdata), 4)
         self.assertAllEqual(shape[0], self.image_shape[-1])
 
 

@@ -177,7 +177,7 @@ class NFFTBase(Layer):
 
         kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
         shape = tf.ones([tf.shape(image)[0]], dtype=tf.int32) * tf.shape(image)[-1]
-        return kspace, [shape]
+        return kspace[..., None], [shape]
 
     def adj_op(self, inputs):
         if self.multicoil:
