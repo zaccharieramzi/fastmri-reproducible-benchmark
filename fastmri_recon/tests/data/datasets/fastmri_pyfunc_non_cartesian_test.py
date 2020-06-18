@@ -7,15 +7,16 @@ from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_ks
 image_shape = [2, 640, 322, 1]
 nspokes = 15
 spokelength = 400
+kspace_shape = [image_shape[0], 1, nspokes*spokelength, 1]
 image_size = [640, 474]
 file_contrast = 'CORPD_FBK'
 
 @pytest.mark.parametrize('ds_kwargs, expected_kspace_shape, orig_shape', [
-    ({}, [image_shape[0], 1, nspokes*spokelength], image_shape[-2]),
-    ({'inner_slices': 1}, [1, 1, nspokes*spokelength], image_shape[-2]),
-    ({'inner_slices': 1, 'rand': True}, [1, 1, nspokes*spokelength], image_shape[-2]),
-    ({'contrast': file_contrast}, [image_shape[0], 1, nspokes*spokelength], image_shape[-2]),
-    ({'n_samples': 1}, [image_shape[0], 1, nspokes*spokelength], image_shape[-2]),
+    ({}, kspace_shape, image_shape[-2]),
+    ({'inner_slices': 1}, [1] + kspace_shape[1:], image_shape[-2]),
+    ({'inner_slices': 1, 'rand': True}, [1] + kspace_shape[1:], image_shape[-2]),
+    ({'contrast': file_contrast}, kspace_shape, image_shape[-2]),
+    ({'n_samples': 1}, kspace_shape, image_shape[-2]),
 ])
 def test_train_nc_kspace_dataset_from_indexable(
         create_full_fastmri_test_tmp_dataset,
