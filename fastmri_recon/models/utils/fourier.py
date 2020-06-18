@@ -185,7 +185,7 @@ class NFFTBase(Layer):
         else:
             kspace, ktraj, shape = inputs
         shape = tf.reshape(shape[0], [])
-        image = self.backward_op(kspace, ktraj)
+        image = self.backward_op(kspace[..., 0], ktraj)
         if not self.multicoil:
             image = image[:, 0]
 

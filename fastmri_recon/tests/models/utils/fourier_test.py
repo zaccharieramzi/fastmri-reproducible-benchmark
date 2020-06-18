@@ -68,7 +68,7 @@ class TestNFFTLayer(tf.test.TestCase):
         self.nspokes = 15
         kspace_shape = (spokelength * self.nspokes,)
         kspace = np.random.normal(size=kspace_shape) + 1j * np.random.normal(size=kspace_shape)
-        self.kspace = tf.convert_to_tensor(kspace)[None, None, ...]
+        self.kspace = tf.convert_to_tensor(kspace)[None, None, ..., None]
         # tensor conversions
         self.image = tf.convert_to_tensor(image)[None, ..., None]
 
