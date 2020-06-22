@@ -7,7 +7,7 @@ from fastmri_recon.evaluate.reconstruction.grappa_reconstruction import reco_gra
 
 
 def eval_grappa(af=4, contrast=None, n_samples=10):
-    val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
+    val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
         AF=af,
