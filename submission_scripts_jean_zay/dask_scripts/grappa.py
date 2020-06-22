@@ -49,6 +49,7 @@ def full_pipeline_dask():
                 eval_grappa,
                 contrast=contrast,
                 af=af,
+                n_samples=50,
                 # this function has potential side effects
                 pure=True,
             )]
