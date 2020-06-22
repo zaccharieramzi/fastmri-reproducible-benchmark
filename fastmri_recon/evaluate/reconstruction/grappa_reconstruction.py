@@ -15,6 +15,6 @@ def reco_grappa(kspace, af=4):
     recon = np.empty([n_slices, sx, sy], dtype=np.complex)
     for i in range(n_slices):
         recon[i] = cgrappa(kspace[i].astype(np.complex), calib[i].astype(np.complex), kernel_size=(5, 5), coil_axis=0)
-    x_final = np.abs(recon)
+    x_final = np.linalg.norm(recon, axis=1)
     x_final = crop_center(x_final, 320)
     return x_final
