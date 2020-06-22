@@ -20,6 +20,6 @@ def eval_grappa(af=4, contrast=None, n_samples=10):
     )
     m = Metrics(METRIC_FUNCS)
     for (kspace, _), gt_image in tqdm(val_set.take(n_samples).as_numpy_iterator(), total=n_samples):
-        reco = reco_grappa(kspace[:, None, ..., 0])
+        reco = reco_grappa(kspace[..., 0])
         m.push(gt_image[..., 0], reco)
     return m

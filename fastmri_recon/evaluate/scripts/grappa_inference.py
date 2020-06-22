@@ -26,5 +26,5 @@ def grappa_inference(contrast=None, af=4, n_samples=None, exp_id='grappa'):
     ).as_numpy_iterator()
     tqdm_total = 30 if n_samples is None else n_samples
     for (kspace, _, _), filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
-        res = reco_grappa(kspace)
+        res = reco_grappa(kspace[..., 0])
         write_result(exp_id, res[..., None], filename.decode('utf-8'))
