@@ -28,8 +28,12 @@ def get_radial_trajectory(nspokes, spokelength=None):
     traj.set_shape((1, 2, nspokes*spokelength))
     return traj
 
-def get_cartesian_trajectory(af=4, readout_dim=400, spokelength=640):
-    mask = gen_mask_tf(tf.zeros((1, spokelength, readout_dim)), accel_factor=af)
+def get_debugging_cartesian_trajectory():
+    # we fix those to have a determined tensor shape
+    af = 4
+    readout_dim = 400
+    spokelength = 640
+    mask = gen_mask_tf(tf.zeros((1, spokelength, readout_dim)), accel_factor=af, fixed_masks=True)
     y_taken = tf.cast(tf.where(mask)[:, -1], tf.float32)
     pi = tf.constant(np.pi, dtype=tf.float32)
     y_taken = (y_taken - (readout_dim/2)) * pi / (readout_dim/2)
@@ -41,5 +45,7 @@ def get_cartesian_trajectory(af=4, readout_dim=400, spokelength=640):
         tf.reshape(traj_spoke, [-1]),
     ], axis=0)
     traj = traj[None, ...]
-
+    # the only reason why this is debugging is because we need a fixed number
+    # of points for the trajectory to use in the data processing pipeline
+    traj.set_shape((1, 2, 62080))
     return traj
