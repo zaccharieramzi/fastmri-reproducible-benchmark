@@ -30,10 +30,10 @@ def get_radial_trajectory(nspokes, spokelength=None):
 
 def get_cartesian_trajectory(af=4, readout_dim=400, spokelength=640):
     mask = gen_mask_tf(tf.zeros((1, spokelength, readout_dim)), accel_factor=af)
-    y_taken = tf.cast(tf.where(mask)[:, 0], tf.int32)
-    pi = tf.constant(np.pi)
+    y_taken = tf.cast(tf.where(mask)[:, -1], tf.float32)
+    pi = tf.constant(np.pi, dtype=tf.float32)
     y_taken = (y_taken - (readout_dim/2)) * pi / (readout_dim/2)
-    spoke_range = tf.range(spokelength)
+    spoke_range = tf.range(spokelength, dtype=tf.float32)
     spoke_range = (spoke_range - (spokelength/2)) * pi / (spokelength/2)
     traj_readout, traj_spoke = tf.meshgrid(y_taken, spoke_range)
     traj = tf.stack([
