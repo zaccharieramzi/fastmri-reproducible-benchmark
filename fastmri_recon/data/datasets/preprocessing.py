@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from ..utils.masking.gen_mask_tf import gen_mask_tf
-from ..utils.non_cartesian import get_radial_trajectory
+from ..utils.non_cartesian import get_radial_trajectory, get_cartesian_trajectory
 from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
 
 
@@ -20,6 +20,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
         if acq_type == 'radial':
             traj = get_radial_trajectory(**acq_kwargs)
+        elif acq_type == 'cartesian':
+            traj = get_cartesian_trajectory(readout_dim=image_size[-1], **acq_kwargs)
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
