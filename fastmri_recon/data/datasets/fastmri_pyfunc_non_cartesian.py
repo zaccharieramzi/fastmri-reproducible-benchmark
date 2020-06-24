@@ -14,6 +14,7 @@ def train_nc_kspace_dataset_from_indexable(
         contrast=None,
         n_samples=None,
         acq_type='radial',
+        compute_dcomp=False,
         **acq_kwargs,
     ):
     selection = [{'inner_slices': inner_slices, 'rand': rand}]
@@ -74,6 +75,7 @@ def train_nc_kspace_dataset_from_indexable(
             image_size,
             acq_type=acq_type,
             scale_factor=scale_factor,
+            compute_dcomp=compute_dcomp,
             **acq_kwargs,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
