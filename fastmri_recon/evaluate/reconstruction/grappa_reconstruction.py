@@ -2,6 +2,7 @@ import numpy as np
 from pygrappa import cgrappa
 
 from ...data.utils.crop import crop_center
+from ...data.utils.fourier import ifft
 
 
 def reco_grappa(kspace, af=4, **grappa_kwargs):
@@ -21,6 +22,7 @@ def reco_grappa(kspace, af=4, **grappa_kwargs):
             coil_axis=0,
             **grappa_kwargs,
         )
+    recon = ifft(recon)
     x_final = np.linalg.norm(recon, axis=1)
     x_final = crop_center(x_final, 320)
     return x_final
