@@ -27,10 +27,11 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
-            nufftob_forw = kbnufft_forward(nfft_ob)
-            nufftob_back = kbnufft_adjoint(nfft_ob)
+            interpob = nfft_ob._extract_nufft_interpob()
+            nufftob_forw = kbnufft_forward(interpob)
+            nufftob_back = kbnufft_adjoint(interpob)
             dcomp = calculate_radial_dcomp_tf(
-                nfft_ob,
+                interpob,
                 nufftob_forw,
                 nufftob_back,
                 traj[0],
