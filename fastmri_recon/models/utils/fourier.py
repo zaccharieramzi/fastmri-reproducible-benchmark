@@ -146,7 +146,7 @@ def nufft(nufft_ob, image, ktraj, image_size=None):
 
 
 class NFFTBase(Layer):
-    def __init__(self, multicoil=False, im_size=(640, 472), **kwargs):
+    def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, **kwargs):
         super(NFFTBase, self).__init__(**kwargs)
         self.multicoil = multicoil
         self.im_size = im_size
@@ -155,6 +155,7 @@ class NFFTBase(Layer):
             grid_size=None,
             norm='ortho',
         )
+        self.density_compensation = density_compensation
         self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
         self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
 
@@ -182,10 +183,16 @@ class NFFTBase(Layer):
     def adj_op(self, inputs):
         if self.multicoil:
             raise NotImplementedError('Multicoil NFFT is not implemented yet.')
+        elif self.density_compensation:
+            kspace, ktraj, shape, dcomp = inputs
         else:
             kspace, ktraj, shape = inputs
         shape = tf.reshape(shape[0], [])
-        image = self.backward_op(kspace[..., 0], ktraj)
+        if self.density_compensation:
+            kspace = dcomp * kspace[..., 0]
+        else:
+            kspace = kspace[..., 0]
+        image = self.backward_op(kspace, ktraj)
         if not self.multicoil:
             image = image[:, 0]
 
