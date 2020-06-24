@@ -6,7 +6,7 @@ from fastmri_recon.evaluate.reconstruction.grappa_reconstruction import reco_gra
 from ..utils.write_results import write_result
 
 
-def grappa_inference(contrast=None, af=4, n_samples=None, exp_id='grappa'):
+def grappa_inference(contrast=None, af=4, n_samples=None, exp_id='grappa', **grappa_kwargs):
     test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
     af = int(af)
@@ -26,5 +26,5 @@ def grappa_inference(contrast=None, af=4, n_samples=None, exp_id='grappa'):
     ).as_numpy_iterator()
     tqdm_total = 30 if n_samples is None else n_samples
     for (kspace, _, _), filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total):
-        res = reco_grappa(kspace[..., 0], af=af)
+        res = reco_grappa(kspace[..., 0], af=af, **grappa_kwargs)
         write_result(exp_id, res[..., None], filename.decode('utf-8'))
