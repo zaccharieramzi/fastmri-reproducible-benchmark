@@ -10,6 +10,7 @@ class NCPDNet(CrossDomainNet):
             n_iter=10,
             activation='relu',
             multicoil=False,
+            dcomp=False,
             im_size=(640, 474),
             **kwargs,
         ):
@@ -30,7 +31,7 @@ class NCPDNet(CrossDomainNet):
             **kwargs,
         )
         self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil)
-        self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil)
+        self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=dcomp)
         self.image_net = [CNNComplex(
             n_convs=3,
             n_filters=self.n_filters,
