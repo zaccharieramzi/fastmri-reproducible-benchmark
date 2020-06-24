@@ -189,7 +189,7 @@ class NFFTBase(Layer):
             kspace, ktraj, shape = inputs
         shape = tf.reshape(shape[0], [])
         if self.density_compensation:
-            kspace = dcomp * kspace[..., 0]
+            kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
         else:
             kspace = kspace[..., 0]
         image = self.backward_op(kspace, ktraj)
