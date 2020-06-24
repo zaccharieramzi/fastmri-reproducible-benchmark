@@ -10,6 +10,7 @@ def train_eval_plug_and_play(
         contrast='CORPD_FBK',
         n_epochs=200,
         n_samples=None,
+        af=4,
         n_primal=5,
         loss='compound_mssim',
         train_partition='gpu_p1',
@@ -55,6 +56,7 @@ def train_eval_plug_and_play(
         contrast=contrast,
         n_epochs=n_epochs,
         n_samples=n_samples,
+        af=af,
         loss=loss,
     ) for _, model_size, model_fun, kwargs, _, n_scales, res in model_specs]
     run_ids = client.gather(futures)
@@ -92,6 +94,7 @@ def train_eval_plug_and_play(
         multicoil=False,
         n_samples=50,
         contrast=contrast,
+        af=af,
         n_epochs=n_epochs,
         n_scales=n_scales,
         res=res,
