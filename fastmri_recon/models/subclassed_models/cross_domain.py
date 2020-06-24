@@ -90,7 +90,6 @@ class CrossDomainNet(Model):
             if domain == 'K':
                 forward_op_res = self.forward_operator(image_buffer, mask, smaps)
                 if isinstance(forward_op_res, tuple):
-                    op_args = forward_op_res[1]
                     forward_op_res = forward_op_res[0]
                 if self.k_buffer_mode:
                     kspace_buffer = tf.concat([
