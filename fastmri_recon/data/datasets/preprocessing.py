@@ -46,6 +46,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
         orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
         extra_args = (orig_shape,)
         if compute_dcomp:
+            dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
             extra_args += (dcomp,)
         return (nc_kspaces_channeled, traj, extra_args), images_channeled
     return tf.function(
