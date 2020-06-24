@@ -17,6 +17,7 @@ n_volumes_train = 973
 def train_ncpdnet(
         multicoil=False,
         acq_type='radial',
+        dcomp=False,
         contrast=None,
         cuda_visible_devices='0123',
         n_samples=None,
@@ -62,6 +63,7 @@ def train_ncpdnet(
         train_path,
         im_size,
         acq_type=acq_type,
+        dcomp=dcomp,
         contrast=contrast,
         inner_slices=None,
         rand=True,
@@ -73,6 +75,7 @@ def train_ncpdnet(
         val_path,
         im_size,
         acq_type=acq_type,
+        dcomp=dcomp,
         contrast=contrast,
         inner_slices=None,
         rand=True,
@@ -87,12 +90,13 @@ def train_ncpdnet(
         'n_iter': n_iter,
         'n_filters': n_filters,
         'im_size': im_size,
+        'dcomp': dcomp,
     }
 
     if multicoil:
-        updnet_type = 'ncpdnet_sense_'
+        ncpdnet_type = 'ncpdnet_sense_'
     else:
-        updnet_type = 'ncpdnet_singlecoil_'
+        ncpdnet_type = 'ncpdnet_singlecoil_'
     additional_info = f'{acq_type}'
     if contrast is not None:
         additional_info += f'_{contrast}'
@@ -104,8 +108,10 @@ def train_ncpdnet(
         additional_info += f'_{non_linearity}'
     if loss != 'mae':
         additional_info += f'_{loss}'
+    if dcomp:
+        additional_info += '_dcomp'
 
-    run_id = f'{updnet_type}_{additional_info}_{int(time.time())}'
+    run_id = f'{ncpdnet_type}_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
