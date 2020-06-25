@@ -81,7 +81,7 @@ def evaluate_ncpdnet(
     if n_samples is not None:
         val_set = val_set.take(n_samples)
 
-    example_input = next(iter(val_set))
+    example_input = next(iter(val_set))[0]
     inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
