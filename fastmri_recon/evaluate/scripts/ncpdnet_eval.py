@@ -66,7 +66,7 @@ def evaluate_ncpdnet(
         pass
     else:
         dataset = singlecoil_dataset
-        kwargs = {}
+        kwargs = acq_kwargs
     val_set = dataset(
         val_path,
         im_size,
