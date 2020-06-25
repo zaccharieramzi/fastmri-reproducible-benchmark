@@ -18,6 +18,7 @@ def train_ncpdnet(
         multicoil=False,
         acq_type='radial',
         dcomp=False,
+        normalize_image=False,
         contrast=None,
         cuda_visible_devices='0123',
         n_samples=None,
@@ -91,6 +92,7 @@ def train_ncpdnet(
         'n_filters': n_filters,
         'im_size': im_size,
         'dcomp': dcomp,
+        'normalize_image': normalize_image,
     }
 
     if multicoil:

@@ -35,6 +35,7 @@ def evaluate_ncpdnet(
         contrast=None,
         acq_type='radial',
         dcomp=False,
+        normalize_image=False,
         n_iter=10,
         n_filters=32,
         n_primal=5,
@@ -62,6 +63,7 @@ def evaluate_ncpdnet(
         'n_filters': n_filters,
         'im_size': im_size,
         'dcomp': dcomp,
+        'normalize_image': normalize_image,
     }
 
     if multicoil:
