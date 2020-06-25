@@ -16,11 +16,17 @@ def _extract_inputs_shape(inputs, no_batch=True):
         else:
             return inputs.shape
 
-def _zeros_from_shape(shapes):
-    if isinstance(shapes, (list, tuple)):
-        return [_zeros_from_shape(s) for s in shapes]
+def _extract_inputs_dtype(inputs):
+    if isinstance(inputs, (list, tuple)):
+        return [_extract_inputs_dtype(i) for i in inputs]
     else:
-        return tf.zeros(shapes)
+        return inputs.dtype
+
+def _zeros_from_shape(shapes, dtypes):
+    if isinstance(shapes, (list, tuple)):
+        return [_zeros_from_shape(s, d) for s, d in zip(shapes, dtypes)]
+    else:
+        return tf.zeros(shapes, dtype=dtypes)
 
 def evaluate_ncpdnet(
         multicoil=False,
@@ -79,11 +85,12 @@ def evaluate_ncpdnet(
 
     example_input = next(iter(val_set))[0]
     inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
+    inputs_dtype = _extract_inputs_dtype(example_input)
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
         model = NCPDNet(**run_params)
-        inputs = _zeros_from_shape(inputs_shape)
+        inputs = _zeros_from_shape(inputs_shape, inputs_dtype)
         # special case for the shape:
         inputs[-1][0] = tf.constant([[372]])
         model(inputs)
