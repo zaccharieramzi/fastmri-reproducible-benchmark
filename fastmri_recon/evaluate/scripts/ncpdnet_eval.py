@@ -8,10 +8,8 @@ from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 
 
 def _extract_inputs_shape(inputs, no_batch=True):
-    if isinstance(inputs, list):
+    if isinstance(inputs, (list, tuple)):
         return [_extract_inputs_shape(i, no_batch=no_batch) for i in inputs]
-    elif isinstance(inputs, tuple):
-        return tuple(_extract_inputs_shape(i, no_batch=no_batch) for i in inputs)
     else:
         if no_batch:
             return [1] + inputs.shape[1:]
@@ -19,10 +17,8 @@ def _extract_inputs_shape(inputs, no_batch=True):
             return inputs.shape
 
 def _zeros_from_shape(shapes):
-    if isinstance(shapes, list):
+    if isinstance(shapes, (list, tuple)):
         return [_zeros_from_shape(s) for s in shapes]
-    elif isinstance(shapes, tuple):
-        return tuple(_zeros_from_shape(s) for s in shapes)
     else:
         return tf.zeros(shapes)
 
