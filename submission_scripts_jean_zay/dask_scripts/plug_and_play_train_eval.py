@@ -63,6 +63,35 @@ def train_eval_plug_and_play(
     client.close()
     train_cluster.close()
     # eval
+    eval_plug_and_play(
+        run_ids,
+        job_name=job_name,
+        contrast=contrast,
+        n_epochs=n_epochs,
+        n_samples=n_samples,
+        af=af,
+        n_primal=n_primal,
+        model_name=model_name,
+    )
+    return run_ids
+
+
+def eval_plug_and_play(
+        run_ids,
+        job_name='eval_pandp',
+        contrast='CORPD_FBK',
+        n_epochs=200,
+        n_samples=None,
+        af=4,
+        n_primal=5,
+        train_partition='gpu_p1',
+        model_name=None,
+    ):
+    model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
+    if model_name is not None:
+        model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    n_models = len(model_specs)
+    # eval
     eval_cluster = SLURMCluster(
         cores=1,
         job_cpu=40,

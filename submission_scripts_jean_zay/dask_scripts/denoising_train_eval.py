@@ -48,6 +48,24 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
     client.close()
     train_cluster.close()
     # eval
+    eval_denoisers(
+        run_ids,
+        job_name=job_name,
+        contrast=contrast,
+        n_epochs=n_epochs,
+        n_samples=n_samples,
+        model_name=model_name,
+    )
+    return run_ids
+
+def eval_denoisers(
+        run_ids,
+        job_name='eval_denoisers',
+        contrast='CORPD_FBK',
+        n_epochs=200,
+        n_samples=None,
+        model_name=None,
+    ):
     eval_cluster = SLURMCluster(
         cores=1,
         job_cpu=40,
