@@ -15,11 +15,14 @@ def train_eval_plug_and_play(
         loss='compound_mssim',
         train_partition='gpu_p1',
         model_name=None,
+        model_size=None,
     ):
     job_name = 'plug_and_play'
     model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
@@ -84,10 +87,13 @@ def eval_plug_and_play(
         n_primal=5,
         train_partition='gpu_p1',
         model_name=None,
+        model_size=None,
     ):
     model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
     n_models = len(model_specs)
     # eval
     eval_cluster = SLURMCluster(

@@ -8,11 +8,13 @@ from fastmri_recon.evaluate.scripts.denoising_eval import evaluate_xpdnet_denois
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.denoising.generic_train import train_denoiser
 
-def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None):
+def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None, model_size=None,):
     job_name = 'denoising_fastmri'
     model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
@@ -63,10 +65,13 @@ def eval_denoisers(
         contrast='CORPD_FBK',
         n_epochs=200,
         model_name=None,
+        model_size=None,
     ):
     model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
     n_models = len(model_specs)
     eval_cluster = SLURMCluster(
         cores=1,
