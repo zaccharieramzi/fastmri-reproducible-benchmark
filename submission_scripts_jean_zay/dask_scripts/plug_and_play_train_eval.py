@@ -74,6 +74,7 @@ def train_eval_plug_and_play(
         af=af,
         n_primal=n_primal,
         model_name=model_name,
+        n_samples_train=n_samples,
     )
     return run_ids
 
@@ -82,6 +83,7 @@ def eval_plug_and_play(
         run_ids,
         job_name='eval_pandp',
         contrast='CORPD_FBK',
+        n_samples_train=None,
         n_epochs=200,
         af=4,
         n_primal=5,
@@ -145,9 +147,9 @@ def eval_plug_and_play(
         ), ignore_index=True)
 
     print(df_results)
-    outputs_file = f'reconstruction_results_{n_samples}.csv'
+    outputs_file = f'reconstruction_results_{n_samples_train}.csv'
     if model_name is not None:
-        outputs_file = f'reconstruction_results_{n_samples}_{model_name}.csv'
+        outputs_file = f'reconstruction_results_{n_samples_train}_{model_name}.csv'
     df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()

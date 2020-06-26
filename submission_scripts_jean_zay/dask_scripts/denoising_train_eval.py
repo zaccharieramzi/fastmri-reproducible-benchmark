@@ -56,6 +56,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
         contrast=contrast,
         n_epochs=n_epochs,
         model_name=model_name,
+        n_samples_train=n_samples,
     )
     return run_ids
 
@@ -66,6 +67,7 @@ def eval_denoisers(
         n_epochs=200,
         model_name=None,
         model_size=None,
+        n_samples_train=None,
     ):
     model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
@@ -116,9 +118,9 @@ def eval_denoisers(
         ), ignore_index=True)
 
     print(df_results)
-    outputs_file = f'denoising_results_{n_samples}.csv'
+    outputs_file = f'denoising_results_{n_samples_train}.csv'
     if model_name is not None:
-        outputs_file = f'denoising_results_{n_samples}_{model_name}.csv'
+        outputs_file = f'denoising_results_{n_samples_train}_{model_name}.csv'
     df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()
