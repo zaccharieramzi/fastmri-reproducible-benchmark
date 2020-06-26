@@ -43,6 +43,7 @@ def evaluate_nc(
         acq_type='radial',
         n_samples=None,
         cuda_visible_devices='0123',
+        dcomp=False,
         **acq_kwargs,
     ):
     if multicoil:
@@ -127,6 +128,7 @@ def evaluate_ncpdnet(
     return evaluate_nc(
         model,
         multicoil=multicoil,
+        dcomp=dcomp,
         **eval_kwargs,
     )
 
@@ -135,5 +137,6 @@ def evaluate_dcomp(multicoil=False, **eval_kwargs):
     return evaluate_nc(
         model,
         multicoil=multicoil,
+        dcomp=True,
         **eval_kwargs,
     )
