@@ -15,11 +15,14 @@ def train_eval_plug_and_play(
         loss='compound_mssim',
         train_partition='gpu_p1',
         model_name=None,
+        model_size=None,
     ):
     job_name = 'plug_and_play'
     model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
     if model_name is not None:
         model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
     n_models = len(model_specs)
     train_cluster = SLURMCluster(
         cores=1,
@@ -62,6 +65,38 @@ def train_eval_plug_and_play(
     run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
+    # eval
+    eval_plug_and_play(
+        run_ids,
+        job_name=job_name,
+        contrast=contrast,
+        n_epochs=n_epochs,
+        af=af,
+        n_primal=n_primal,
+        model_name=model_name,
+        n_samples_train=n_samples,
+    )
+    return run_ids
+
+
+def eval_plug_and_play(
+        run_ids,
+        job_name='eval_pandp',
+        contrast='CORPD_FBK',
+        n_samples_train=None,
+        n_epochs=200,
+        af=4,
+        n_primal=5,
+        train_partition='gpu_p1',
+        model_name=None,
+        model_size=None,
+    ):
+    model_specs = list(get_model_specs(force_res=False, n_primal=n_primal))
+    if model_name is not None:
+        model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    if model_size is not None:
+        model_specs = [ms for ms in model_specs if ms[1] == model_size]
+    n_models = len(model_specs)
     # eval
     eval_cluster = SLURMCluster(
         cores=1,
@@ -112,9 +147,9 @@ def train_eval_plug_and_play(
         ), ignore_index=True)
 
     print(df_results)
-    outputs_file = f'reconstruction_results_{n_samples}.csv'
+    outputs_file = f'reconstruction_results_{n_samples_train}.csv'
     if model_name is not None:
-        outputs_file = f'reconstruction_results_{n_samples}_{model_name}.csv'
+        outputs_file = f'reconstruction_results_{n_samples_train}_{model_name}.csv'
     df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()
