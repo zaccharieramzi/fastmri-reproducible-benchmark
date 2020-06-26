@@ -53,7 +53,6 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
         job_name=job_name,
         contrast=contrast,
         n_epochs=n_epochs,
-        n_samples=n_samples,
         model_name=model_name,
     )
     return run_ids
@@ -63,9 +62,12 @@ def eval_denoisers(
         job_name='eval_denoisers',
         contrast='CORPD_FBK',
         n_epochs=200,
-        n_samples=None,
         model_name=None,
     ):
+    model_specs = list(get_model_specs(force_res=True))
+    if model_name is not None:
+        model_specs = [ms for ms in model_specs if ms[0] == model_name]
+    n_models = len(model_specs)
     eval_cluster = SLURMCluster(
         cores=1,
         job_cpu=40,
