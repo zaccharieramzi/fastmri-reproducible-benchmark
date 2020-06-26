@@ -4,9 +4,15 @@ import tensorflow as tf
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 
 
+# this number means that 99.56% of all images will not be affected by
+# cropping
+IM_SIZE = (640, 400)
+
+# TODO: replace these stupid functions with just extraction of the first slice...
 def _extract_inputs_shape(inputs, no_batch=True):
     if isinstance(inputs, (list, tuple)):
         return [_extract_inputs_shape(i, no_batch=no_batch) for i in inputs]
@@ -39,9 +45,6 @@ def evaluate_nc(
         cuda_visible_devices='0123',
         **acq_kwargs,
     ):
-    # this number means that 99.56% of all images will not be affected by
-    # cropping
-    im_size = (640, 400)
     if multicoil:
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
         raise ValueError('Non cartesian multicoil is not implemented yet')
@@ -50,17 +53,6 @@ def evaluate_nc(
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
-    run_params = {
-        'n_primal': n_primal,
-        'multicoil': multicoil,
-        'activation': non_linearity,
-        'n_iter': n_iter,
-        'n_filters': n_filters,
-        'im_size': im_size,
-        'dcomp': dcomp,
-        'normalize_image': normalize_image,
-    }
-
     if multicoil:
         pass
     else:
@@ -68,7 +60,7 @@ def evaluate_nc(
         kwargs = acq_kwargs
     val_set = dataset(
         val_path,
-        im_size,
+        IM_SIZE,
         acq_type=acq_type,
         compute_dcomp=dcomp,
         contrast=contrast,
@@ -119,19 +111,26 @@ def evaluate_ncpdnet(
         n_primal=5,
         **eval_kwargs
     ):
-
     run_params = {
         'n_primal': n_primal,
         'multicoil': multicoil,
         'activation': non_linearity,
         'n_iter': n_iter,
         'n_filters': n_filters,
-        'im_size': im_size,
+        'im_size': IM_SIZE,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
     }
 
     model = NCPDNet(**run_params)
+    return evaluate_nc(
+        model,
+        multicoil=multicoil,
+        **eval_kwargs,
+    )
+
+def evaluate_dcomp(multicoil=False, **eval_kwargs):
+    model = NCDcompReconstructor(multicoil=multicoil, im_size=IM_SIZE)
     return evaluate_nc(
         model,
         multicoil=multicoil,
