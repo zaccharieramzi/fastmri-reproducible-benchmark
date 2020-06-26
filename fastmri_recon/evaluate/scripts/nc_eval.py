@@ -28,18 +28,13 @@ def _zeros_from_shape(shapes, dtypes):
     else:
         return tf.zeros(shapes, dtype=dtypes)
 
-def evaluate_ncpdnet(
+def evaluate_nc(
+        model,
         multicoil=False,
         run_id='ncpdnet_sense_af4_1588609141',
         n_epochs=200,
         contrast=None,
         acq_type='radial',
-        dcomp=False,
-        normalize_image=False,
-        n_iter=10,
-        n_filters=32,
-        n_primal=5,
-        non_linearity='relu',
         n_samples=None,
         cuda_visible_devices='0123',
         **acq_kwargs,
@@ -89,31 +84,56 @@ def evaluate_ncpdnet(
     inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
     inputs_dtype = _extract_inputs_dtype(example_input)
 
-    mirrored_strategy = tf.distribute.MirroredStrategy()
-    with mirrored_strategy.scope():
-        model = NCPDNet(**run_params)
-        inputs = _zeros_from_shape(inputs_shape, inputs_dtype)
-        # special case for the shape:
-        inputs[-1][0] = tf.constant([[372]])
-        model(inputs)
-        def tf_psnr(y_true, y_pred):
-            perm_psnr = [3, 1, 2, 0]
-            psnr = tf.image.psnr(
-                tf.transpose(y_true, perm_psnr),
-                tf.transpose(y_pred, perm_psnr),
-                tf.reduce_max(y_true),
-            )
-            return psnr
-        def tf_ssim(y_true, y_pred):
-            perm_ssim = [0, 1, 2, 3]
-            ssim = tf.image.ssim(
-                tf.transpose(y_true, perm_ssim),
-                tf.transpose(y_pred, perm_ssim),
-                tf.reduce_max(y_true),
-            )
-            return ssim
+    inputs = _zeros_from_shape(inputs_shape, inputs_dtype)
+    # special case for the shape:
+    inputs[-1][0] = tf.constant([[372]])
+    model(inputs)
+    def tf_psnr(y_true, y_pred):
+        perm_psnr = [3, 1, 2, 0]
+        psnr = tf.image.psnr(
+            tf.transpose(y_true, perm_psnr),
+            tf.transpose(y_pred, perm_psnr),
+            tf.reduce_max(y_true),
+        )
+        return psnr
+    def tf_ssim(y_true, y_pred):
+        perm_ssim = [0, 1, 2, 3]
+        ssim = tf.image.ssim(
+            tf.transpose(y_true, perm_ssim),
+            tf.transpose(y_pred, perm_ssim),
+            tf.reduce_max(y_true),
+        )
+        return ssim
 
-        model.compile(loss=tf_psnr, metrics=[tf_ssim])
+    model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
     return model.metrics_names, eval_res
+
+def evaluate_ncpdnet(
+        multicoil=False,
+        dcomp=False,
+        normalize_image=False,
+        n_iter=10,
+        n_filters=32,
+        n_primal=5,
+        **eval_kwargs
+    ):
+
+    run_params = {
+        'n_primal': n_primal,
+        'multicoil': multicoil,
+        'activation': non_linearity,
+        'n_iter': n_iter,
+        'n_filters': n_filters,
+        'im_size': im_size,
+        'dcomp': dcomp,
+        'normalize_image': normalize_image,
+    }
+
+    model = NCPDNet(**run_params)
+    return evaluate_nc(
+        model,
+        multicoil=multicoil,
+        **eval_kwargs,
+    )
