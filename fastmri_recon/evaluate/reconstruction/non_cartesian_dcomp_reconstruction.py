@@ -1,7 +1,7 @@
 from tensorflow.keras.models import Model
 
 from fastmri_recon.models.utils.fourier import NFFT, AdjNFFT
-
+from fastmri_recon.models.utils.fastmri_format import tf_fastmri_format
 
 class NCDcompReconstructor(Model):
     def __init__(self, im_size=(640, 474), multicoil=False, **kwargs):
