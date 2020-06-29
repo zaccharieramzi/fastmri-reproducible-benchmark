@@ -9,8 +9,6 @@ from fastmri_recon.models.subclassed_models.denoisers.proposed_params import bui
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-n_volumes_train = 973
-
 def train_denoiser(
         model,
         run_id,
@@ -20,6 +18,7 @@ def train_denoiser(
         n_epochs=200,
         loss='mae',
         lr=1e-4,
+        n_steps_per_epoch=973,  # number of volumes in the fastMRI dataset
     ):
     train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
     val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -56,7 +55,7 @@ def train_denoiser(
     default_model_compile(model, lr=lr, loss=loss)
     model.fit(
         train_set,
-        steps_per_epoch=n_volumes_train,
+        steps_per_epoch=n_steps_per_epoch,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=10,
