@@ -8,7 +8,7 @@ from fastmri_recon.evaluate.scripts.denoising_eval import evaluate_xpdnet_denois
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.denoising.generic_train import train_denoiser
 
-def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None, model_size=None,):
+def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None, model_size=None, loss='mae'):
     job_name = 'denoising_fastmri'
     model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
@@ -45,6 +45,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
         contrast=contrast,
         n_epochs=n_epochs,
         n_samples=n_samples,
+        loss=loss,
     ) for model_name, model_size, model_fun, kwargs, n_inputs, _, _ in model_specs]
     run_ids = client.gather(futures)
     client.close()
@@ -58,6 +59,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
         model_name=model_name,
         model_size=model_size,
         n_samples_train=n_samples,
+        loss=loss,
     )
     return run_ids
 
@@ -69,6 +71,7 @@ def eval_denoisers(
         model_name=None,
         model_size=None,
         n_samples_train=None,
+        loss='mae',
     ):
     model_specs = list(get_model_specs(force_res=True))
     if model_name is not None:
@@ -119,9 +122,9 @@ def eval_denoisers(
         ), ignore_index=True)
 
     print(df_results)
-    outputs_file = f'denoising_results_{n_samples_train}.csv'
+    outputs_file = f'denoising_results_{n_samples_train}_{loss}.csv'
     if model_name is not None:
-        outputs_file = f'denoising_results_{n_samples_train}_{model_name}.csv'
+        outputs_file = f'denoising_results_{n_samples_train}_{loss}_{model_name}.csv'
     df_results.to_csv(outputs_file)
     print('Shutting down dask workers')
     client.close()
