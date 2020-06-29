@@ -64,6 +64,8 @@ class CrossDomainNet(Model):
                 rss = tf.norm(smaps_refined, axis=1, keepdims=True)
                 smaps_refined_normalized = smaps_refined / rss
                 smaps = smaps_refined_normalized
+            # TODO: change when doing non uniform multicoil
+            op_args = ()
         else:
             if len(inputs) == 2:
                 original_kspace, mask = inputs
