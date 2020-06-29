@@ -18,7 +18,6 @@ def reco_grappa(kspace, af=4, **grappa_kwargs):
         recon[i] = cgrappa(
             kspace[i].astype(np.complex),
             calib[i].astype(np.complex),
-            kernel_size=(5, 5),
             coil_axis=0,
             **grappa_kwargs,
         )
