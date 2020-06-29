@@ -29,6 +29,7 @@ def train_masked_kspace_dataset_from_indexable(
         contrast=None,
         n_samples=None,
         fixed_masks=False,
+        mask_type='random',
     ):
     selection = [{'inner_slices': inner_slices, 'rand': rand}]
     def _tf_filename_to_image_and_kspace_and_contrast(filename):
@@ -82,6 +83,7 @@ def train_masked_kspace_dataset_from_indexable(
             AF=AF,
             scale_factor=scale_factor,
             fixed_masks=fixed_masks,
+            mask_type=mask_type,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)

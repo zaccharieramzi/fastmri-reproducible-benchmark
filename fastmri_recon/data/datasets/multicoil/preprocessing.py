@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from ...utils.masking.gen_mask_tf import gen_mask_tf
+from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant
 from ...utils.multicoil.smap_extract import extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op
 
@@ -10,14 +10,22 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         scale_factor=1,
         parallel=True,
         fixed_masks=False,
+        mask_type='random',
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        mask = gen_mask_tf(
-            kspaces,
-            accel_factor=AF,
-            multicoil=not parallel,
-            fixed_masks=fixed_masks,
-        )
+        if mask_type == 'random':
+            mask = gen_mask_tf(
+                kspaces,
+                accel_factor=AF,
+                multicoil=not parallel,
+                fixed_masks=fixed_masks,
+            )
+        else:
+            mask = gen_mask_equidistant(
+                kspaces,
+                accel_factor=AF,
+                multicoil=not parallel,
+            )
         if parallel:
             images = tf.abs(tf_unmasked_adj_op(kspaces[..., None]))[..., 0]
         else:

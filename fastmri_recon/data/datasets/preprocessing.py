@@ -1,11 +1,14 @@
 import tensorflow as tf
 
-from ..utils.masking.gen_mask_tf import gen_mask_tf
+from ..utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant
 
 
-def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False):
+def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False, mask_type='random'):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
+        if mask_type == 'random':
+            mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
+        else:
+            mask = gen_mask_equidistant(kspaces, accel_factor=AF)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor
