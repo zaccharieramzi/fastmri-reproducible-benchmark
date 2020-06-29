@@ -42,9 +42,18 @@ def _complex_to_2d(points):
     Y = points.imag
     return np.asarray([X, Y]).T
 
-def get_spiral_trajectory(image_shape, af, num_revolutions=3):
+def get_spiral_trajectory(image_shape, af=None, us=None, num_revolutions=3):
     spokelength = image_shape[-2]
-    nspokes = image_shape[-1] // af
+    if af is not None and us is not None:
+        raise ValueError('You cannot set both acceleration and undersampling factor.')
+    if af is None and us is None:
+        raise ValueError('You need to set acceleration factor or undersampling factor.')
+    spokelength = image_shape[-2]
+    if af is not None:
+        nspokes = image_shape[-1] // af
+    if us is not None:
+        theta_max = 2 * np.pi * num_revolutions
+        nspokes = int(image_shape[-1] * np.pi / (2 * us * theta_max))
     def _get_spiral_trajectory():
         shot = np.arange(0, spokelength, dtype=np.complex)
         radius = shot / spokelength * 1 / (2 * np.pi) * \
