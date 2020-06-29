@@ -37,6 +37,36 @@ def get_radial_trajectory(image_shape, af=None, us=None):
     traj.set_shape((1, 2, nspokes*spokelength))
     return traj
 
+def _complex_to_2d(points):
+    X = points.real
+    Y = points.imag
+    return np.asarray([X, Y]).T
+
+def get_spiral_trajectory(image_shape, af, num_revolutions=3):
+    spokelength = image_shape[-2]
+    nspokes = image_shape[-1] // af
+    def _get_spiral_trajectory():
+        shot = np.arange(0, spokelength, dtype=np.complex)
+        radius = shot / spokelength * 1 / (2 * np.pi) * \
+            (1 - np.finfo(float).eps)
+        angle = np.exp(2 * 1j * np.pi * shot / spokelength * num_revolutions)
+        single_shot = np.multiply(radius, angle)
+        single_shot = np.append(np.flip(single_shot, axis=0), -single_shot[1:])
+        k_shots = []
+        for i in np.arange(0, nspokes):
+            shot_rotated = single_shot * np.exp(1j * 2 * np.pi * i / (nspokes * 2))
+            k_shots.append(_complex_to_2d(shot_rotated))
+        k_shots = np.asarray(k_shots)
+        traj = k_shots.reshape([1, 2, -1])
+        return traj
+    traj = tf.py_function(
+        _get_spiral_trajectory,
+        [],
+        tf.float32,
+    )
+    traj.set_shape((1, 2, nspokes*spokelength))
+    return traj
+
 def get_debugging_cartesian_trajectory():
     # we fix those to have a determined tensor shape
     af = 4
