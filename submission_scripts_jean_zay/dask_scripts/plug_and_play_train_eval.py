@@ -74,6 +74,7 @@ def train_eval_plug_and_play(
         af=af,
         n_primal=n_primal,
         model_name=model_name,
+        model_size=model_size,
         n_samples_train=n_samples,
     )
     return run_ids
