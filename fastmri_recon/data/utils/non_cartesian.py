@@ -4,7 +4,16 @@ import tensorflow as tf
 from fastmri_recon.data.utils.masking.gen_mask_tf import gen_mask_tf
 
 
-def get_radial_trajectory(nspokes, spokelength=None):
+def get_radial_trajectory(image_shape, af=None, us=None):
+    if af is not None and us is not None:
+        raise ValueError('You cannot set both acceleration and undersampling factor.')
+    if af is None and us is None:
+        raise ValueError('You need to set acceleration factor or undersampling factor.')
+    spokelength = image_shape[-2]
+    if af is not None:
+        nspokes = image_shape[-1] // af
+    if us is not None:
+        nspokes = int(image_shape[-1] * np.pi / (2 * us))
     def _get_radial_trajectory_numpy():
         ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
         kx = np.zeros(shape=(spokelength, nspokes))

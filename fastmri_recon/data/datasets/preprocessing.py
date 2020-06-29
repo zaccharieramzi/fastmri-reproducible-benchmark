@@ -21,7 +21,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_ma
 def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_type='radial', scale_factor=1, compute_dcomp=False, **acq_kwargs):
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
         if acq_type == 'radial':
-            traj = get_radial_trajectory(**acq_kwargs)
+            traj = get_radial_trajectory(image_size, **acq_kwargs)
         elif acq_type == 'cartesian':
             traj = get_debugging_cartesian_trajectory()
         else:
