@@ -56,6 +56,7 @@ def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mod
         contrast=contrast,
         n_epochs=n_epochs,
         model_name=model_name,
+        model_size=model_size,
         n_samples_train=n_samples,
     )
     return run_ids
