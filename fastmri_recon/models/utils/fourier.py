@@ -170,7 +170,9 @@ class NFFTBase(Layer):
 
     def op(self, inputs):
         if self.multicoil:
-            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
+            image, smaps, ktraj = inputs
+            image = tf.expand_dims(image, axis=1)
+            image = image * smaps
         else:
             image, ktraj = inputs
             # for tfkbnufft we need a coil dimension even if there is none
@@ -182,11 +184,15 @@ class NFFTBase(Layer):
 
     def adj_op(self, inputs):
         if self.multicoil:
-            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
-        elif self.density_compensation:
-            kspace, ktraj, shape, dcomp = inputs
+            if self.density_compensation:
+                kspace, ktraj, shape, dcomp, smaps = inputs
+            else:
+                kspace, ktraj, shape, smaps = inputs
         else:
-            kspace, ktraj, shape = inputs
+            if self.density_compensation:
+                kspace, ktraj, shape, dcomp = inputs
+            else:
+                kspace, ktraj, shape = inputs
         shape = tf.reshape(shape[0], [])
         if self.density_compensation:
             kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
