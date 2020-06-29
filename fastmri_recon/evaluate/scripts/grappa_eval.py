@@ -6,7 +6,7 @@ from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.grappa_reconstruction import reco_grappa
 
 
-def eval_grappa(af=4, contrast=None, n_samples=10, **grappa_kwargs):
+def eval_grappa(af=4, contrast=None, n_samples=10, mask_type='random', **grappa_kwargs):
     val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     val_set = train_masked_kspace_dataset_from_indexable(
         val_path,
@@ -18,6 +18,7 @@ def eval_grappa(af=4, contrast=None, n_samples=10, **grappa_kwargs):
         n_samples=None,
         fixed_masks=False,
         parallel=False,
+        mask_type=mask_type,
     )
     m = Metrics(METRIC_FUNCS)
     for (kspace, _, _), gt_image in tqdm(val_set.take(n_samples).as_numpy_iterator(), total=n_samples):
