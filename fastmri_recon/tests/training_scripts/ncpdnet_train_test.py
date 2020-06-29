@@ -17,8 +17,7 @@ def test_train_ncpdnet(create_full_fastmri_test_tmp_dataset, kwargs):
     ncpdnet_train.CHECKPOINTS_DIR = create_full_fastmri_test_tmp_dataset['checkpoints_tmp_dir']
     ncpdnet_train.n_volumes_train = 2
     train_ncpdnet(
-        nspokes=10,
-        spokelength=100,
+        af=8,
         n_samples=2,
         n_epochs=1,
         n_filters=8,
