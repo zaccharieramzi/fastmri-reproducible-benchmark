@@ -33,7 +33,7 @@ def eval_grappa(af=4, contrast=None, n_samples=10, mask_type='random', **grappa_
 @click.option('-n', 'n_samples', default=10, type=int)
 @click.option('-m', 'mask_type', default='random', type=str)
 def eval_grappa_click(af, contrast, n_samples, mask_type):
-    eval_grappa(af=af, contrast=contrast, n_samples=n_samples, mask_type=mask_type)
+    eval_grappa(af=af, contrast=contrast, n_samples=n_samples, mask_type=mask_type, lamda=0.1)
 
 
 if __name__ == '__main__':
