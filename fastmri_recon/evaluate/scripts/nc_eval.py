@@ -6,6 +6,7 @@ from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
+from fastmri_recon.models.subclassed_models.unet import UnetComplex
 
 
 # this number means that 99.56% of all images will not be affected by
@@ -139,5 +140,32 @@ def evaluate_dcomp(multicoil=False, **eval_kwargs):
         model,
         multicoil=multicoil,
         dcomp=True,
+        **eval_kwargs,
+    )
+
+def evaluate_updnet(
+        multicoil=False,
+        n_layers=4,
+        dcomp=False,
+        base_n_filters=16,
+        non_linearity='relu',
+        **eval_kwargs
+    ):
+    run_params = {
+        'non_linearity': non_linearity,
+        'n_layers': n_layers,
+        'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
+        'layers_n_non_lins': 2,
+        'res': True,
+        'im_size': IM_SIZE,
+        'dcomp': dcomp,
+        'dealiasing_nc_fastmri': True,
+    }
+
+    model = UnetComplex(**run_params)
+    return evaluate_nc(
+        model,
+        multicoil=multicoil,
+        dcomp=dcomp,
         **eval_kwargs,
     )
