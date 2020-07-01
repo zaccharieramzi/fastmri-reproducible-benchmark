@@ -111,6 +111,7 @@ def evaluate_ncpdnet(
         n_iter=10,
         n_filters=32,
         n_primal=5,
+        non_linearity='relu',
         **eval_kwargs
     ):
     run_params = {
