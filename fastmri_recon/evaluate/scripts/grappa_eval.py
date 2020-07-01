@@ -1,3 +1,4 @@
+import click
 from tqdm.notebook import tqdm
 
 from fastmri_recon.config import *
@@ -25,3 +26,15 @@ def eval_grappa(af=4, contrast=None, n_samples=10, mask_type='random', **grappa_
         reco = reco_grappa(kspace[..., 0], af=af, **grappa_kwargs)
         m.push(gt_image[..., 0], reco)
     return m
+
+@click.command()
+@click.option('-a', 'af', default=4, type=int)
+@click.option('-c', 'contrast', default='CORPD_FBK', type=str)
+@click.option('-n', 'n_samples', default=10, type=int)
+@click.option('-m', 'mask_type', default='random', type=str)
+def eval_grappa_click(af, contrast, n_samples, mask_type):
+    eval_grappa(af=af, contrast=contrast, n_samples=n_samples, mask_type=mask_type)
+
+
+if __name__ == '__main__':
+    eval_grappa_click()
