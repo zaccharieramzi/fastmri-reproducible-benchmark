@@ -3,7 +3,7 @@ from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
 from ..utils.masking.gen_mask_tf import gen_mask_tf
-from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory
+from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
 
 
@@ -24,6 +24,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             traj = get_radial_trajectory(image_size, **acq_kwargs)
         elif acq_type == 'cartesian':
             traj = get_debugging_cartesian_trajectory()
+        elif acq_type == 'spiral':
+            traj = get_spiral_trajectory(image_size, **acq_kwargs)
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
