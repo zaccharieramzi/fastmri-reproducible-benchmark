@@ -4,6 +4,7 @@ import tensorflow as tf
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
@@ -73,6 +74,8 @@ def evaluate_nc(
     )
     if n_samples is not None:
         val_set = val_set.take(n_samples)
+    else:
+        val_set = val_set.take(199)
 
     example_input = next(iter(val_set))[0]
     inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
@@ -82,28 +85,13 @@ def evaluate_nc(
     # special case for the shape:
     inputs[-1][0] = tf.constant([[372]])
     model(inputs)
-    def tf_psnr(y_true, y_pred):
-        perm_psnr = [3, 1, 2, 0]
-        psnr = tf.image.psnr(
-            tf.transpose(y_true, perm_psnr),
-            tf.transpose(y_pred, perm_psnr),
-            tf.reduce_max(y_true),
-        )
-        return psnr
-    def tf_ssim(y_true, y_pred):
-        perm_ssim = [0, 1, 2, 3]
-        ssim = tf.image.ssim(
-            tf.transpose(y_true, perm_ssim),
-            tf.transpose(y_pred, perm_ssim),
-            tf.reduce_max(y_true),
-        )
-        return ssim
-
-    model.compile(loss=tf_psnr, metrics=[tf_ssim])
     if run_id is not None:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
-    return model.metrics_names, eval_res
+    m = Metrics(METRIC_FUNCS)
+    for x, y_true in val_set.as_numpy_iterator():
+        y_pred = model.predict(x, batch_size=1)
+        m.push(y_true[..., 0], y_pred[..., 0])
+    return METRIC_FUNCS, m
 
 def evaluate_ncpdnet(
         multicoil=False,
