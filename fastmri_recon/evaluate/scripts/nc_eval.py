@@ -143,7 +143,7 @@ def evaluate_dcomp(multicoil=False, **eval_kwargs):
         **eval_kwargs,
     )
 
-def evaluate_updnet(
+def evaluate_unet(
         multicoil=False,
         n_layers=4,
         dcomp=False,
