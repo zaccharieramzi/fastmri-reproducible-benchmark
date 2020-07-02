@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
