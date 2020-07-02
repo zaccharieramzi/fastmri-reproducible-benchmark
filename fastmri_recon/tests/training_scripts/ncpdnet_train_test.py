@@ -3,8 +3,6 @@ import pytest
 from fastmri_recon.training_scripts import ncpdnet_train
 from fastmri_recon.training_scripts.ncpdnet_train import train_ncpdnet
 
-import tensorflow as tf
-tf.config.experimental_run_functions_eagerly(True)
 
 @pytest.mark.parametrize('kwargs',[
     {'n_iter': 1},
