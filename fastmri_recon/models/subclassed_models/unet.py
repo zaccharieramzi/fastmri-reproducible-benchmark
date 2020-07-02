@@ -66,6 +66,8 @@ class UnetComplex(Model):
             else:
                 original_kspace, mask, op_args = inputs
             outputs = self.adj_op([original_kspace, mask, *op_args])
+            # we do this to match the residual part.
+            inputs = outputs
         else:
             outputs = inputs
         n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(outputs)[-2], 2**(self.n_layers-1))
