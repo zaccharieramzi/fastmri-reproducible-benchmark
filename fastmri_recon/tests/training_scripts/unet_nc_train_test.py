@@ -3,8 +3,6 @@ import pytest
 from fastmri_recon.training_scripts import unet_nc_train
 from fastmri_recon.training_scripts.unet_nc_train import train_unet
 
-import tensorflow as tf
-tf.config.experimental_run_functions_eagerly(True)
 
 @pytest.mark.parametrize('kwargs',[
     {'dcomp': True},
