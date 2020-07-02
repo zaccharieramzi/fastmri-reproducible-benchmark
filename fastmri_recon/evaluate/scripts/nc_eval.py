@@ -67,7 +67,7 @@ def evaluate_nc(
         compute_dcomp=dcomp,
         contrast=contrast,
         inner_slices=None,
-        rand=True,
+        rand=False,
         scale_factor=1e6,
         **kwargs
     )
