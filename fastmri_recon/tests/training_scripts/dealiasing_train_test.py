@@ -2,7 +2,7 @@ from fastmri_recon import config
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 
 
-def test_train_unet(create_full_fastmri_test_tmp_dataset):
+def test_train_dealiaser(create_full_fastmri_test_tmp_dataset):
     config.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     config.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']
     config.CHECKPOINTS_DIR = create_full_fastmri_test_tmp_dataset['checkpoints_tmp_dir']
