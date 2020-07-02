@@ -35,7 +35,7 @@ class MultiscaleComplex(Model):
             # this is to be consistent for residual connexion
             inputs = outputs
         if self.n_scales > 0:
-            outputs, n_pad = pad_for_pool(inputs, self.n_scales)
+            outputs, n_pad = pad_for_pool(outputs, self.n_scales)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.model(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
