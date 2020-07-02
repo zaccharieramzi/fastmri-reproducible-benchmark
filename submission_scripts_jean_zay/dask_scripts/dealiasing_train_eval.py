@@ -6,7 +6,7 @@ from fastmri_recon.evaluate.scripts.dealiasing_eval import evaluate_xpdnet_deali
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.training_scripts.dealias_train import train_dealiaser
 
-def train_eval_denoisers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None, model_size=None, loss='mae'):
+def train_eval_dealiasers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, model_name=None, model_size=None, loss='mae'):
     job_name = 'dealiasing_fastmri'
     model_specs = list(get_model_specs(force_res=True, dealiasing=True))
     if model_name is not None:
