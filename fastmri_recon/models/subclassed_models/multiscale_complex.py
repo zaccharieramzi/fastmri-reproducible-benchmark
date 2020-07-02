@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from ..utils.complex import to_complex
+from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.pad_for_pool import pad_for_pool
 
 
@@ -12,6 +13,7 @@ class MultiscaleComplex(Model):
             res=False,
             n_scales=0,
             n_output_channels=1,
+            fastmri_format=False,
             **kwargs,
         ):
         super(MultiscaleComplex, self).__init__(**kwargs)
@@ -19,6 +21,7 @@ class MultiscaleComplex(Model):
         self.res = res
         self.n_scales = n_scales
         self.n_output_channels = n_output_channels
+        self.fastmri_format = fastmri_format
 
     def call(self, inputs):
         outputs = inputs
@@ -35,4 +38,6 @@ class MultiscaleComplex(Model):
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
+        if self.fastmri_format:
+            outputs = tf_fastmri_format(outputs)
         return outputs
