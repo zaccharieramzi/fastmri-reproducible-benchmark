@@ -162,7 +162,7 @@ def get_model_specs(n_primal=None, force_res=False, dealiasing=False):
     if n_primal is None:
         n_outputs = 1
         n_inputs = 1
-    if dealiasing:
+    elif dealiasing:
         n_inputs = 2
         n_outputs = 2
     else:
