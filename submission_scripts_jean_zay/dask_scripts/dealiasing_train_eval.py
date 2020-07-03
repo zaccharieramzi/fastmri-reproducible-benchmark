@@ -51,7 +51,7 @@ def train_eval_dealiasers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mo
     client.close()
     train_cluster.close()
     # eval
-    eval_denoisers(
+    eval_dealiasers(
         run_ids,
         job_name=job_name,
         contrast=contrast,
@@ -63,7 +63,7 @@ def train_eval_dealiasers(contrast='CORPD_FBK', n_epochs=200, n_samples=None, mo
     )
     return run_ids
 
-def eval_denoisers(
+def eval_dealiasers(
         run_ids,
         job_name='eval_dealiasers',
         contrast='CORPD_FBK',
