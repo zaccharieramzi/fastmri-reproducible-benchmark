@@ -92,7 +92,7 @@ def evaluate_nc(
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=1)
         m.push(y_true[..., 0], y_pred[..., 0])
-    return METRIC_FUNCS, m
+    return METRIC_FUNCS, list(m.means().values())
 
 def evaluate_ncpdnet(
         multicoil=False,
