@@ -159,12 +159,12 @@ params_per_model['DIDN']['specs'] = dict(
 
 
 def get_model_specs(n_primal=None, force_res=False, dealiasing=False):
-    if n_primal is None:
-        n_outputs = 1
-        n_inputs = 1
-    elif dealiasing:
+    if dealiasing:
         n_inputs = 2
         n_outputs = 2
+    elif n_primal is None:
+        n_outputs = 1
+        n_inputs = 1
     else:
         n_outputs = 2*n_primal
         n_inputs = 2*(n_primal+1)
