@@ -11,6 +11,7 @@ from tensorflow.keras.layers import (
     Lambda,
     LeakyReLU,
     PReLU,
+    Subtract,
 )
 from tensorflow.keras.models import Model
 
@@ -115,6 +116,7 @@ def unet(
         pool='max',
         lr=1e-3,
         compile=True,
+        res=False,
         **channel_attention_kwargs,
     ):
     if isinstance(layers_n_channels, int):
@@ -161,6 +163,8 @@ def unet(
         padding='same',
         kernel_initializer='glorot_uniform',
     )(output)
+    if res:
+        output = Subtract()([inputs, output])
     model = Model(inputs=inputs, outputs=output, name='unet')
     if compile:
         default_model_compile(model, lr)
