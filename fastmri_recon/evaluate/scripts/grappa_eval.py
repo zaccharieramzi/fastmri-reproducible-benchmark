@@ -1,5 +1,5 @@
 import click
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable
