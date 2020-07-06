@@ -31,3 +31,11 @@ def generic_prepare_mask_and_kspace(scale_factor=1):
         kspaces_channeled = kspaces_scaled[..., None]
         return kspaces_channeled, fourier_mask
     return prepare
+
+def create_noisy_training_pair_fun(noise_std=30, scale_factor=1):
+    def create_noisy_training_pair(images):
+        noise = tf.random.normal(tf.shape(images), stddev=noise_std)
+        images_scaled = images * scale_factor
+        images_noisy = images_scaled + noise
+        return images_noisy[..., None], images_scaled[..., None]
+    return create_noisy_training_pair
