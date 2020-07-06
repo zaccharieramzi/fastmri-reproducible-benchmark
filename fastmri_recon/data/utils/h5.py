@@ -68,6 +68,14 @@ def from_train_file_to_image_and_kspace(filename, selection=None):
         selection = {'kspace': selection, 'reconstruction_esc': selection}
     return _from_file_to_stuff(filename, vals=['reconstruction_esc', 'kspace'], selection=selection)
 
+def from_train_file_to_image_and_contrast(filename, selection=None):
+    """Get the images and kspaces from an h5 file with 'reconstruction_esc'
+    and 'kspace' keys.
+    """
+    if selection is not None:
+        selection = {'reconstruction_esc': selection}
+    return _from_file_to_stuff(filename, vals=['reconstruction_esc'], attrs=['acquisition'], selection=selection)
+
 def from_train_file_to_image_and_kspace_and_contrast(filename, selection=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_esc'
     and 'kspace' keys.

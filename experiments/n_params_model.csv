@@ -1,0 +1,15 @@
+,model_name,model_size,n_params
+0,DIDN,medium,3450848
+1,DIDN,small,865264
+2,DnCNN,big,677450
+3,DnCNN,medium,80362
+4,DnCNN,small,10154
+5,FocNet,medium,621698
+6,FocNet,small,455674
+7,MWCNN,big,24932746
+8,MWCNN,medium,6217930
+9,MWCNN,small,338122
+10,U-net,big,1928600
+11,U-net,medium,483592
+12,U-net,medium-ca,483940
+13,U-net,small,58536
