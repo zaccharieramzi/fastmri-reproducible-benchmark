@@ -8,31 +8,31 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
 
 
 n_volumes_train = 973
+# this number means that 99.56% of all images will not be affected by
+# cropping
+IM_SIZE = (640, 400)
 
-def train_unet(
+def train_ncnet(
+        model,
+        run_id=None,
         multicoil=False,
         acq_type='radial',
         dcomp=False,
-        n_layers=4,
         contrast=None,
         cuda_visible_devices='0123',
         n_samples=None,
         n_epochs=200,
-        base_n_filters=16,
         use_mixed_precision=False,
-        non_linearity='relu',
         loss='mae',
         original_run_id=None,
         **acq_kwargs,
     ):
-    # this number means that 99.56% of all images will not be affected by
-    # cropping
-    im_size = (640, 400)
     # paths
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
@@ -60,7 +60,7 @@ def train_unet(
         kwargs = acq_kwargs
     train_set = dataset(
         train_path,
-        im_size,
+        IM_SIZE,
         acq_type=acq_type,
         compute_dcomp=dcomp,
         contrast=contrast,
@@ -72,7 +72,7 @@ def train_unet(
     )
     val_set = dataset(
         val_path,
-        im_size,
+        IM_SIZE,
         acq_type=acq_type,
         compute_dcomp=dcomp,
         contrast=contrast,
@@ -82,34 +82,16 @@ def train_unet(
         **kwargs
     )
 
-    run_params = {
-        'non_linearity': non_linearity,
-        'n_layers': n_layers,
-        'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
-        'layers_n_non_lins': 2,
-        'res': True,
-        'im_size': im_size,
-        'dcomp': dcomp,
-        'dealiasing_nc_fastmri': True,
-    }
-
-    if multicoil:
-        unet_type = 'unet_sense_'
-    else:
-        unet_type = 'unet_singlecoil_'
     additional_info = f'{acq_type}'
     if contrast is not None:
         additional_info += f'_{contrast}'
     if n_samples is not None:
         additional_info += f'_{n_samples}'
-    if non_linearity != 'relu':
-        additional_info += f'_{non_linearity}'
     if loss != 'mae':
         additional_info += f'_{loss}'
     if dcomp:
         additional_info += '_dcomp'
-
-    run_id = f'{unet_type}_{additional_info}_{int(time.time())}'
+    run_id = f'{run_id}_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
@@ -123,7 +105,6 @@ def train_unet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    model = UnetComplex(**run_params)
     if original_run_id is not None:
         lr = 1e-7
         n_steps = n_volumes_train//2
@@ -149,3 +130,84 @@ def train_unet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
+
+def train_ncpdnet(
+        multicoil=False,
+        dcomp=False,
+        normalize_image=False,
+        n_iter=10,
+        n_filters=32,
+        n_primal=5,
+        non_linearity='relu',
+        **train_kwargs,
+    ):
+    run_params = {
+        'n_primal': n_primal,
+        'multicoil': multicoil,
+        'activation': non_linearity,
+        'n_iter': n_iter,
+        'n_filters': n_filters,
+        'im_size': IM_SIZE,
+        'dcomp': dcomp,
+        'normalize_image': normalize_image,
+    }
+
+    if multicoil:
+        ncpdnet_type = 'ncpdnet_sense_'
+    else:
+        ncpdnet_type = 'ncpdnet_singlecoil_'
+    additional_info = ''
+    if n_iter != 10:
+        additional_info += f'_i{n_iter}'
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+
+
+    run_id = f'{ncpdnet_type}_{additional_info}'
+    model = NCPDNet(**run_params)
+
+    train_ncnet(
+        model,
+        run_id=run_id,
+        multicoil=multicoil,
+        dcomp=dcomp,
+        **train_kwargs,
+    )
+
+def train_unet_nc(
+        multicoil=False,
+        dcomp=False,
+        n_layers=4,
+        base_n_filters=16,
+        non_linearity='relu',
+        **train_kwargs,
+    ):
+    run_params = {
+        'non_linearity': non_linearity,
+        'n_layers': n_layers,
+        'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
+        'layers_n_non_lins': 2,
+        'res': True,
+        'im_size': IM_SIZE,
+        'dcomp': dcomp,
+        'dealiasing_nc_fastmri': True,
+    }
+
+    if multicoil:
+        unet_type = 'unet_sense_'
+    else:
+        unet_type = 'unet_singlecoil_'
+    additional_info = ''
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+
+    run_id = f'{unet_type}_{additional_info}'
+
+    model = UnetComplex(**run_params)
+    train_ncnet(
+        model,
+        run_id=run_id,
+        multicoil=multicoil,
+        dcomp=dcomp,
+        **train_kwargs,
+    )
