@@ -25,6 +25,7 @@ def eval_grappa(af=4, contrast=None, n_samples=10, mask_type='random', **grappa_
     for (kspace, _, _), gt_image in tqdm(val_set.take(n_samples).as_numpy_iterator(), total=n_samples):
         reco = reco_grappa(kspace[..., 0], af=af, **grappa_kwargs)
         m.push(gt_image[..., 0], reco)
+    print(m)
     return m
 
 @click.command()
