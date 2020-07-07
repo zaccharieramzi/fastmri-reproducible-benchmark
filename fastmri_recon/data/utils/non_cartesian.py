@@ -4,6 +4,7 @@ import tensorflow as tf
 from fastmri_recon.data.utils.masking.gen_mask_tf import gen_mask_tf
 
 
+# inspired by https://github.com/mmuckley/torchkbnufft/blob/master/profile_torchkbnufft.py#L144-L158
 def get_radial_trajectory(image_shape, af=None, us=None):
     if af is not None and us is not None:
         raise ValueError('You cannot set both acceleration and undersampling factor.')
@@ -37,6 +38,8 @@ def get_radial_trajectory(image_shape, af=None, us=None):
     traj.set_shape((1, 2, nspokes*spokelength))
     return traj
 
+
+# spiral trajectory was inspired by internal work by @chaithyagr
 def _complex_to_2d(points):
     X = points.real
     Y = points.imag
