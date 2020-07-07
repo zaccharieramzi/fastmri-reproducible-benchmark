@@ -5,6 +5,4 @@ install:
   - pip install .
 
 script:
-  # we need to separate these 2 tests because of issue #76
-  - pytest -s --ignore=fastmri_recon/tests/training_scripts fastmri_recon/tests
-  - pytest -s fastmri_recon/tests/training_scripts
+  - pytest -s fastmri_recon/tests
