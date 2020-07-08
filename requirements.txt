@@ -9,4 +9,5 @@ tensorflow >= 2.1
 tensorflow-io >= 0.12
 tensorflow-addons >= 0.9.1
 click
+tfkbnufft >= 0.1.2
 pygrappa
