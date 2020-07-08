@@ -144,7 +144,6 @@ def nufft(nufft_ob, image, ktraj, image_size=None):
     kspace = forward_op(image_adapted, ktraj)
     return kspace
 
-
 class NFFTBase(Layer):
     def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, **kwargs):
         super(NFFTBase, self).__init__(**kwargs)
@@ -194,10 +193,16 @@ class NFFTBase(Layer):
             else:
                 kspace, ktraj, shape = inputs
         shape = tf.reshape(shape[0], [])
-        if self.density_compensation:
-            kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
+        if self.multicoil:
+            if self.density_compensation:
+                kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
+            else:
+                kspace = kspace[..., 0]
         else:
-            kspace = kspace[..., 0]
+            if self.density_compensation:
+                kspace = tf.cast(dcomp, kspace.dtype) * kspace
+            else:
+                kspace = kspace
         image = self.backward_op(kspace, ktraj)
         if not self.multicoil:
             image = image[:, 0]
