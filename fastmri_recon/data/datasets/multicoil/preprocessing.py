@@ -73,10 +73,10 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         if compute_dcomp:
             extra_args += (dcomp,)
         if parallel:
-            return (nc_kspaces_channeled, traj, extra_args), images_channeled
+            return (nc_kspaces_channeled, traj, *extra_args), images_channeled
         else:
             smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back)
-            return (nc_kspaces_channeled, traj, extra_args, smaps), images_channeled
+            return (nc_kspaces_channeled, traj, *extra_args, smaps), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,
         input_signature=[
