@@ -3,6 +3,8 @@ from tensorflow.keras.models import Model
 
 from ..functional_models.unet import unet
 from ..utils.complex import to_complex
+from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.fourier import AdjNFFT
 
 
 class UnetComplex(Model):
@@ -17,6 +19,9 @@ class UnetComplex(Model):
             res=False,
             non_linearity='relu',
             channel_attention_kwargs=None,
+            dealiasing_nc_fastmri=False,
+            im_size=None,
+            dcomp=None,
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
@@ -32,6 +37,13 @@ class UnetComplex(Model):
             self.channel_attention_kwargs = {}
         else:
             self.channel_attention_kwargs = channel_attention_kwargs
+        self.dealiasing_nc_fastmri = dealiasing_nc_fastmri
+        if self.dealiasing_nc_fastmri:
+            self.adj_op = AdjNFFT(
+                im_size=im_size,
+                multicoil=False,
+                density_compensation=dcomp,
+            )
         self.unet = unet(
             input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag
             n_output_channels=2 * self.n_output_channels,
@@ -47,8 +59,18 @@ class UnetComplex(Model):
         )
 
     def call(self, inputs):
-        outputs = inputs
-        n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(inputs)[-2], 2**(self.n_layers-1))
+        if self.dealiasing_nc_fastmri:
+            if len(inputs) == 2:
+                original_kspace, mask = inputs
+                op_args = ()
+            else:
+                original_kspace, mask, op_args = inputs
+            outputs = self.adj_op([original_kspace, mask, *op_args])
+            # we do this to match the residual part.
+            inputs = outputs
+        else:
+            outputs = inputs
+        n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(outputs)[-2], 2**(self.n_layers-1))
         paddings = [
             (0, 0),
             (0, 0),  # here in the context of fastMRI there is nothing to worry about because the dim is 640 (128 x 5)
@@ -62,4 +84,6 @@ class UnetComplex(Model):
         outputs = outputs[:, :, n_pad//2:-n_pad//2]
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
+        if self.dealiasing_nc_fastmri:
+            outputs = tf_fastmri_format(outputs)
         return outputs

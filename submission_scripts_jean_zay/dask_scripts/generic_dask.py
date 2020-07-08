@@ -309,13 +309,18 @@ def train_eval_parameter_grid(job_name, train_function, eval_function, parameter
     run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
+    eval_parameter_grid(run_ids, job_name, eval_function, parameter_grid)
+
+def eval_parameter_grid(run_ids, job_name, eval_function, parameter_grid):
+    parameters = list(ParameterGrid(parameter_grid))
+    n_parameters_config = len(parameters)
     # eval
     eval_cluster = SLURMCluster(
         cores=1,
         job_cpu=40,
         memory='80GB',
         job_name=job_name,
-        walltime='20:00:00',
+        walltime='5:00:00',
         interface='ib0',
         job_extra=[
             f'--gres=gpu:1',
