@@ -12,17 +12,22 @@ From: ubuntu:16.04
     exec python3.6 "$@"
 
 %files
-  fastmri-reproducible-benchmark
+  fastmri-reproducible-benchmark/fastmri_recon
+  fastmri-reproducible-benchmark/setup.py
+  fastmri-reproducible-benchmark/README.md
+  fastmri-reproducible-benchmark/requirements.txt
+
 
 %post
   apt update -y
-  apt install software-properties-common curl -y
+  apt install software-properties-common curl build-essential -y
   apt update -y
   add-apt-repository ppa:deadsnakes/ppa -y
   apt update -y
   apt install python3.6 python3.6-dev -y
   curl https://bootstrap.pypa.io/get-pip.py | python3.6
-  pip3 install fastmri-reproducible-benchmark/
+  pip3 install numpy
+  pip3 install --no-cache fastmri-reproducible-benchmark/
 
 %environment
     export LC_ALL=C
