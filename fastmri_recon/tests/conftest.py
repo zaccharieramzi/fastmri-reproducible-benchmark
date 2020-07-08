@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
 import pytest
+import tensorflow as tf
 from tqdm import tqdm
 
 
@@ -34,6 +35,29 @@ def create_data(filename, multicoil=False, train=True):
         h5_obj.attrs['acquisition'] = contrast
     if not train:
         return af
+
+@pytest.fixture(scope='session', autouse=False)
+def ktraj():
+    def ktraj_function(image_shape, nspokes):
+        # radial trajectory creation
+        spokelength = image_shape[-1] * 2
+        nspokes = 15
+
+        ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
+        kx = np.zeros(shape=(spokelength, nspokes))
+        ky = np.zeros(shape=(spokelength, nspokes))
+        ky[:, 0] = np.linspace(-np.pi, np.pi, spokelength)
+        for i in range(1, nspokes):
+            kx[:, i] = np.cos(ga) * kx[:, i - 1] - np.sin(ga) * ky[:, i - 1]
+            ky[:, i] = np.sin(ga) * kx[:, i - 1] + np.cos(ga) * ky[:, i - 1]
+
+        ky = np.transpose(ky)
+        kx = np.transpose(kx)
+
+        traj = np.stack((ky.flatten(), kx.flatten()), axis=0)
+        traj = tf.convert_to_tensor(traj)[None, ...]
+        return traj
+    return ktraj_function
 
 
 @pytest.fixture(scope="session", autouse=False)
