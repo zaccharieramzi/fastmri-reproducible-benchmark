@@ -12,6 +12,7 @@ class NCPDNet(CrossDomainNet):
             multicoil=False,
             dcomp=False,
             im_size=(640, 474),
+            three_d=False,
             **kwargs,
         ):
         self.n_filters = n_filters
@@ -20,6 +21,7 @@ class NCPDNet(CrossDomainNet):
         self.activation = activation
         self.multicoil = multicoil
         self.im_size = im_size
+        self.three_d = three_d
         super(NCPDNet, self).__init__(
             domain_sequence='KI'*self.n_iter,
             data_consistency_mode='measurements_residual',
@@ -38,6 +40,7 @@ class NCPDNet(CrossDomainNet):
             n_output_channels=self.n_primal,
             activation='relu',
             res=True,
+            three_d=self.three_d,
             name=f'image_net_{i}',
         ) for i in range(self.n_iter)]
         self.kspace_net = [measurements_residual for i in range(self.n_iter)]
