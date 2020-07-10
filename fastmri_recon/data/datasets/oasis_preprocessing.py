@@ -2,18 +2,14 @@ import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
-from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
+from ..utils.non_cartesian import get_stacks_of_radial_trajectory
 from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
 
 
 def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_type='radial', scale_factor=1, compute_dcomp=False, **acq_kwargs):
     def from_volume_to_nc_kspace_and_traj(volume):
-        if acq_type == 'radial':
-            traj = get_radial_trajectory(volume_size, **acq_kwargs)
-        elif acq_type == 'cartesian':
-            traj = get_debugging_cartesian_trajectory()
-        elif acq_type == 'spiral':
-            traj = get_spiral_trajectory(volume_size, **acq_kwargs)
+        if acq_type == 'radial_stacks':
+            traj = get_stacks_of_radial_trajectory(volume_size, **kwargs)
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
