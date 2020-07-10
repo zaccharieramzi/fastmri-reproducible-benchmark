@@ -22,15 +22,13 @@ def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_ty
                 nufftob_back,
                 traj[0],
             )
-        # we add a batch dimension to the trajectory
-        traj = traj[None, ...]
         # need to add batch and coil dimension to the volume
         nc_kspace = nufft(nfft_ob, volume[None, None, ...], traj, volume_size)
         nc_kspace_scaled = nc_kspace * scale_factor
         volume_scaled = volume * scale_factor
         volume_channeled = volume_scaled[..., None]
         nc_kspaces_channeled = nc_kspace_scaled[..., None]
-        orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
+        orig_shape = tf.shape(volume)[None, ...]
         extra_args = (orig_shape,)
         if compute_dcomp:
             dcomp = tf.ones([1, tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
