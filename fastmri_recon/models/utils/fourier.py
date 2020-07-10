@@ -105,7 +105,7 @@ class IFFT(FFTBase):
     def call(self, inputs):
         return self.adj_op(inputs)
 
-def _pad_for_nufft(image, im_size):
+def _pad_for_nufft_fastmri(image, im_size):
     shape = tf.shape(image)[-1]
     to_pad = im_size[-1] - shape
     padded_image = tf.pad(
@@ -119,16 +119,65 @@ def _pad_for_nufft(image, im_size):
     )
     return padded_image
 
-def _crop_for_pad(image, shape, im_size):
+def _pad_for_nufft_3d(image, im_size):
+    orig_shape = tf.shape(image)
+    to_pad = im_size - orig_shape[-3:]
+    padded_image = tf.pad(
+        image,
+        [
+            (0, 0),
+            (0, 0),
+            (to_pad[0]//2, to_pad[0]//2),
+            (to_pad[1]//2, to_pad[1]//2),
+            (to_pad[2]//2, to_pad[2]//2),
+        ]
+    )
+    return padded_image
+
+def _pad_for_nufft(image, im_size):
+    if len(im_size) == 2:
+        return _pad_for_nufft_fastmri(image, im_size)
+    else:
+        return _pad_for_nufft_3d(image, im_size)
+
+def _crop_for_pad_fastmri(image, shape, im_size):
     to_pad = im_size[-1] - shape
     cropped_image = image[..., to_pad//2:-to_pad//2]
     return cropped_image
 
-def _crop_for_nufft(image, im_size):
+def _crop_for_pad_3d(image, shape, im_size):
+    to_pad = im_size[-1] - shape
+    cropped_image = image[..., to_pad//2:-to_pad//2]
+    return cropped_image
+
+def _crop_for_pad(image, shape, im_size):
+    if len(im_size) == 2:
+        return _crop_for_pad_fastmri(image, shape, im_size)
+    else:
+        return _crop_for_pad_3d(image, shape, im_size)
+
+def _crop_for_nufft_fastmri(image, im_size):
     shape = tf.shape(image)[-1]
     to_crop = shape - im_size[-1]
     cropped_image = image[..., to_crop//2:-to_crop//2]
     return cropped_image
+
+def _crop_for_nufft_3d(image, im_size):
+    orig_shape = tf.shape(image)
+    to_crop = orig_shape[-3:] - im_size
+    cropped_image = image[
+        ...,
+        to_crop[0]//2:-to_crop[0]//2,
+        to_crop[1]//2:-to_crop[1]//2,
+        to_crop[2]//2:-to_crop[2]//2,
+    ]
+    return cropped_image
+
+def _crop_for_nufft(image, im_size):
+    if len(im_size) == 2:
+        return _crop_for_nufft_fastmri(image, im_size)
+    else:
+        return _crop_for_nufft_3d(image, im_size)
 
 def nufft(nufft_ob, image, ktraj, image_size=None):
     forward_op = kbnufft_forward(nufft_ob._extract_nufft_interpob())
@@ -177,6 +226,8 @@ class NFFTBase(Layer):
             image = image[:, None, ..., 0]
 
         kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
+        # TODO: get rid of shape return as not needed in the end.
+        # shape is computed once in the preprocessing and passed on as is.
         shape = tf.ones([tf.shape(image)[0]], dtype=tf.int32) * tf.shape(image)[-1]
         return kspace[..., None], [shape]
 
