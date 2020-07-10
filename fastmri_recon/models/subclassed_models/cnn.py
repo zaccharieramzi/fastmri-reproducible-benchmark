@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Conv2D, Conv3D
 
 from ..utils.complex import to_complex
 
@@ -13,6 +13,7 @@ class CNNComplex(Model):
             n_output_channels=1,
             activation='relu',
             res=True,
+            three_d=False,
             **kwargs,
         ):
         super(CNNComplex, self).__init__(**kwargs)
@@ -21,9 +22,13 @@ class CNNComplex(Model):
         self.n_output_channels = n_output_channels
         self.activation = activation
         self.res = res
-        # TODO: maybe have a way to specify non linearity
+        self.three_d = three_d
+        if self.three_d:
+            conv_class = Conv3D
+        else:
+            conv_class = Conv2D
         self.convs = [
-            Conv2D(
+            conv_class(
                 self.n_filters,
                 3,
                 padding='same',
@@ -32,7 +37,7 @@ class CNNComplex(Model):
             )
             for i in range(self.n_convs-1)
         ]
-        self.convs.append(Conv2D(
+        self.convs.append(conv_class(
             2 * self.n_output_channels,
             3,
             padding='same',
