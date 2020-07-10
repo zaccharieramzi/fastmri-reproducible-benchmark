@@ -39,6 +39,40 @@ def get_radial_trajectory(image_shape, af=None, us=None):
     return traj
 
 
+def get_stacks_of_radial_trajectory(volume_shape, af=4):
+    spokelength = volume_shape[-2]
+    nspokes = volume_shape[-1] // af
+    nstacks = volume_shape[0]
+    def _get_radial_trajectory_numpy():
+        ga = np.deg2rad(180 / ((1 + np.sqrt(5)) / 2))
+        kx = np.zeros(shape=(spokelength, nspokes))
+        ky = np.zeros(shape=(spokelength, nspokes))
+        ky[:, 0] = np.linspace(-np.pi, np.pi, spokelength)
+        for i in range(1, nspokes):
+            kx[:, i] = np.cos(ga) * kx[:, i - 1] - np.sin(ga) * ky[:, i - 1]
+            ky[:, i] = np.sin(ga) * kx[:, i - 1] + np.cos(ga) * ky[:, i - 1]
+
+        ky = np.transpose(ky)
+        kx = np.transpose(kx)
+
+        ktraj = np.stack((ky.flatten(), kx.flatten()), axis=0)
+
+        ktraj = np.tile(ktraj, [1, nstacks])
+        z_locations = np.linspace(-0.5, 0.5, nstacks)
+        z_locations = np.repeat(z_locations, spokelength * nspokes)
+        ktraj = np.concatenate([ktraj, z_locations[None, :]], axis=0)
+
+        traj = tf.convert_to_tensor(ktraj, dtype=tf.float32)[None, ...]
+        return traj
+    traj = tf.py_function(
+        _get_radial_trajectory_numpy,
+        [],
+        tf.float32,
+    )
+    traj.set_shape((1, 3, nspokes*spokelength*nstacks))
+    return traj
+
+
 # spiral trajectory was inspired by internal work by @chaithyagr
 def _complex_to_2d(points):
     X = points.real
