@@ -25,11 +25,11 @@ def train_nc_kspace_dataset_from_indexable(
         volume_size=(256, 256, 256),
         scale_factor=1,
         n_samples=None,
-        acq_type='radial',
+        acq_type='radial_stacks',
         compute_dcomp=False,
         **acq_kwargs,
     ):
-    files_ds = tf.data.Dataset.list_files(f'{path}*.h5', shuffle=False)
+    files_ds = tf.data.Dataset.list_files(f'{path}*.nii.gz', shuffle=False)
     # this makes sure the file selection is happening once when using less than
     # all samples
     files_ds = files_ds.shuffle(
@@ -39,7 +39,7 @@ def train_nc_kspace_dataset_from_indexable(
     )
     volume_ds = files_ds.map(
         _tf_filename_to_volume,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=3,
     )
     if n_samples is not None:
         volume_ds = volume_ds.take(n_samples)
@@ -57,9 +57,9 @@ def train_nc_kspace_dataset_from_indexable(
             compute_dcomp=compute_dcomp,
             **acq_kwargs,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or inner_slices is not None else None,
+        num_parallel_calls=3,
     ).repeat()
     if rand or inner_slices is not None:
-        masked_kspace_ds = masked_kspace_ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        masked_kspace_ds = masked_kspace_ds.prefetch(buffer_size=3)
 
     return masked_kspace_ds
