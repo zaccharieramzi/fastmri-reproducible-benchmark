@@ -41,6 +41,8 @@ def train_nc_kspace_dataset_from_indexable(
         _tf_filename_to_volume,
         num_parallel_calls=3,
     )
+    # filter flat volumes
+    volume_ds = files_ds.filter(lambda x: tf.shape(x)[0] > 1)
     if n_samples is not None:
         volume_ds = volume_ds.take(n_samples)
     nufft_ob = KbNufftModule(
