@@ -146,8 +146,13 @@ def _crop_for_pad_fastmri(image, shape, im_size):
     return cropped_image
 
 def _crop_for_pad_3d(image, shape, im_size):
-    to_pad = im_size[-1] - shape
-    cropped_image = image[..., to_pad//2:-to_pad//2]
+    to_pad = im_size - shape
+    cropped_image = image[
+        ..., 
+        to_pad[0]//2:shape[0]-to_pad[0]//2,
+        to_pad[1]//2:shape[1]-to_pad[1]//2,
+        to_pad[2]//2:shape[2]-to_pad[2]//2,
+    ]
     return cropped_image
 
 def _crop_for_pad(image, shape, im_size):
@@ -250,7 +255,7 @@ class NFFTBase(Layer):
             image = image[:, 0]
 
         image_adapted = tf.cond(
-            tf.math.greater_equal(shape, self.im_size[-1]),
+            tf.reduce_any(tf.math.greater_equal(shape, self.im_size)),
             lambda: image,
             lambda: self.crop_for_pad(image, shape),
         )
