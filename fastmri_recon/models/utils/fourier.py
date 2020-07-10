@@ -167,9 +167,9 @@ def _crop_for_nufft_3d(image, im_size):
     to_crop = orig_shape[-3:] - im_size
     cropped_image = image[
         ...,
-        to_crop[0]//2:-to_crop[0]//2,
-        to_crop[1]//2:-to_crop[1]//2,
-        to_crop[2]//2:-to_crop[2]//2,
+        to_crop[0]//2:orig_shape[0]-to_crop[0]//2,
+        to_crop[1]//2:orig_shape[1]-to_crop[1]//2,
+        to_crop[2]//2:orig_shape[2]-to_crop[2]//2,
     ]
     return cropped_image
 
@@ -181,10 +181,10 @@ def _crop_for_nufft(image, im_size):
 
 def nufft(nufft_ob, image, ktraj, image_size=None):
     forward_op = kbnufft_forward(nufft_ob._extract_nufft_interpob())
-    shape = tf.shape(image)[-1]
+    shape = tf.shape(image)[2:]
     if image_size is not None:
         image_adapted = tf.cond(
-            tf.math.greater(shape, image_size[-1]),
+            tf.reduce_any(tf.math.greater(shape, image_size)),
             lambda: _crop_for_nufft(image, image_size),
             lambda: _pad_for_nufft(image, image_size),
         )
@@ -238,7 +238,9 @@ class NFFTBase(Layer):
             kspace, ktraj, shape, dcomp = inputs
         else:
             kspace, ktraj, shape = inputs
-        shape = tf.reshape(shape[0], [])
+        shape = shape[0]
+        if len(shape) == 1:
+            shape = tf.reshape(shape, [])
         if self.density_compensation:
             kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
         else:
