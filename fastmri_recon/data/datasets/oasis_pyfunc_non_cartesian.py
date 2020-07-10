@@ -7,7 +7,7 @@ from ..utils.nii import from_file_to_volume
 
 def _tf_filename_to_volume(filename):
     def _from_train_file_to_volume_tensor_to_tensor(filename):
-        filename_str = filename.numpy()
+        filename_str = filename.numpy().decode("utf-8")
         volume = from_file_to_volume(
             filename_str,
         )
@@ -60,8 +60,6 @@ def train_nc_kspace_dataset_from_indexable(
             **acq_kwargs,
         ),
         num_parallel_calls=3,
-    ).repeat()
-    if rand or inner_slices is not None:
-        masked_kspace_ds = masked_kspace_ds.prefetch(buffer_size=3)
+    ).repeat().prefetch(buffer_size=3)
 
-    return masked_kspace_ds
+    return volume_ds
