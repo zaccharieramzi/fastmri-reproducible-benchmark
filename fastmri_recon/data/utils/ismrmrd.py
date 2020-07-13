@@ -6,11 +6,12 @@ from .h5 import _from_file_to_stuff
 from .masking.gen_mask import gen_mask_equidistant
 
 
-def kspace_to_ismrmrd(kspace, header, mask, file_index):
+def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./'):
     n_slices = kspace.shape[0]
     for i_slice in range(n_slices):
         kspace_slice = kspace[i_slice]
-        ds = ismrmrd.Dataset(f'{file_index}_slice_{i_slice}.h5')
+        path = Path(out_dir) / f'{file_index}_slice_{i_slice}.h5'
+        ds = ismrmrd.Dataset(path)
         ds.write_xml_header(header)
         for i_line, m in enumerate(np.squeeze(mask)):
             if m:
@@ -20,8 +21,8 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index):
                 )
                 ds.append_acquisition(acq)
 
-def from_fastmri_to_ismrmrd(filename):
+def from_fastmri_to_ismrmrd(filename, out_dir='./'):
     kspace, header = _from_file_to_stuff(filename, vals=['kspace', 'ismrmrd_header'])
     file_index = Path(filename).stem
     mask = gen_mask_equidistant(kspace)
-    kspace_to_ismrmrd(kspace, header, mask, file_index)
+    kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir=out_dir)
