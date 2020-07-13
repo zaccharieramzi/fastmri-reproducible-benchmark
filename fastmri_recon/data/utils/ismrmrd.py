@@ -3,6 +3,7 @@ from pathlib import Path
 from ismrmrd import Dataset, Acquisition, EncodingCounters
 
 from .h5 import _from_file_to_stuff
+from .masking.gen_mask import gen_mask_equidistant
 
 
 def kspace_to_ismrmrd(kspace, header, mask, file_index):
