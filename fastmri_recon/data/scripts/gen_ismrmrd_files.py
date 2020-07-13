@@ -15,3 +15,14 @@ def generate_ismrmrd(af=4, split='val', organ='knee'):
     filenames = fastmri_path.glob('*.h5')
     for f in filenames:
         from_fastmri_to_ismrmrd(filename, out_dir=out, accel_factor=af, split=split)
+
+@click.command
+@click.option('af', '-a', default=4, dtype=int, help='The acceleration factor.')
+@click.option('split', '-s', default='val', dtype=click.Choice(['train', 'val', 'test']), help='The dataset split.')
+@click.option('organ', '-o', default='knee', dtype=click.Choice(['brain', 'knee']), help='The organ.')
+def generate_ismrmrd_click(af, split, organ):
+    generate_ismrmrd(af, split, organ)
+
+
+if __name__ == '__main__':
+    generate_ismrmrd_click()
