@@ -21,8 +21,11 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./'):
                 )
                 ds.append_acquisition(acq)
 
-def from_fastmri_to_ismrmrd(filename, out_dir='./', accel_factor=4):
+def from_fastmri_to_ismrmrd(filename, out_dir='./', accel_factor=4, split='val'):
     kspace, header = _from_file_to_stuff(filename, vals=['kspace', 'ismrmrd_header'])
     file_index = Path(filename).stem
-    mask = gen_mask_equidistant(kspace, accel_factor=accel_factor)
+    if split == 'test':
+        raise NotImplementedError('test ismrmrd generation not implemented.')
+    else:
+        mask = gen_mask_equidistant(kspace, accel_factor=accel_factor)
     kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir=out_dir)
