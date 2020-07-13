@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 
@@ -38,7 +40,7 @@ def gen_mask_equidistant(kspace, accel_factor=8, seed=None):
     mask_offset = random.randrange(high_freqs_spacing)
     high_freqs_location = np.arange(mask_offset, num_cols, high_freqs_spacing)
     low_freqs_location = np.arange(acs_lim, acs_lim + num_low_freqs)
-    mask_locations = np.concatentae(high_freqs_location, low_freqs_location)
+    mask_locations = np.concatenate([high_freqs_location, low_freqs_location])
     mask = np.zeros((num_cols,))
     mask[mask_locations] = True
 
