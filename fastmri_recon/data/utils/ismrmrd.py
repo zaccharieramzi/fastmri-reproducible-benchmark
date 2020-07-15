@@ -13,6 +13,7 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
     header.encoding[0].encodingLimits.kspace_encoding_step_1.maximum = kspace.shape[-1]
     header.encoding[0].encodingLimits.kspace_encoding_step_1.center = kspace.shape[-1] // 2
     header.encoding[0].parallelImaging.accelerationFactor.kspace_encoding_step_1 = accel_factor
+    header.encoding[0].parallelImaging.calibrationMode = 'other'
     header = header.toxml()
     n_slices = kspace.shape[0]
     for i_slice in range(n_slices):
