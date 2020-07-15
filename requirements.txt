@@ -11,4 +11,3 @@ tensorflow-addons >= 0.9.1
 click
 tfkbnufft >= 0.1.2
 pygrappa
-ismrmrd
