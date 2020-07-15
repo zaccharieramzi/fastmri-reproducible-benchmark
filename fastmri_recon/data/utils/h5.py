@@ -93,6 +93,13 @@ def from_multicoil_train_file_to_image_and_kspace(filename, selection=None):
         selection = {'kspace': selection, 'reconstruction_rss': selection[0:1]}
     return _from_file_to_stuff(filename, vals=['reconstruction_rss', 'kspace'], selection=selection)
 
+def from_multicoil_train_file_to_image(filename, selection=None):
+    """Get the images from an h5 file with 'reconstruction_rss' key.
+    """
+    if selection is not None:
+        selection = {'reconstruction_rss': selection}
+    return _from_file_to_stuff(filename, vals=['reconstruction_rss'], selection=selection)
+
 def from_multicoil_train_file_to_image_and_kspace_and_contrast(filename, selection=None):
     """Get the images and kspaces from an h5 file with 'reconstruction_rss'
     and 'kspace' keys.
