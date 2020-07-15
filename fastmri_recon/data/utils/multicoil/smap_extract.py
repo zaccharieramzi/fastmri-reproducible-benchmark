@@ -1,6 +1,8 @@
+from math import pi
+
 import tensorflow as tf
 from tensorflow.python.ops.signal.fft_ops import ifft2d, ifftshift, fftshift
-from math import pi
+
 
 def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     n_low_freq = tf.cast(tf.shape(kspace)[-2:] * low_freq_percentage / 100, tf.int32)
@@ -48,7 +50,7 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
 
 
 def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, low_freq_percentage=8):
-    cutoff_freq = low_freq_percentage / 100 * tf.constant(pi)
+    cutoff_freq = low_freq_percentage / 200 * tf.constant(pi)
     # Get the boolean mask for low frequency
     low_freq_bool_mask = tf.math.reduce_all(tf.math.less_equal(tf.abs(trajs[0]), cutoff_freq), axis=0)
     # Obtain the trajectory, kspace and density compensation for low frequency

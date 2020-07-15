@@ -196,14 +196,12 @@ class NFFTBase(Layer):
         shape = tf.reshape(shape[0], [])
         if self.multicoil:
             if self.density_compensation:
+                kspace = tf.cast(dcomp, kspace.dtype) * kspace
+        else:
+            if self.density_compensation:
                 kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
             else:
                 kspace = kspace[..., 0]
-        else:
-            if self.density_compensation:
-                kspace = tf.cast(dcomp, kspace.dtype) * kspace
-            else:
-                kspace = kspace
         image = self.backward_op(kspace, ktraj)
         if not self.multicoil:
             image = image[:, 0]
