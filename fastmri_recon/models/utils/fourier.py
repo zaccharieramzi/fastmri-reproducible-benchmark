@@ -144,6 +144,7 @@ def nufft(nufft_ob, image, ktraj, image_size=None):
     kspace = forward_op(image_adapted, ktraj)
     return kspace
 
+
 class NFFTBase(Layer):
     def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, **kwargs):
         super(NFFTBase, self).__init__(**kwargs)
