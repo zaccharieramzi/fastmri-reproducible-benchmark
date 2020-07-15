@@ -18,6 +18,7 @@ class CrossDomainNet(Model):
             multicoil=False,
             refine_smaps=False,
             normalize_image=False,
+            fastmri=True,
             **kwargs,
         ):
         super(CrossDomainNet, self).__init__(**kwargs)
@@ -31,6 +32,7 @@ class CrossDomainNet(Model):
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
         self.normalize_image = normalize_image
+        self.fastmri = fastmri
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=3,
@@ -127,7 +129,10 @@ class CrossDomainNet(Model):
                 image_buffer = self.image_net[i_domain//2](image_buffer)
         # if self.normalize_image:
         #     image_buffer = image_buffer * normalization_factor
-        image = tf_fastmri_format(image_buffer[..., 0:1])
+        if self.fastmri:
+            image = tf_fastmri_format(image_buffer[..., 0:1])
+        else:
+            image = tf.abs(image_buffer[..., 0:1])
         return image
 
     def apply_data_consistency(self, kspace, original_kspace, mask):
