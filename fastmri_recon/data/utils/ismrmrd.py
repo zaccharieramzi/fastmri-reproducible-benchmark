@@ -1,12 +1,18 @@
 from pathlib import Path
 
+import ismrmrd
 from ismrmrd import Dataset, Acquisition, EncodingCounters
+import numpy as np
 
 from .h5 import _from_file_to_stuff
 from .masking.gen_mask import gen_mask_equidistant
 
 
 def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./'):
+    header = ismrmrd.xsd.CreateFromDocument(header)
+    header.encoding[0].encodingLimits.kspace_encoding_step_1.maximum = kspace.shape[-1]
+    header.encoding[0].encodingLimits.kspace_encoding_step_1.center = kspace.shape[-1] // 2
+    header = header.toxml()
     n_slices = kspace.shape[0]
     for i_slice in range(n_slices):
         kspace_slice = kspace[i_slice]
@@ -16,8 +22,9 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./'):
         for i_line, m in enumerate(np.squeeze(mask)):
             if m:
                 acq = Acquisition.from_array(
-                    start_kspace[:, i_line, :],
+                    kspace_slice[:, :, i_line],
                     idx=EncodingCounters(kspace_encode_step_1=i_line),
+                    center_sample=320,
                 )
                 ds.append_acquisition(acq)
 
