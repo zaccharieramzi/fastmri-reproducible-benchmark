@@ -1,5 +1,8 @@
 import subprocess
 
+
+GRAPPA_RECON_DS_NAME = 'recon_grappa_generic'
+
 def gadgetron_execution(in_file, out_file, config_name, out_group):
     subprocess.check_call([
         'gadgetron_ismrmrd_client',
@@ -14,5 +17,5 @@ def gadgetron_grappa_reconstruction(in_file, out_file):
         in_file,
         out_file,
         'Generic_Cartesian_Grappa.xml',
-        'recon_grappa_generic',
+        GRAPPA_RECON_DS_NAME,
     )
