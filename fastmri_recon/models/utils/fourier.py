@@ -185,9 +185,9 @@ class NFFTBase(Layer):
     def adj_op(self, inputs):
         if self.multicoil:
             if self.density_compensation:
-                kspace, ktraj, shape, dcomp, smaps = inputs
+                kspace, ktraj, smaps, shape, dcomp, = inputs
             else:
-                kspace, ktraj, shape, smaps = inputs
+                kspace, ktraj, smaps, shape = inputs
         else:
             if self.density_compensation:
                 kspace, ktraj, shape, dcomp = inputs

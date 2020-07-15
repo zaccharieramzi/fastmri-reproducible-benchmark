@@ -49,9 +49,11 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
 
 def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, low_freq_percentage=8):
     cutoff_freq = low_freq_percentage / 100 * tf.constant(pi)
+    # Get the boolean mask for low frequency
     low_freq_bool_mask = tf.math.reduce_all(tf.math.less_equal(tf.abs(trajs[0]), cutoff_freq), axis=0)
+    # Obtain the trajectory, kspace and density compensation for low frequency
     low_freq_traj = tf.boolean_mask(trajs, low_freq_bool_mask, axis=2)
     low_freq_kspace = tf.boolean_mask(kspace, low_freq_bool_mask, axis=2)
-    low_freq_dcomp = tf.boolean_mask(dcomp, low_freq_bool_mask)
+    low_freq_dcomp = tf.boolean_mask(dcomp, low_freq_bool_mask, axis=1)
     coil_smap = nufft_back(low_freq_kspace * tf.cast(low_freq_dcomp, kspace.dtype), low_freq_traj)
     return coil_smap
