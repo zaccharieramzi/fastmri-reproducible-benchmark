@@ -149,9 +149,9 @@ def _crop_for_pad_3d(image, shape, im_size):
     to_pad = im_size - shape
     cropped_image = image[
         ...,
-        to_pad[0]//2:shape[0]-to_pad[0]//2,
-        to_pad[1]//2:shape[1]-to_pad[1]//2,
-        to_pad[2]//2:shape[2]-to_pad[2]//2,
+        to_pad[0]//2:im_size[0]-to_pad[0]//2,
+        to_pad[1]//2:im_size[1]-to_pad[1]//2,
+        to_pad[2]//2:im_size[2]-to_pad[2]//2,
     ]
     return cropped_image
 
