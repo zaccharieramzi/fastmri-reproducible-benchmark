@@ -5,6 +5,9 @@ RUN apt-get install -y software-properties-common python-software-properties
 RUN add-apt-repository -y ppa:deadsnakes/ppa
 RUN apt-get update
 RUN apt-get install -y python3.6
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3.6 get-pip.py
+RUN rm get-pip.py
 
 VOLUME /opt/data
 VOLUME /opt/work
