@@ -1,3 +1,5 @@
+from contextlib import ExitStack
+
 import tensorflow as tf
 from tensorflow.keras.models import Model
 
@@ -18,6 +20,7 @@ class CrossDomainNet(Model):
             multicoil=False,
             refine_smaps=False,
             normalize_image=False,
+            multi_gpu=False,
             **kwargs,
         ):
         super(CrossDomainNet, self).__init__(**kwargs)
@@ -31,6 +34,14 @@ class CrossDomainNet(Model):
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
         self.normalize_image = normalize_image
+        self.multi_gpu = multi_gpu
+        if self.multi_gpu:
+            self.available_gpus = [
+                d for d in tf.config.list_physical_devices()
+                if d.device_type == 'GPU'
+            ]
+            self.n_gpus = len(available_gpus)
+            self.n_iter = len(domain_sequence) // 2
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=3,
@@ -134,24 +145,32 @@ class CrossDomainNet(Model):
         kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
         for i_domain, domain in enumerate(self.domain_sequence):
-            if domain == 'K':
-                kspace_buffer = self.k_domain_correction(
-                    i_domain,
-                    image_buffer,
-                    kspace_buffer,
-                    mask,
-                    smaps,
-                    original_kspace,
-                )
-            if domain == 'I':
-                image_buffer = self.i_domain_correction(
-                    i_domain,
-                    image_buffer,
-                    kspace_buffer,
-                    mask,
-                    smaps,
-                    *op_args,
-                )
+            with ExitStack() as stack:
+                if self.multi_gpu:
+                    i_gpu = gpu_index_from_submodel_index(
+                        self.n_gpus,
+                        self.n_iter,
+                        i_domain//2,
+                    )
+                    stack.enter_context(tf.device(self.available_gpus[i_gpu]))
+                if domain == 'K':
+                    kspace_buffer = self.k_domain_correction(
+                        i_domain,
+                        image_buffer,
+                        kspace_buffer,
+                        mask,
+                        smaps,
+                        original_kspace,
+                    )
+                if domain == 'I':
+                    image_buffer = self.i_domain_correction(
+                        i_domain,
+                        image_buffer,
+                        kspace_buffer,
+                        mask,
+                        smaps,
+                        *op_args,
+                    )
         # if self.normalize_image:
         #     image_buffer = image_buffer * normalization_factor
         image = tf_fastmri_format(image_buffer[..., 0:1])
