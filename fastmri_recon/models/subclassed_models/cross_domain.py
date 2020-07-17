@@ -6,6 +6,7 @@ from tensorflow.keras.models import Model
 from .unet import  UnetComplex
 from ..utils.data_consistency import _replace_values_on_mask
 from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.gpu_placement import gpu_index_from_submodel_index, get_gpus
 
 
 class CrossDomainNet(Model):
@@ -36,10 +37,7 @@ class CrossDomainNet(Model):
         self.normalize_image = normalize_image
         self.multi_gpu = multi_gpu
         if self.multi_gpu:
-            self.available_gpus = [
-                d for d in tf.config.list_physical_devices()
-                if d.device_type == 'GPU'
-            ]
+            self.available_gpus = get_gpus()
             self.n_gpus = len(available_gpus)
             self.n_iter = len(domain_sequence) // 2
         if self.multicoil and self.refine_smaps:
