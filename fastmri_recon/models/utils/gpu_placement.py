@@ -1,3 +1,6 @@
+import tensorflow as tf
+
+
 def gpu_index_from_submodel_index(n_gpus, n_submodels, submodel_i):
     if n_submodels <= n_gpus:
         return submodel_i
@@ -10,3 +13,9 @@ def gpu_index_from_submodel_index(n_gpus, n_submodels, submodel_i):
         if i_gpu >= n_left_over_models:
             i_gpu = submodel_i // n_submodels_per_gpu
         return i_gpu
+
+def get_gpus():
+    return [
+        d.name for d in tf.config.list_physical_devices()
+        if d.device_type == 'GPU'
+    ]
