@@ -1,5 +1,3 @@
-import tensorflow as tf
-
 from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
 from ..utils.fourier import NFFT, AdjNFFT
