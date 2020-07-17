@@ -33,6 +33,7 @@ class NCPDNet(CrossDomainNet):
             i_buffer_size=self.n_primal,
             k_buffer_size=1,
             multicoil=self.multicoil,
+            multi_gpu=True,
             **kwargs,
         )
         self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil)
