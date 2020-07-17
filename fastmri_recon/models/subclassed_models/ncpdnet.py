@@ -36,36 +36,15 @@ class NCPDNet(CrossDomainNet):
         )
         self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil)
         self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=dcomp)
-        available_gpus = [
-            d for d in tf.config.list_physical_devices()
-            if d.device_type == 'GPU'
-        ]
-        n_gpus = len(available_gpus)
-        if n_gpus:
-            self.image_net = []
-            for i in range(self.n_iter):
-                i_gpu = i
-                with tf.device(available_gpus[i_gpu]):
-                    image_model = CNNComplex(
-                        n_convs=3,
-                        n_filters=self.n_filters,
-                        n_output_channels=self.n_primal,
-                        activation='relu',
-                        res=True,
-                        three_d=self.three_d,
-                        name=f'image_net_{i}',
-                    )
-                self.image_net.append(image_model)
-        else:
-            self.image_net = [CNNComplex(
-                n_convs=3,
-                n_filters=self.n_filters,
-                n_output_channels=self.n_primal,
-                activation='relu',
-                res=True,
-                three_d=self.three_d,
-                name=f'image_net_{i}',
-            ) for i in range(self.n_iter)]
+        self.image_net = [CNNComplex(
+            n_convs=3,
+            n_filters=self.n_filters,
+            n_output_channels=self.n_primal,
+            activation='relu',
+            res=True,
+            three_d=self.three_d,
+            name=f'image_net_{i}',
+        ) for i in range(self.n_iter)]
         self.kspace_net = [measurements_residual for i in range(self.n_iter)]
 
 
