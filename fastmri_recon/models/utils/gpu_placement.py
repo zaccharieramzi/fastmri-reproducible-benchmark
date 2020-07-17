@@ -1,5 +1,5 @@
 def gpu_index_from_submodel_index(n_gpus, n_submodels, submodel_i):
-    if n_submodels < n_gpus:
+    if n_submodels <= n_gpus:
         return submodel_i
     else:
         n_left_over_models = n_submodels % n_gpus
