@@ -3,6 +3,7 @@ import tensorflow as tf
 from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
 from ..utils.fourier import NFFT, AdjNFFT
+from ..utils.gpu_placement import gpu_index_from_submodel_index
 
 class NCPDNet(CrossDomainNet):
     def __init__(
@@ -44,7 +45,7 @@ class NCPDNet(CrossDomainNet):
         if n_gpus:
             self.image_net = []
             for i in range(self.n_iter):
-                i_gpu = i
+                i_gpu = gpu_index_from_submodel_index(n_gpus, self.n_iter, i)
                 with tf.device(available_gpus[i_gpu]):
                     image_model = CNNComplex(
                         n_convs=3,
