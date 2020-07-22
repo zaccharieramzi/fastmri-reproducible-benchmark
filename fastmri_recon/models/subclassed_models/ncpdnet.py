@@ -1,6 +1,11 @@
+from contextlib import ExitStack
+
+import tensorflow as tf
+
 from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
 from ..utils.fourier import NFFT, AdjNFFT
+from ..utils.gpu_placement import gpu_index_from_submodel_index, get_gpus
 
 class NCPDNet(CrossDomainNet):
     def __init__(
@@ -28,18 +33,28 @@ class NCPDNet(CrossDomainNet):
             i_buffer_size=self.n_primal,
             k_buffer_size=1,
             multicoil=self.multicoil,
+            multi_gpu=True,
             **kwargs,
         )
         self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil)
         self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=dcomp)
-        self.image_net = [CNNComplex(
-            n_convs=3,
-            n_filters=self.n_filters,
-            n_output_channels=self.n_primal,
-            activation='relu',
-            res=True,
-            name=f'image_net_{i}',
-        ) for i in range(self.n_iter)]
+        available_gpus = get_gpus()
+        n_gpus = len(available_gpus)
+        self.image_net = []
+        for i in range(self.n_iter):
+            with ExitStack() as stack:
+                if n_gpus > 1:
+                    i_gpu = gpu_index_from_submodel_index(n_gpus, self.n_iter, i)
+                    stack.enter_context(tf.device(available_gpus[i_gpu]))
+                image_model = CNNComplex(
+                    n_convs=3,
+                    n_filters=self.n_filters,
+                    n_output_channels=self.n_primal,
+                    activation='relu',
+                    res=True,
+                    name=f'image_net_{i}',
+                )
+            self.image_net.append(image_model)
         self.kspace_net = [measurements_residual for i in range(self.n_iter)]
 
 
