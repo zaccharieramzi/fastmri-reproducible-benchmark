@@ -43,7 +43,7 @@ class NCPDNet(CrossDomainNet):
         self.image_net = []
         for i in range(self.n_iter):
             with ExitStack() as stack:
-                if n_gpus:
+                if n_gpus > 1:
                     i_gpu = gpu_index_from_submodel_index(n_gpus, self.n_iter, i)
                     stack.enter_context(tf.device(available_gpus[i_gpu]))
                 image_model = CNNComplex(
