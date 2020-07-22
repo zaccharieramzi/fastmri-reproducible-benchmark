@@ -38,8 +38,8 @@ class CrossDomainNet(Model):
         self.multi_gpu = multi_gpu
         if self.multi_gpu:
             self.available_gpus = get_gpus()
-            self.n_gpus = len(available_gpus)
-            self.n_iter = len(domain_sequence) // 2
+            self.n_gpus = len(self.available_gpus)
+            self.n_iter = len(self.domain_sequence) // 2
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=3,
