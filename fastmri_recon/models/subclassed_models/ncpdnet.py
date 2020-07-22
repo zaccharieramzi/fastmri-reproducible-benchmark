@@ -1,3 +1,5 @@
+from contextlib import ExitStack
+
 import tensorflow as tf
 
 from .cnn import  CNNComplex
