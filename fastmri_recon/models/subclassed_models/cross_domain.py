@@ -46,7 +46,11 @@ class CrossDomainNet(Model):
 
     def call(self, inputs):
         if self.multicoil:
-            original_kspace, mask, smaps = inputs
+            if len(inputs) == 3:
+                original_kspace, mask, smaps = inputs
+                op_args = ()
+            else:
+                original_kspace, mask, smaps, *op_args = inputs
             if self.refine_smaps:
                 # we deal with each smap independently
                 smaps_shape = tf.shape(smaps)
@@ -64,8 +68,6 @@ class CrossDomainNet(Model):
                 rss = tf.norm(smaps_refined, axis=1, keepdims=True)
                 smaps_refined_normalized = smaps_refined / rss
                 smaps = smaps_refined_normalized
-            # TODO: change when doing non uniform multicoil
-            op_args = ()
         else:
             if len(inputs) == 2:
                 original_kspace, mask = inputs

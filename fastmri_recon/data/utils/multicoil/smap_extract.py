@@ -49,7 +49,11 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     return coil_smap
 
 
-def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, low_freq_percentage=8):
+def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, shape, low_freq_percentage=8):
+    def _crop_for_pad(image, shape, im_size):
+        to_pad = im_size[-1] - shape[0]
+        cropped_image = image[..., to_pad//2:-to_pad//2]
+        return cropped_image
     cutoff_freq = low_freq_percentage / 200 * tf.constant(pi)
     # Get the boolean mask for low frequency
     low_freq_bool_mask = tf.math.reduce_all(tf.math.less_equal(tf.abs(trajs[0]), cutoff_freq), axis=0)
@@ -58,4 +62,9 @@ def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, low_freq_perce
     low_freq_kspace = tf.boolean_mask(kspace, low_freq_bool_mask, axis=2)
     low_freq_dcomp = tf.boolean_mask(dcomp, low_freq_bool_mask, axis=1)
     coil_smap = nufft_back(low_freq_kspace * tf.cast(low_freq_dcomp, kspace.dtype), low_freq_traj)
+    coil_smap = tf.cond(
+            tf.math.greater_equal(shape, coil_smap.shape[-1]),
+            lambda: coil_smap,
+            lambda: _crop_for_pad(coil_smap, shape, coil_smap.shape),
+        )
     return coil_smap

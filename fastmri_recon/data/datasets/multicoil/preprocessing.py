@@ -65,8 +65,10 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
         orig_image_channels = tf_unmasked_adj_op(kspaces[..., None])[..., 0]
         nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size)
-        nc_kspaces_channeled = nc_kspace * scale_factor
-        images_channeled = images * scale_factor
+        nc_kspace_scaled = nc_kspace * scale_factor
+        images_scaled = images * scale_factor
+        images_channeled = images_scaled[..., None]
+        nc_kspaces_channeled = nc_kspace_scaled[..., None]
         orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
         extra_args = (orig_shape,)
         dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
@@ -75,7 +77,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         if parallel:
             return (nc_kspaces_channeled, traj, *extra_args), images_channeled
         else:
-            smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back)
+            smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back, orig_shape)
             return (nc_kspaces_channeled, traj, smaps, *extra_args), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,
