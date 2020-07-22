@@ -56,7 +56,7 @@ class CrossDomainNet(Model):
                 name=f'smaps_refiner',
             )
 
-    def refine_smaps(self, smaps):
+    def _refine_smaps(self, smaps):
         # we deal with each smap independently
         smaps_shape = tf.shape(smaps)
         batch_size = smaps_shape[0]
@@ -120,7 +120,7 @@ class CrossDomainNet(Model):
         if self.multicoil:
             original_kspace, mask, smaps = inputs
             if self.refine_smaps:
-                smaps = self.refine_smaps(smaps)
+                smaps = self._refine_smaps(smaps)
             # TODO: change when doing non uniform multicoil
             op_args = ()
         else:
