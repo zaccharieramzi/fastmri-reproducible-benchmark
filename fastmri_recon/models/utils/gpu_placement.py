@@ -1,4 +1,4 @@
-import tensorflow as tf
+from tensorflow.python.client import device_lib
 
 
 def gpu_index_from_submodel_index(n_gpus, n_submodels, submodel_i):
@@ -15,7 +15,6 @@ def gpu_index_from_submodel_index(n_gpus, n_submodels, submodel_i):
         return i_gpu
 
 def get_gpus():
-    return [
-        d.name for d in tf.config.list_physical_devices()
-        if d.device_type == 'GPU'
-    ]
+    # from https://gist.github.com/jovianlin/b5b2c4be45437992df58a7dd13dbafa7
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
