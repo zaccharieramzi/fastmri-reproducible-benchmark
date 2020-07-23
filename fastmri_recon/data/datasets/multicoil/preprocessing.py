@@ -42,8 +42,6 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         image_size,
         acq_type='radial',
         scale_factor=1,
-        compute_dcomp=False,
-        parallel=False,
         **acq_kwargs
 ):
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
@@ -70,15 +68,10 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         images_channeled = images_scaled[..., None]
         nc_kspaces_channeled = nc_kspace_scaled[..., None]
         orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
-        extra_args = (orig_shape,)
         dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
-        if compute_dcomp:
-            extra_args += (dcomp,)
-        if parallel:
-            return (nc_kspaces_channeled, traj, *extra_args), images_channeled
-        else:
-            smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back, orig_shape)
-            return (nc_kspaces_channeled, traj, smaps, *extra_args), images_channeled
+        extra_args = (orig_shape, dcomp)
+        smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back, orig_shape)
+        return (nc_kspaces_channeled, traj, smaps, *extra_args), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,
         input_signature=[
