@@ -4,7 +4,7 @@ from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
 from ...utils.masking.gen_mask_tf import gen_mask_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
-from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op_non_cartesian, nufft
+from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
 from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory
 
 
@@ -61,7 +61,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
             traj[0],
         )
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
-        orig_image_channels = tf_unmasked_adj_op_non_cartesian(kspaces[..., None])[..., 0]
+        orig_image_channels = tf_unmasked_adj_op(kspaces[..., None])[..., 0]
         nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size)
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
