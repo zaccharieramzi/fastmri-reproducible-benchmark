@@ -104,7 +104,7 @@ class CrossDomainNet(Model):
                     axis=[1, 2, 3, 4] if self.multicoil else [1, 2, 3],
                 )
                 orig_bopres_shape = backward_op_res.shape
-                normalization_factor_iteration = tf.cast(normalization_factor_iteration, image.dtype)
+                normalization_factor_iteration = tf.cast(normalization_factor_iteration, image_buffer.dtype)
                 backward_op_res = backward_op_res / normalization_factor_iteration
                 backward_op_res.set_shape(orig_bopres_shape)
             image_buffer = tf.concat([
