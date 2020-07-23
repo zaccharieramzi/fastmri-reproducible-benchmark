@@ -17,10 +17,6 @@ def tf_unmasked_adj_op(x, idx=0):
     scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
     return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x[..., idx], axes=[1, 2])), axes=[1, 2]), axis=-1)
 
-def tf_unmasked_adj_op_non_cartesian(x, idx=0):
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
-    return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x[..., idx], axes=[2, 3])), axes=[2, 3]), axis=-1)
-
 def tf_op(y, idx=0):
     x, mask = y
     x_fourier = tf_unmasked_op(x, idx=idx)
