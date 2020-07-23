@@ -78,7 +78,7 @@ def train_nc_kspace_dataset_from_indexable(
             compute_dcomp=compute_dcomp,
             **acq_kwargs,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or inner_slices is not None else None,
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return masked_kspace_ds
