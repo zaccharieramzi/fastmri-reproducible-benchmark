@@ -8,6 +8,7 @@ from fastmri_recon.training_scripts.nc_train import train_ncpdnet
     {'n_iter': 1},
     {'n_iter': 2},
     {'dcomp': True},
+    {'multicoil': True, 'dcomp': True},
 ])
 def test_train_ncpdnet(create_full_fastmri_test_tmp_dataset, kwargs):
     nc_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
