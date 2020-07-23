@@ -14,8 +14,11 @@ def train_nc_kspace_dataset_from_indexable(
         contrast=None,
         n_samples=None,
         acq_type='radial',
+        compute_dcomp=True,  # for backwards compatibility
         **acq_kwargs,
     ):
+    if not compute_dcomp:
+        raise NotImplementedError('Non-cartesian multicoil is not implemented without density compensation.')
     selection = [{'inner_slices': inner_slices, 'rand': rand}]
     def _tf_filename_to_image_and_kspace_and_contrast(filename):
         def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
