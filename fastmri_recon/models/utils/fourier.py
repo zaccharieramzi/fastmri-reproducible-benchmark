@@ -171,12 +171,12 @@ class NFFTBase(Layer):
     def op(self, inputs):
         if self.multicoil:
             image, ktraj, smaps = inputs
-            image = tf.expand_dims(image, axis=1)
-            image = image[..., 0] * smaps
         else:
             image, ktraj = inputs
-            # for tfkbnufft we need a coil dimension even if there is none
-            image = image[:, None, ..., 0]
+        # for tfkbnufft we need a coil dimension even if there is none
+        image = image[:, None, ..., 0]
+        if self.multicoil:
+            image = image * smaps
 
         kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
         shape = tf.ones([tf.shape(image)[0]], dtype=tf.int32) * tf.shape(image)[-1]
