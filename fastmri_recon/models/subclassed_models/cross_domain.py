@@ -118,11 +118,13 @@ class CrossDomainNet(Model):
 
     def call(self, inputs):
         if self.multicoil:
-            original_kspace, mask, smaps = inputs
+            if len(inputs) == 3:
+                original_kspace, mask, smaps = inputs
+                op_args = ()
+            else:
+                original_kspace, mask, smaps, *op_args = inputs
             if self.refine_smaps:
                 smaps = self._refine_smaps(smaps)
-            # TODO: change when doing non uniform multicoil
-            op_args = ()
         else:
             if len(inputs) == 2:
                 original_kspace, mask = inputs

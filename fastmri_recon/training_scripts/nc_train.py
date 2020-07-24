@@ -8,6 +8,7 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
@@ -37,7 +38,6 @@ def train_ncnet(
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-        raise ValueError('Non cartesian multicoil is not implemented yet')
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -54,10 +54,9 @@ def train_ncnet(
     mixed_precision.set_policy(policy)
     # generators
     if multicoil:
-        pass
+        dataset = multicoil_dataset
     else:
         dataset = singlecoil_dataset
-        kwargs = acq_kwargs
     train_set = dataset(
         train_path,
         IM_SIZE,
@@ -68,7 +67,7 @@ def train_ncnet(
         rand=True,
         scale_factor=1e6,
         n_samples=n_samples,
-        **kwargs
+        **acq_kwargs
     )
     val_set = dataset(
         val_path,
@@ -79,7 +78,7 @@ def train_ncnet(
         inner_slices=None,
         rand=True,
         scale_factor=1e6,
-        **kwargs
+        **acq_kwargs
     )
 
     additional_info = f'{acq_type}'
