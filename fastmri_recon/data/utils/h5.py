@@ -3,6 +3,12 @@ import glob
 import random
 
 import h5py
+try:
+    import ismrmrd
+except ImportError:
+    ismrmrd_not_avail = True
+else:
+    ismrmrd_not_avail = False
 
 
 def _from_file_to_stuff(filename, vals=None, attrs=None, selection=None):
@@ -128,6 +134,23 @@ def from_file_to_contrast(filename):
     """Get the contrast from an h5 file.
     """
     return _from_file_to_stuff(filename, attrs=['acquisition'])
+
+def from_brain_test_file_to_mask_and_kspace_and_contrast_and_image_size(filename, selection=None):
+    if ismrmrd_not_avail:
+        raise ValueError('You need to install the ismrmrd package to load test brain data.')
+    if selection is not None:
+        selection = {'kspace': selection}
+    mask, kspace, ismrmrd_header, contrast = _from_file_to_stuff(
+        filename,
+        vals=['mask', 'kspace', 'ismrmrd_header'],
+        attrs=['acquisition'],
+        selection=selection,
+    )
+    hdr = ismrmrd.xsd.CreateFromDocument(ismrmrd_header)
+    enc = hdr.encoding[0]
+    enc_size = (enc.encodedSpace.matrixSize.x, enc.encodedSpace.matrixSize.y)
+    return mask, kspace, contrast, enc_size
+
 
 def list_files_w_contrast_and_af(path, AF=4, contrast=None):
     filenames = glob.glob(path + '*.h5')
