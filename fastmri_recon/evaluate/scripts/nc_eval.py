@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
@@ -51,17 +52,15 @@ def evaluate_nc(
     ):
     if multicoil:
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-        raise ValueError('Non cartesian multicoil is not implemented yet')
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
     if multicoil:
-        pass
+        dataset = multicoil_dataset
     else:
         dataset = singlecoil_dataset
-        kwargs = acq_kwargs
     val_set = dataset(
         val_path,
         IM_SIZE,
@@ -71,7 +70,7 @@ def evaluate_nc(
         inner_slices=None,
         rand=False,
         scale_factor=1e6,
-        **kwargs
+        **acq_kwargs
     )
     if n_samples is not None:
         val_set = val_set.take(n_samples)
