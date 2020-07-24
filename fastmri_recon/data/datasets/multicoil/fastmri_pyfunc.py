@@ -44,6 +44,7 @@ def train_masked_kspace_dataset_from_indexable(
         n_samples=None,
         parallel=True,
         fixed_masks=False,
+        output_shape_spec=False,
     ):
     selection = [
         {'inner_slices': inner_slices, 'rand': rand},  # slice selection
@@ -103,6 +104,7 @@ def train_masked_kspace_dataset_from_indexable(
             scale_factor=scale_factor,
             parallel=parallel,
             fixed_masks=fixed_masks,
+            output_shape_spec=output_shape_spec,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     ).repeat()

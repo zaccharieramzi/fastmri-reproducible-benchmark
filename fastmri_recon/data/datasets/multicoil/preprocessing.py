@@ -13,6 +13,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         scale_factor=1,
         parallel=True,
         fixed_masks=False,
+        output_shape_spec=False,
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         mask = gen_mask_tf(
@@ -31,9 +32,12 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
         if parallel:
-            return (kspaces_channeled, mask), images_channeled
+            model_inputs = (kspaces_channeled, mask)
         else:
-            return (kspaces_channeled, mask, smaps), images_channeled
+            model_inputs = (kspaces_channeled, mask, smaps)
+        if output_shape_spec:
+            model_inputs += (tf.shape(images),)
+        return model_inputs, images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 
