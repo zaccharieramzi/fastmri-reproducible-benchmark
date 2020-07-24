@@ -89,8 +89,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
     )
 
 
-def generic_prepare_mask_and_kspace(scale_factor=1, AF=4):
-    def prepare(mask, kspaces):
+def generic_prepare_mask_and_kspace(scale_factor=1, AF=4, output_shape_spec=False):
+    def prepare(mask, kspaces, image_size):
         shape = tf.shape(kspaces)
         mask_expanded = mask[None, None, None, :]
         fourier_mask = tf.tile(mask_expanded, [shape[0], 1, 1, 1])
@@ -98,5 +98,10 @@ def generic_prepare_mask_and_kspace(scale_factor=1, AF=4):
         smaps = extract_smaps(kspaces, low_freq_percentage=32//AF)
         kspaces_scaled = kspaces * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
-        return kspaces_channeled, fourier_mask, smaps
+        if output_shape_spec:
+            image_size = image_size[None, :]
+            image_size = tf.tile(image_size, [shape[0], 1, 1])
+            return kspaces_channeled, fourier_mask, smaps, image_size
+        else:
+            return kspaces_channeled, fourier_mask, smaps
     return prepare
