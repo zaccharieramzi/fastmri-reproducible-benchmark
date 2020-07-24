@@ -26,7 +26,9 @@ def test_train_ncpdnet(create_full_fastmri_test_tmp_dataset, kwargs):
     )
     # TODO: checks that the checkpoints and the logs are correctly created
 
-CI = os.environ['CONTINUOUS_INTEGRATION'] or os.environ['CI'] or os.environ['TRAVIS']
+CI = os.environ.get('CONTINUOUS_INTEGRATION', False)
+CI = CI or os.environ.get('CI', False)
+CI = CI or os.environ.get('TRAVIS', False)
 @pytest.mark.skipif(CI)
 def test_train_ncpdnet_multicoil(create_full_fastmri_test_tmp_dataset):
     nc_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
