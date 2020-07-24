@@ -5,7 +5,7 @@ from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 from ...utils.masking.gen_mask_tf import gen_mask_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
-from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory
+from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 
 
 def generic_from_kspace_to_masked_kspace_and_mask(
@@ -49,6 +49,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
             traj = get_radial_trajectory(image_size, **acq_kwargs)
         elif acq_type == 'cartesian':
             traj = get_debugging_cartesian_trajectory()
+        elif acq_type == 'spiral':
+            traj = get_spiral_trajectory(image_size, **acq_kwargs)
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         interpob = nfft_ob._extract_nufft_interpob()
