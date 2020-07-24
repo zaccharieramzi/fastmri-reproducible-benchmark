@@ -1,9 +1,12 @@
+from contextlib import ExitStack
+
 import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from .unet import  UnetComplex
 from ..utils.data_consistency import _replace_values_on_mask
 from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.gpu_placement import gpu_index_from_submodel_index, get_gpus
 
 
 class CrossDomainNet(Model):
@@ -18,6 +21,7 @@ class CrossDomainNet(Model):
             multicoil=False,
             refine_smaps=False,
             normalize_image=False,
+            multi_gpu=False,
             **kwargs,
         ):
         super(CrossDomainNet, self).__init__(**kwargs)
@@ -31,6 +35,14 @@ class CrossDomainNet(Model):
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
         self.normalize_image = normalize_image
+        self.multi_gpu = multi_gpu
+        if self.multi_gpu:
+            self.available_gpus = get_gpus()
+            self.n_gpus = len(self.available_gpus)
+            if self.n_gpus > 1:
+                self.n_iter = len(self.domain_sequence) // 2
+            else:
+                self.multi_gpu = False
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=3,
@@ -44,28 +56,75 @@ class CrossDomainNet(Model):
                 name=f'smaps_refiner',
             )
 
+    def _refine_smaps(self, smaps):
+        # we deal with each smap independently
+        smaps_shape = tf.shape(smaps)
+        batch_size = smaps_shape[0]
+        n_coils = smaps_shape[1]
+        smaps_contig = tf.reshape(
+            smaps,
+            [batch_size * n_coils, smaps_shape[2], smaps_shape[3], 1],
+        )
+        smaps_refined = self.smaps_refiner(smaps_contig)
+        smaps_refined = tf.reshape(
+            smaps_refined,
+            [batch_size, n_coils, smaps_shape[2], smaps_shape[3]],
+        )
+        rss = tf.norm(smaps_refined, axis=1, keepdims=True)
+        smaps_refined_normalized = smaps_refined / rss
+        smaps = smaps_refined_normalized
+        return smaps
+
+    def k_domain_correction(self, i_domain, image_buffer, kspace_buffer, mask, smaps, original_kspace):
+        forward_op_res = self.forward_operator(image_buffer, mask, smaps)
+        if isinstance(forward_op_res, tuple):
+            forward_op_res = forward_op_res[0]
+        if self.k_buffer_mode:
+            kspace_buffer = tf.concat([
+                kspace_buffer,
+                forward_op_res,
+            ], axis=-1)
+        else:
+            kspace_buffer = forward_op_res
+        kspace_buffer = self.apply_data_consistency(kspace_buffer, original_kspace, mask)
+        # NOTE: this i //2 suggest alternating domains, this will need
+        # evolve if we want non-alternating domains. This needs to be
+        # clear in the docs.
+        kspace_buffer = self.kspace_net[i_domain//2](kspace_buffer)
+        return  kspace_buffer
+
+    def i_domain_correction(self, i_domain, image_buffer, kspace_buffer, mask, smaps, *op_args):
+        if self.i_buffer_mode:
+            backward_op_res = self.backward_operator(kspace_buffer, mask, smaps, *op_args)
+            if self.normalize_image:
+                normalization_factor_iteration = tf.reduce_max(
+                    tf.abs(backward_op_res),
+                    axis=[1, 2, 3, 4] if self.multicoil else [1, 2, 3],
+                )
+                orig_bopres_shape = backward_op_res.shape
+                normalization_factor_iteration = tf.cast(normalization_factor_iteration, image.dtype)
+                backward_op_res = backward_op_res / normalization_factor_iteration
+                backward_op_res.set_shape(orig_bopres_shape)
+            image_buffer = tf.concat([
+                image_buffer,
+                backward_op_res,
+            ], axis=-1)
+        else:
+            # NOTE: the operator is already doing the channel selection
+            image_buffer = self.backward_operator(kspace_buffer, mask, smaps, *op_args)
+        image_buffer = self.image_net[i_domain//2](image_buffer)
+        return image_buffer
+
+
     def call(self, inputs):
         if self.multicoil:
-            original_kspace, mask, smaps = inputs
+            if len(inputs) == 3:
+                original_kspace, mask, smaps = inputs
+                op_args = ()
+            else:
+                original_kspace, mask, smaps, *op_args = inputs
             if self.refine_smaps:
-                # we deal with each smap independently
-                smaps_shape = tf.shape(smaps)
-                batch_size = smaps_shape[0]
-                n_coils = smaps_shape[1]
-                smaps_contig = tf.reshape(
-                    smaps,
-                    [batch_size * n_coils, smaps_shape[2], smaps_shape[3], 1],
-                )
-                smaps_refined = self.smaps_refiner(smaps_contig)
-                smaps_refined = tf.reshape(
-                    smaps_refined,
-                    [batch_size, n_coils, smaps_shape[2], smaps_shape[3]],
-                )
-                rss = tf.norm(smaps_refined, axis=1, keepdims=True)
-                smaps_refined_normalized = smaps_refined / rss
-                smaps = smaps_refined_normalized
-            # TODO: change when doing non uniform multicoil
-            op_args = ()
+                smaps = self._refine_smaps(smaps)
         else:
             if len(inputs) == 2:
                 original_kspace, mask = inputs
@@ -89,42 +148,32 @@ class CrossDomainNet(Model):
         kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
         for i_domain, domain in enumerate(self.domain_sequence):
-            if domain == 'K':
-                forward_op_res = self.forward_operator(image_buffer, mask, smaps)
-                if isinstance(forward_op_res, tuple):
-                    forward_op_res = forward_op_res[0]
-                if self.k_buffer_mode:
-                    kspace_buffer = tf.concat([
-                        kspace_buffer,
-                        forward_op_res,
-                    ], axis=-1)
-                else:
-                    kspace_buffer = forward_op_res
-                kspace_buffer = self.apply_data_consistency(kspace_buffer, original_kspace, mask)
-                # NOTE: this i //2 suggest alternating domains, this will need
-                # evolve if we want non-alternating domains. This needs to be
-                # clear in the docs.
-                kspace_buffer = self.kspace_net[i_domain//2](kspace_buffer)
-            if domain == 'I':
-                if self.i_buffer_mode:
-                    backward_op_res = self.backward_operator(kspace_buffer, mask, smaps, *op_args)
-                    if self.normalize_image:
-                        normalization_factor_iteration = tf.reduce_max(
-                            tf.abs(backward_op_res),
-                            axis=[1, 2, 3, 4] if self.multicoil else [1, 2, 3],
-                        )
-                        orig_bopres_shape = backward_op_res.shape
-                        normalization_factor_iteration = tf.cast(normalization_factor_iteration, image.dtype)
-                        backward_op_res = backward_op_res / normalization_factor_iteration
-                        backward_op_res.set_shape(orig_bopres_shape)
-                    image_buffer = tf.concat([
+            with ExitStack() as stack:
+                if self.multi_gpu:
+                    i_gpu = gpu_index_from_submodel_index(
+                        self.n_gpus,
+                        self.n_iter,
+                        i_domain//2,
+                    )
+                    stack.enter_context(tf.device(self.available_gpus[i_gpu]))
+                if domain == 'K':
+                    kspace_buffer = self.k_domain_correction(
+                        i_domain,
                         image_buffer,
-                        backward_op_res,
-                    ], axis=-1)
-                else:
-                    # NOTE: the operator is already doing the channel selection
-                    image_buffer = self.backward_operator(kspace_buffer, mask, smaps, *op_args)
-                image_buffer = self.image_net[i_domain//2](image_buffer)
+                        kspace_buffer,
+                        mask,
+                        smaps,
+                        original_kspace,
+                    )
+                if domain == 'I':
+                    image_buffer = self.i_domain_correction(
+                        i_domain,
+                        image_buffer,
+                        kspace_buffer,
+                        mask,
+                        smaps,
+                        *op_args,
+                    )
         # if self.normalize_image:
         #     image_buffer = image_buffer * normalization_factor
         image = tf_fastmri_format(image_buffer[..., 0:1])
