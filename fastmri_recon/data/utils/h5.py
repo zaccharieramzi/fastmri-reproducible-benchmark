@@ -135,7 +135,7 @@ def from_file_to_contrast(filename):
     """
     return _from_file_to_stuff(filename, attrs=['acquisition'])
 
-def from_brain_test_file_to_mask_and_kspace_and_contrast_and_image_size(filename, selection=None):
+def from_test_file_to_mask_and_kspace_and_contrast_and_image_size(filename, selection=None):
     if ismrmrd_not_avail:
         raise ValueError('You need to install the ismrmrd package to load test brain data.')
     if selection is not None:
