@@ -69,10 +69,10 @@ def train_masked_kspace_dataset_from_indexable(
         else:
             n_slices = (inner_slices,)
         if parallel:
-            kspace_size = (640, None)
+            kspace_size = (None, None)
         else:
-            kspace_size = (15, 640, None)
-        image_size = (320, 320)
+            kspace_size = (None, None, None)
+        image_size = (None, None)
         image.set_shape(n_slices + image_size)
         kspace.set_shape(n_slices + kspace_size)
         return image, kspace, contrast
