@@ -14,6 +14,7 @@ def evaluate_xpdnet(
         model_kwargs,
         run_id,
         multicoil=True,
+        brain=False,
         n_epochs=200,
         contrast=None,
         af=4,
@@ -26,7 +27,10 @@ def evaluate_xpdnet(
         cuda_visible_devices='0123',
     ):
     if multicoil:
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
@@ -40,6 +44,7 @@ def evaluate_xpdnet(
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
         'res': res,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
@@ -55,6 +60,7 @@ def evaluate_xpdnet(
         inner_slices=None,
         rand=False,
         scale_factor=1e6,
+        output_shape_spec=brain,
         **kwargs,
     )
     if n_samples is not None:

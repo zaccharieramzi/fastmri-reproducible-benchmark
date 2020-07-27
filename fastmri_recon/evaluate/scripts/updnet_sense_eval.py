@@ -11,6 +11,7 @@ from fastmri_recon.models.subclassed_models.updnet import UPDNet
 
 def evaluate_updnet(
         multicoil=True,
+        brain=False,
         run_id='updnet_sense_af4_1588609141',
         n_epochs=200,
         contrast=None,
@@ -25,7 +26,10 @@ def evaluate_updnet(
         cuda_visible_devices='0123',
     ):
     if multicoil:
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
@@ -43,6 +47,7 @@ def evaluate_updnet(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
@@ -58,6 +63,7 @@ def evaluate_updnet(
         inner_slices=None,
         rand=False,
         scale_factor=1e6,
+        output_shape_spec=brain,
         **kwargs,
     )
     if n_samples is not None:
