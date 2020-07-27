@@ -13,6 +13,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         scale_factor=1,
         parallel=True,
         fixed_masks=False,
+        output_shape_spec=False,
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         mask = gen_mask_tf(
@@ -31,9 +32,12 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
         if parallel:
-            return (kspaces_channeled, mask), images_channeled
+            model_inputs = (kspaces_channeled, mask)
         else:
-            return (kspaces_channeled, mask, smaps), images_channeled
+            model_inputs = (kspaces_channeled, mask, smaps)
+        if output_shape_spec:
+            model_inputs += (tf.shape(images),)
+        return model_inputs, images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 
@@ -85,8 +89,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
     )
 
 
-def generic_prepare_mask_and_kspace(scale_factor=1, AF=4):
-    def prepare(mask, kspaces):
+def generic_prepare_mask_and_kspace(scale_factor=1, AF=4, output_shape_spec=False):
+    def prepare(mask, kspaces, image_size):
         shape = tf.shape(kspaces)
         mask_expanded = mask[None, None, None, :]
         fourier_mask = tf.tile(mask_expanded, [shape[0], 1, 1, 1])
@@ -94,5 +98,10 @@ def generic_prepare_mask_and_kspace(scale_factor=1, AF=4):
         smaps = extract_smaps(kspaces, low_freq_percentage=32//AF)
         kspaces_scaled = kspaces * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
-        return kspaces_channeled, fourier_mask, smaps
+        if output_shape_spec:
+            image_size = image_size[None, :]
+            image_size = tf.tile(image_size, [shape[0], 1, 1])
+            return kspaces_channeled, fourier_mask, smaps, image_size
+        else:
+            return kspaces_channeled, fourier_mask, smaps
     return prepare
