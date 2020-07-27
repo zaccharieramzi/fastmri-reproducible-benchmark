@@ -80,6 +80,12 @@ from generic_dask import infer_on_jz_dask
     is_flag=True,
     help='Whether you want to refine sensitivity maps using a trained unet.',
 )
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to use brain data for this full pipe.'
+)
 def infer_updnet_sense_dask(
         runs,
         exp_id,
@@ -92,6 +98,7 @@ def infer_updnet_sense_dask(
         base_n_filter,
         channel_attention,
         refine_smaps,
+        brain,
     ):
     job_name = f'infer_{exp_id}'
     n_runs = len(runs)
@@ -125,6 +132,7 @@ def infer_updnet_sense_dask(
         base_n_filter=base_n_filter,
         channel_attention_kwargs=channel_attention_kwargs,
         refine_smaps=refine_smaps,
+        brain=brain,
     )
 
 
