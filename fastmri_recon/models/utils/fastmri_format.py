@@ -9,6 +9,11 @@ def _tf_crop(im, cropx=320, cropy=None):
     x = im_shape[2]
     startx = x // 2 - (cropx // 2)
     starty = y // 2 - (cropy // 2)
+    starty = tf.cond(
+        tf.equal(tf.math.mod(cropy, 2), 0),
+        lambda: starty,
+        lambda: starty -1,
+    )
     im = im[:, starty:starty+cropy, startx:startx+cropx, :]
     return im
 
