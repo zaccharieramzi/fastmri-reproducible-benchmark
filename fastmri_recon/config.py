@@ -7,6 +7,13 @@ OASIS_DATA_DIR = os.environ.get('OASIS_DATA_DIR', '/media/Zaccharie/UHRes/')
 LOGS_DIR = os.environ.get('LOGS_DIR', './')
 CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', './')
 
+n_volumes_train = 973
+n_volumes_val = 199
+n_volumes_test = {
+    4: 60,
+    8: 60,
+}
+
 brain_volumes_per_contrast = {
     'validation':{
         'AXFLAIR': 107,
@@ -31,4 +38,11 @@ brain_volumes_per_contrast = {
             'AXT2': 152
         },
     }
+}
+
+brain_n_volumes_train = 5004
+brain_n_volumes_validation = 1378
+brain_n_volumes_test = {
+    4: 281,
+    8: 277,
 }
