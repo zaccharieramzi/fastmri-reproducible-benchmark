@@ -35,6 +35,57 @@ def train_xpdnet(
         original_run_id=None,
         fixed_masks=False,
     ):
+    r"""Train an XPDNet network on the fastMRI dataset.
+
+    The training is done with a learning rate of 1e-4, using the RAdam optimizer.
+    The validation is performed every 5 epochs on 5 volumes.
+    A scale factor of 1e6 is applied to the data.
+
+    Arguments:
+        model_fun (function): the function initializing the image correction
+            network of the XPDNet.
+        model_kwargs (dict): the set of arguments used to initialize the image
+            correction network.
+        model_size (str or None): a string describing the size of the network
+            used. This is used in the run id. Defaults to None.
+        multicoil (bool): whether the input data is multicoil. Defaults to False.
+        af (int): the acceleration factor for the retrospective undersampling
+            of the data. Defaults to 4.
+        contrast (str or None): the contrast used for this specific training.
+            If None, all contrasts are considered. Defaults to None
+        cuda_visible_devices (str): the GPUs to consider visible. Defaults to
+            '0123'.
+        n_samples (int or None): the number of samples to consider for this
+            training. If None, all samples are considered. Defaults to None.
+        n_epochs (int): the number of epochs (i.e. one pass though all the
+            volumes/samples) for this training. Defaults to 200.
+        n_iter (int): the number of iterations for the XPDNet.
+        res (bool): whether the XPDNet image correction networks should be
+            residual.
+        n_scales (int): the number of scales used in the image correction
+            network. Defaults to 0.
+        n_primal (int): the size of the buffer in the image space. Defaults to
+            5.
+        use_mixed_precision (bool): whether to use the mixed precision API for
+            training. Currently not working. Defaults to False.
+        refine_smaps (bool): whether you want to refine the sensitivity maps
+            with a neural network.
+        loss (tf.keras.losses.Loss or str): the loss function used for the
+            training. It should be understandable by the tf.keras loss API,
+            or be 'compound_mssim', in which case the compound L1 MSSIM loss
+            inspired by [P2020]. Defaults to 'mae'.
+        original_run_id (str or None): run id of the same network trained before
+            fine-tuning. If this is present, the training is considered
+            fine-tuning for a network trained for 250 epochs. It will therefore
+            apply a learning rate of 1e-7 and the epoch size will be divided in
+            half. If None, the training is done normally, without loading
+            weights. Defaults to None.
+        fixed_masks (bool): whether fixed masks should be used for the
+            retrospective undersampling. Defaults to False
+
+    Returns:
+        - str: the run id of the trained network.
+    """
     # paths
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
