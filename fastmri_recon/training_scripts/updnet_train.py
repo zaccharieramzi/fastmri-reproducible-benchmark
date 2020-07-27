@@ -13,8 +13,6 @@ from fastmri_recon.models.subclassed_models.updnet import UPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-n_volumes_train = 973
-
 def train_updnet(
         multicoil=True,
         brain=False,
@@ -34,6 +32,11 @@ def train_updnet(
         original_run_id=None,
         fixed_masks=False,
     ):
+    if brain:
+        n_volumes = n_volumes_train
+    else:
+        n_volumes = brain_n_volumes_train
+
     # paths
     if multicoil:
         if brain:
@@ -146,10 +149,10 @@ def train_updnet(
     model = UPDNet(**run_params)
     if original_run_id is not None:
         lr = 1e-7
-        n_steps = n_volumes_train//2
+        n_steps = n_volumes//2
     else:
         lr = 1e-4
-        n_steps = n_volumes_train
+        n_steps = n_volumes
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
