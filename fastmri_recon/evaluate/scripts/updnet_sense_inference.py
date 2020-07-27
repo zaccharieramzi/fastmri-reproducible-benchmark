@@ -10,6 +10,7 @@ from ..utils.write_results import write_result
 
 
 def updnet_sense_inference(
+        brain=False,
         run_id='updnet_sense_af4_1588609141',
         exp_id='updnet',
         n_epochs=200,
@@ -24,7 +25,10 @@ def updnet_sense_inference(
         n_samples=None,
         cuda_visible_devices='0123',
     ):
-    test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
+    if brain:
+        test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
+    else:
+        test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
@@ -40,6 +44,7 @@ def updnet_sense_inference(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(
@@ -48,6 +53,7 @@ def updnet_sense_inference(
         contrast=contrast,
         scale_factor=1e6,
         n_samples=n_samples,
+        output_shape_spec=brain,
     )
     test_set_filenames = test_filenames(
         test_path,
