@@ -172,6 +172,3 @@ def train_updnet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
-
-if __name__ == '__main__':
-    train_updnet_click()
