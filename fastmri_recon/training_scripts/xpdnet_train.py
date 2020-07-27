@@ -20,6 +20,7 @@ def train_xpdnet(
         model_kwargs,
         model_size=None,
         multicoil=True,
+        brain=False,
         af=4,
         contrast=None,
         cuda_visible_devices='0123',
@@ -49,6 +50,8 @@ def train_xpdnet(
         model_size (str or None): a string describing the size of the network
             used. This is used in the run id. Defaults to None.
         multicoil (bool): whether the input data is multicoil. Defaults to False.
+        brain (bool): whether to consider brain data instead of knee. Defaults
+            to False.
         af (int): the acceleration factor for the retrospective undersampling
             of the data. Defaults to 4.
         contrast (str or None): the contrast used for this specific training.
