@@ -10,6 +10,99 @@ from ..utils.gpu_placement import gpu_index_from_submodel_index, get_gpus
 
 
 class CrossDomainNet(Model):
+    r"""Cross Domain network as defined in [R2020].
+
+    This is an skeleton class implementing most of the logic for so-called
+    cross-domain/unrolled networks. It basically alternates between the image
+    and the measurements domains using a forward operator and its adjoint.
+    It also performs data consistency in the form of residual or replacement.
+
+    To implement a class inheriting from this class you need to have different
+    attributes:
+        kspace_net (tf.keras.models.Model): the k-space (measurements)
+            correction network. This is where you would typically implement the
+            residual in the measurements. In case of multicoil don't forget to
+            account for the coil dimension.
+            The input and output tensors must be tf.complex64.
+            Input: nslices x (ncoils if multicoil) x spatial dimensions x (k_buffer_size + 2)
+            Output: nslices x (ncoils if multicoil) x spatial dimensions x k_buffer_size
+            If the data consistency mode is not 'measurements_residual', then
+            the channel size of the input is actually (k_buffer_size + 2).
+            If no buffer is used for kspace, the last dimensions for input and
+            outputs are 2 (1 when not using 'measurements_residual') and 1.
+        image_net (tf.keras.models.Model): the image space correction network.
+            Don't forget to account for varying input shapes.
+            The input and output tensors must be tf.complex64.
+            Input: nslices x spatial dimensions x (i_buffer_size + 1)
+            Output: nslices x spatial dimensions x i_buffer_size
+            If no buffer is use for image space, the last dimensions are 1.
+        op (tf.keras.layers.Layer): the forward operator, typically a Fourier
+            transform. It takes in a list of tensors composed of (in this order):
+                - image (tf.complex64): nslices x spatial dimensions x i_buffer_size
+                - mask (type determined at runtime): dimensions can be
+                    determined by input. This is present only when
+                    the data consistency mode is residual.
+                - smaps (tf.complex64): nslices x ncoils x spatial dimensions.
+                    This is present only when `multicoil` is True.
+        adj_op (tf.keras.layers.Layer): the adjoint operator, typically an
+            adjoint Fourier transform. It takes in a list of tensors composed of
+            (in this order):
+                - kspace (tf.complex64): nslices x ncoils x spatial dimensions x k_buffer_size
+                - mask (type determined at runtime): dimensions can be
+                    determined by input. This is present only when
+                    the data consistency mode is residual.
+                - smaps (tf.complex64): nslices x ncoils x spatial dimensions.
+                    This is present only when `multicoil` is True.
+                - *op_args (tuple): optional extra arguments for the operator.
+                    They are given as input to the model, and must be the same
+                    for a given input (i.e. not change accross the model
+                    iterations).
+
+    Parameters:
+        domain_sequence (str): the alternation sequence between kspace and image
+            space. Currently, becaue of issue #82, it's not possible to use with
+            anything other than real alternating sequence.
+            For example you could have `domain_sequence='KIKIKI'`, to specify
+            a cross domain network alternating between kspace and image space
+            three times and starting with kspace. Defaults to 'KIKI'.
+        data_consistency_mode (str): 'measurements_residual' or 'replacement'.
+            When you use 'measurements_residual', the input to the kspace net
+            will feature the original kspace.
+            When using 'replacement', the kspace values at sampled positions
+            are replaced by the original kspace values before being corrected
+            by the kspace net. Defaults to 'measurements_residual'.
+        i_buffer_mode (bool): whether you want to use a buffer for the image
+            space. See [A2017] for more details on buffers. Defaults to False.
+        k_buffer_mode (bool): whether you want to use a buffer for the kspace
+            See [A2017] for more details on buffers. Defaults to False.
+        i_buffer_size (int): the size of the buffer in the image space. Not
+            taken into account when i_buffer_mode is False. Defaults to 1.
+        k_buffer_size (int): the size of the buffer in the kspace. Not
+            taken into account when k_buffer_mode is False. Defaults to 1.
+        multicoil (bool): whether the input data is multicoil. Defaults to False.
+        refine_smaps (bool): whether you want to refine the sensitivity maps
+            with a neural network. The neural network applies the same function
+            to each coil. For more details on this see [S2020].
+            The neural network employed here is a U-net with 3 scales, leaky
+            ReLU non-linearity, 4 base filters and a residual connection.
+            Not taken into account when multicoil is False. Defaults to False.
+        normalize_image (bool): whether you want to divide the image by its
+            maximum value before it is fed in the image net. This is for example
+            useful when you have high density in the middle of the kspace.
+        multi_gpu (bool): whether you want to place the different iteration
+            blocks on different GPUs. Only works with real alter sequences.
+            Defaults to False.
+        **kwargs: tf.keras.models.Model keyword arguments.
+
+    Attributes:
+        n_iter (int): used when `multi_gpu` is True. This allows to determine
+            how many blocks are in the model.
+        smaps_refiner (tf.keras.models.Model): the neural network responsible
+            for refining the sensitivity maps. Exists only if `multicoil` and
+            `refine_smaps` are True.
+        available_gpus (list of str): the names of the available gpus. Exists
+            only if `multi_gpu` is True.
+    """
     def __init__(
             self,
             domain_sequence='KIKI',
