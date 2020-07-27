@@ -22,4 +22,4 @@ def pad_for_pool(inputs, n_pools):
         (0, 0),
     ]
     inputs_padded = tf.pad(inputs, paddings)
-    return inputs_padded, n_pad
+    return inputs_padded, padding
