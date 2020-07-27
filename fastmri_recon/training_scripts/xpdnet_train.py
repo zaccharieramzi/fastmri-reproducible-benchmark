@@ -88,8 +88,12 @@ def train_xpdnet(
     """
     # paths
     if multicoil:
-        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -121,6 +125,7 @@ def train_xpdnet(
         scale_factor=1e6,
         n_samples=n_samples,
         fixed_masks=fixed_masks,
+        output_shape_spec=brain,
         **kwargs
     )
     val_set = dataset(
@@ -130,6 +135,7 @@ def train_xpdnet(
         inner_slices=None,
         rand=True,
         scale_factor=1e6,
+        output_shape_spec=brain,
         **kwargs
     )
 
@@ -140,10 +146,13 @@ def train_xpdnet(
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
         'res': res,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
         xpdnet_type = 'xpdnet_sense_'
+        if brain:
+            xpdnet_type += 'brain_'
     else:
         xpdnet_type = 'xpdnet_singlecoil_'
     additional_info = f'af{af}'

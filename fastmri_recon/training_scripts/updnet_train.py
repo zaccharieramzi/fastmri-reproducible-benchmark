@@ -17,6 +17,7 @@ n_volumes_train = 973
 
 def train_updnet(
         multicoil=True,
+        brain=False,
         af=4,
         contrast=None,
         cuda_visible_devices='0123',
@@ -35,8 +36,12 @@ def train_updnet(
     ):
     # paths
     if multicoil:
-        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -68,6 +73,7 @@ def train_updnet(
         scale_factor=1e6,
         n_samples=n_samples,
         fixed_masks=fixed_masks,
+        output_shape_spec=brain,
         **kwargs
     )
     val_set = dataset(
@@ -77,6 +83,7 @@ def train_updnet(
         inner_slices=None,
         rand=True,
         scale_factor=1e6,
+        output_shape_spec=brain,
         **kwargs
     )
 
@@ -91,10 +98,13 @@ def train_updnet(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
         updnet_type = 'updnet_sense_'
+        if brain:
+            updnet_type += 'brain_'
     else:
         updnet_type = 'updnet_singlecoil_'
     additional_info = f'af{af}'
