@@ -123,29 +123,29 @@ def test_masked_kspace_dataset_from_indexable(
         output_shape_spec=False,
     ):
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0, shuffle=False)
-    mask_and_kspace_and_contrast_ds = files_ds.map(
+    mask_and_kspace_and_contrast_and_image_size_ds = files_ds.map(
         tf_filename_to_mask_and_kspace_and_contrast_and_image_size,
     )
     # contrast filtering
     if contrast:
-        mask_and_kspace_and_contrast_ds = mask_and_kspace_and_contrast_ds.filter(
+        mask_and_kspace_and_contrast_and_image_size_ds = mask_and_kspace_and_contrast_and_image_size_ds.filter(
             lambda mask, kspace, tf_contrast, image_size: tf_contrast == contrast
         )
-    mask_and_kspace_ds = mask_and_kspace_and_contrast_ds.map(
+    mask_and_kspace_and_image_size_ds = mask_and_kspace_and_contrast_and_image_size_ds.map(
         lambda mask, kspace, tf_contrast, image_size: (mask, kspace, image_size),
     )
     # af filtering
     if AF == 4:
-        mask_and_kspace_ds = mask_and_kspace_ds.filter(
+        mask_and_kspace_and_image_size_ds = mask_and_kspace_and_image_size_ds.filter(
             lambda mask, kspace, image_size: tf_af(mask) < 5.5
         )
     else:
-        mask_and_kspace_ds = mask_and_kspace_ds.filter(
+        mask_and_kspace_and_image_size_ds = mask_and_kspace_and_image_size_ds.filter(
             lambda mask, kspace, image_size: tf_af(mask) > 5.5
         )
     if n_samples is not None:
-        mask_and_kspace_ds = mask_and_kspace_ds.take(n_samples)
-    masked_kspace_ds = mask_and_kspace_ds.map(
+        mask_and_kspace_and_image_size_ds = mask_and_kspace_and_image_size_ds.take(n_samples)
+    masked_kspace_ds = mask_and_kspace_and_image_size_ds.map(
         generic_prepare_mask_and_kspace(
             scale_factor=scale_factor,
             AF=AF,
