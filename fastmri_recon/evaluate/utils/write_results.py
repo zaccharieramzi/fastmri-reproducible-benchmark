@@ -17,9 +17,9 @@ def _filename_submission(filename):
 
 def write_result(exp_id, result, filename, coiltype='multicoil', scale_factor=1e6, brain=False):
     if brain:
-        res_main_dir = f'{FASTMRI_DATA_DIR}brain_{coiltype}_test/
+        res_main_dir = f'{FASTMRI_DATA_DIR}brain_{coiltype}_test/'
     else:
-        res_main_dir = f'{FASTMRI_DATA_DIR}{coiltype}_test/
+        res_main_dir = f'{FASTMRI_DATA_DIR}{coiltype}_test/'
     res_path = f'{res_main_dir}{exp_id}/'
     Path(res_path).mkdir(parents=True, exist_ok=True)
     res_formatted = result[..., 0] / scale_factor
