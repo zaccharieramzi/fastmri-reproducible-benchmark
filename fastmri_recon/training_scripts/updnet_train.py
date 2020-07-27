@@ -33,9 +33,9 @@ def train_updnet(
         fixed_masks=False,
     ):
     if brain:
-        n_volumes = n_volumes_train
-    else:
         n_volumes = brain_n_volumes_train
+    else:
+        n_volumes = n_volumes_train
 
     # paths
     if multicoil:

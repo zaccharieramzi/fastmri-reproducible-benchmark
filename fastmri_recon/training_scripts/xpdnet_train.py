@@ -88,9 +88,9 @@ def train_xpdnet(
         - str: the run id of the trained network.
     """
     if brain:
-        n_volumes = n_volumes_train
-    else:
         n_volumes = brain_n_volumes_train
+    else:
+        n_volumes = n_volumes_train
     # paths
     if multicoil:
         if brain:
