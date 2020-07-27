@@ -75,7 +75,11 @@ class UnetComplex(Model):
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.unet(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
-        outputs = outputs[:, :, padding[0]:-padding[1]]
+        outputs = tf.cond(
+            tf.reduce_sum(padding) == 0,
+            lambda: outputs,
+            lambda: outputs[:, :, padding[0]:-padding[1]],
+        )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         if self.dealiasing_nc_fastmri:
