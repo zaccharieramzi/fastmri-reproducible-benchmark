@@ -102,7 +102,16 @@ def evaluate_updnet(
 
         model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
+    if brain:
+        n_volumes = 1378
+        if contrast is not None:
+            n_volumes = brain_volumes_per_contrast['validation'][contrast]
+    else:
+        n_volumes = 199
+        if contrast is not None:
+            n_volumes //= 2
+            n_volumes += 1
+    eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes if n_samples is None else None)
     return model.metrics_names, eval_res
 
 @click.command()
