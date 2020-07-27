@@ -63,6 +63,9 @@ def train_masked_kspace_dataset_from_indexable(
     This is useful in the case of the brain data because the output shape is
     not the same for each volume.
 
+    The sensitivity maps are extracted without any specific logic. They are raw.
+    For more information refer to fastmri_recon/data/utils/multicoil/smap_extract.py.
+
     Prefetching is performed, as well as parallel calls for preprocessing when
     rand or inner_slices are active.
     The ground truth reconstruction is read directly from the h5 file and not
