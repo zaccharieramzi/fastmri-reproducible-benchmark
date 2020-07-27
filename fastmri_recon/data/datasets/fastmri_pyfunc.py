@@ -59,7 +59,7 @@ def train_masked_kspace_dataset_from_indexable(
             kspace and the target reconstruction. Typically, 1e6 is a good value
             for fastMRI, because it sets the values in a range acceptable for
             neural networks training. See [R2020] (3.4 Training) for more details
-            on this value). Defaults to 1.
+            on this value. Defaults to 1.
         contrast (str or None): the contrast to select for this dataset. If None,
             all contrasts are considered. Available contrasts for fastMRI single
             coil are typically `CORPD_FBK` (Proton density) and `CORPDFS_FBK`
