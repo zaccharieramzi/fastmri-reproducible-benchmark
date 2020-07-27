@@ -92,6 +92,9 @@ class CrossDomainNet(Model):
         multi_gpu (bool): whether you want to place the different iteration
             blocks on different GPUs. Only works with real alter sequences.
             Defaults to False.
+        output_shape_spec (bool): whether the output shape is present in the
+            input. This is taken into account only in multicoil and cartesian.
+            Defaults to False.
         **kwargs: tf.keras.models.Model keyword arguments.
 
     Attributes:
