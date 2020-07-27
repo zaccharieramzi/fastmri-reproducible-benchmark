@@ -5,7 +5,7 @@ from tensorflow.keras.models import Model
 
 from .unet import  UnetComplex
 from ..utils.data_consistency import _replace_values_on_mask
-from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.fastmri_format import general_fastmri_format
 from ..utils.gpu_placement import gpu_index_from_submodel_index, get_gpus
 
 
@@ -22,6 +22,7 @@ class CrossDomainNet(Model):
             refine_smaps=False,
             normalize_image=False,
             multi_gpu=False,
+            output_shape_spec=False,
             **kwargs,
         ):
         super(CrossDomainNet, self).__init__(**kwargs)
@@ -36,6 +37,7 @@ class CrossDomainNet(Model):
         self.refine_smaps = refine_smaps
         self.normalize_image = normalize_image
         self.multi_gpu = multi_gpu
+        self.output_shape_spec = output_shape_spec
         if self.multi_gpu:
             self.available_gpus = get_gpus()
             self.n_gpus = len(self.available_gpus)
@@ -118,11 +120,20 @@ class CrossDomainNet(Model):
 
     def call(self, inputs):
         if self.multicoil:
-            if len(inputs) == 3:
+            if self.output_shape_spec:
+                # NOTE: for now we only consider the case of a specified output
+                # shape when in multicoil
+                original_kspace, mask, smaps, output_shape = inputs
+                op_args = ()
+            elif len(inputs) == 3:
                 original_kspace, mask, smaps = inputs
+                output_shape = None
                 op_args = ()
             else:
+                # NOTE: for now we don't consider the case of a specified
+                # output shape as well as extra arguments for the op.
                 original_kspace, mask, smaps, *op_args = inputs
+                output_shape = None
             if self.refine_smaps:
                 smaps = self._refine_smaps(smaps)
         else:
@@ -132,6 +143,7 @@ class CrossDomainNet(Model):
             else:
                 original_kspace, mask, op_args = inputs
             smaps = None
+            output_shape = None
         image = self.backward_operator(original_kspace, mask, smaps, *op_args)
         if self.normalize_image:
             normalization_factor = tf.reduce_max(
@@ -176,7 +188,7 @@ class CrossDomainNet(Model):
                     )
         # if self.normalize_image:
         #     image_buffer = image_buffer * normalization_factor
-        image = tf_fastmri_format(image_buffer[..., 0:1])
+        image = general_fastmri_format(image_buffer[..., 0:1], output_shape)
         return image
 
     def apply_data_consistency(self, kspace, original_kspace, mask):
