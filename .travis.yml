@@ -1,7 +1,8 @@
 language: python
 cache: pip
 install:
-  - pip install pytest==5.0.0
+  - pip install pyxb
+  - pip install pytest==5.0.0 ismrmrd
   - pip install .
 
 env:
