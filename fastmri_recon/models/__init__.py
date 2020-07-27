@@ -18,4 +18,12 @@ References
 ..[S2017] Jo Schlemper et al. (2017)
     A Deep Cascade of Convolutional Neural Networks for MR Image Reconstruction
     https://arxiv.org/abs/1704.02422
+
+..[R2020] Ramzi et al. (2020)
+    Benchmarking MRI Reconstruction Neural Networks on Large Public Datasets
+    https://www.mdpi.com/2076-3417/10/5/1816
+
+..[S2020] Sriram et al. (2020)
+    End-to-End Variational Networks for Accelerated MRI Reconstruction
+    https://arxiv.org/abs/2004.06688
 """
