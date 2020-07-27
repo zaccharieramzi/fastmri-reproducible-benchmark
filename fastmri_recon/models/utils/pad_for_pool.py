@@ -10,7 +10,7 @@ def pad_for_pool(inputs, n_pools):
         lambda: (k + 1) * 2 ** n_pools - problematic_dim,
     )
     padding = tf.cond(
-        tf.math.mod(problematic_dim, 2) == 0,
+        tf.logical_or(tf.math.mod(problematic_dim, 2) == 0 , n_pad == 0),
         lambda: (n_pad//2, n_pad//2),
         lambda: (n_pad//2 + 1, n_pad//2),
     )
