@@ -71,7 +71,10 @@ def updnet_sense_inference(
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    tqdm_total = 30 if n_samples is None else n_samples
+    if brain:
+        tqdm_total = 30 if n_samples is None else n_samples
+    else:
+        tqdm_total = None
     tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
     # TODO: change when the following issue has been dealt with
