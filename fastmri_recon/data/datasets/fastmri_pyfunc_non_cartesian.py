@@ -17,6 +17,8 @@ def train_nc_kspace_dataset_from_indexable(
         compute_dcomp=False,
         **acq_kwargs,
     ):
+    """Non-cartesian dataset for the training/validation set of single coil fastMRI.
+    """
     selection = [{'inner_slices': inner_slices, 'rand': rand}]
     def _tf_filename_to_image_and_kspace_and_contrast(filename):
         def _from_train_file_to_image_and_kspace_and_contrast_tensor_to_tensor(filename):
