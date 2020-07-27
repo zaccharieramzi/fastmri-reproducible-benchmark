@@ -16,10 +16,19 @@ brain_volumes_per_contrast = {
         'AXT2': 815,
     },
     'test': {
-        'AXFLAIR': 49,
-        'AXT1POST': 122,
-        'AXT1PRE': 36,
-        'AXT1': 29,
-        'AXT2': 322,
+        4: {
+            'AXFLAIR': 24,
+            'AXT1POST': 54,
+            'AXT1PRE': 17,
+            'AXT1': 16,
+            'AXT2': 170
+        },
+        8: {
+            'AXFLAIR': 25,
+            'AXT1POST': 68,
+            'AXT1PRE': 19,
+            'AXT1': 13,
+            'AXT2': 152
+        },
     }
 }
