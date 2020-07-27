@@ -71,16 +71,19 @@ def updnet_sense_inference(
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    if not brain:
-        if contrast:
-            tqdm_total = 30 if n_samples is None else n_samples
+    if n_samples is None:
+        if not brain:
+            if contrast:
+                tqdm_total = n_volumes_test[af] // 2
+            else:
+                tqdm_total = n_volumes_test[af]
         else:
-            tqdm_total = 60
+            if contrast:
+                tqdm_total = brain_volumes_per_contrast['test'][af][contrast]
+            else:
+                tqdm_total = brain_n_volumes_test[af]
     else:
-        if contrast:
-            tqdm_total = brain_volumes_per_contrast['test'][af][contrast]
-        else:
-            tqdm_total = 281 if af == 4 else 277
+        tqdm_total = n_samples
     tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
     # TODO: change when the following issue has been dealt with
