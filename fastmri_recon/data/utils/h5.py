@@ -137,7 +137,7 @@ def from_file_to_contrast(filename):
 
 def from_test_file_to_mask_and_kspace_and_contrast_and_image_size(filename, selection=None):
     if ismrmrd_not_avail:
-        raise ValueError('You need to install the ismrmrd package to load test brain data.')
+        raise ValueError('You need to install the ismrmrd package to load test data.')
     if selection is not None:
         selection = {'kspace': selection}
     mask, kspace, ismrmrd_header, contrast = _from_file_to_stuff(
