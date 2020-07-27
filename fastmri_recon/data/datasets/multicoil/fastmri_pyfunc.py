@@ -19,7 +19,7 @@ def tf_filename_to_mask_and_kspace_and_contrast_and_image_size(filename):
     mask.set_shape((None,))
     kspace.set_shape((None, None, None, None))
     image_size.set_shape((None, None))
-    return mask, kspace, contrast
+    return mask, kspace, contrast, image_size
 
 def tf_filename_to_mask_and_contrast_and_filename(filename):
     def _from_test_file_to_mask_and_contrast_tensor_to_tensor(filename):
