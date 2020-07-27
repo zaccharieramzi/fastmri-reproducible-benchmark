@@ -47,6 +47,63 @@ def train_masked_kspace_dataset_from_indexable(
         fixed_masks=False,
         output_shape_spec=False,
     ):
+    r"""Dataset for the training/validation set of multi-coil fastMRI.
+
+    The undersampling is performed retrospectively on the fully-sampled kspace,
+    using the cartesian masks described in [Z2018] for the knee dataset. These
+    masks have an autocalibration region whose width depends on the acceleration
+    factor and sample randomly in the high frequencies.
+    The output of the dataset is of the form:
+    ```
+    model_inputs, ground_truth_reconstruction
+    ```
+    `model_inputs` begins with `retrospectively_undersampled_kspace, undersampling_mask`.
+    It then features  `sensitivity_maps` when `parallel` is False. Finally,
+    you can find the `specified_output_shape` when `output_shape_spec` is True.
+    This is useful in the case of the brain data because the output shape is
+    not the same for each volume.
+
+    The sensitivity maps are extracted without any specific logic. They are raw.
+    For more information refer to fastmri_recon/data/utils/multicoil/smap_extract.py.
+
+    Prefetching is performed, as well as parallel calls for preprocessing when
+    rand or inner_slices are active.
+    The ground truth reconstruction is read directly from the h5 file and not
+    obtained through the Fourier inversion of the kspace followed by RSS.
+
+    Arguments:
+        path (str): the path to the fastMRI files. Should end with a `/`.
+        AF (int): the acceleration factor, generally 4 or 8 for fastMRI.
+            Defaults to 4.
+        inner_slices (int or None): the slices to consider in the volumes. The
+            slicing will be performed as `inner_slices//2:-inner_slices//2`.
+            If None, all slices are considered. Defaults to None.
+        rand (bool): whether or not to sample one slice randomly from the
+            considered slices of the volumes. If None, all slices are taken.
+            Defaults to None.
+        scale_factor (int or float): the multiplicative scale factor for both the
+            kspace and the target reconstruction. Typically, 1e6 is a good value
+            for fastMRI, because it sets the values in a range acceptable for
+            neural networks training. See [R2020] (3.4 Training) for more details
+            on this value. Defaults to 1.
+        contrast (str or None): the contrast to select for this dataset. If None,
+            all contrasts are considered. Available contrasts for fastMRI single
+            coil are typically `CORPD_FBK` (Proton density) and `CORPDFS_FBK`
+            (Proton density with fat suppression). Defaults to None.
+        n_samples (int or None): the number of samples to consider from this set.
+            If None, all samples are used. Defaults to None.
+        parallel (bool): whether to output only one coil (selected randomly) out
+            of all the available coils. Defaults to True.
+        fixed_masks (bool): whether or not to use a single mask for all the
+            training. A caveat is that there are different masks for different
+            shapes, but for a given shape, only one mask is used.
+        output_shape_spec (bool): whether you need the output shape to be
+            present in the model inputs. It is inferred from the ground truth
+            reconstruction present in the file. Defaults to False.
+
+    Returns:
+        tf.data.Dataset: the training/validation multi-coil dataset.
+    """
     selection = [
         {'inner_slices': inner_slices, 'rand': rand},  # slice selection
         {'rand': parallel, 'keep_dim': False},  # coil selection
@@ -122,6 +179,43 @@ def test_masked_kspace_dataset_from_indexable(
         n_samples=None,
         output_shape_spec=False,
     ):
+    r"""Dataset for the testing/challenge set of multi-coil fastMRI.
+
+    The output of the dataset is of the form:
+    ```
+    undersampled_kspace, undersampling_mask, sensitivity_maps
+    ```
+    If `output_shape_spec` is True, the output shape specification is added.
+
+    Prefetching is performed, as well as parallel calls for preprocessing.
+
+    Arguments:
+        path (str): the path to the fastMRI files. Should end with a `/`.
+        AF (int): the acceleration factor, 4 or 8. A kspace is deemed to have
+            an acceleration factor of 4 if its actual acceleration factor is below
+            5.5. It will be deemed to have an acceleration afctor of 8 otherwise.
+            Defaults to 4.
+        scale_factor (int or float): the multiplicative scale factor for both the
+            kspace and the target reconstruction. Typically, 1e6 is a good value
+            for fastMRI, because it sets the values in a range acceptable for
+            neural networks training. See [R2020] (3.4 Training) for more details
+            on this value). Don't forget to use the same scaling factor for
+            training, evaluation and inference. Defaults to 1.
+        contrast (str or None): the contrast to select for this dataset. If None,
+            all contrasts are considered. Available contrasts for fastMRI single
+            coil are typically `CORPD_FBK` (Proton density) and `CORPDFS_FBK`
+            (Proton density with fat suppression). Defaults to None.
+        n_samples (int or None): the number of samples to consider for this inference.
+            Useful for debugging purposes. If None, all samples are used.
+            Defaults to None.
+        output_shape_spec (bool): whether you need the output shape to be
+            present in the model inputs. It is inferred from the ismrmrd header
+            present in the file, via the encoding reconstruction space.
+            Defaults to False.
+
+    Returns:
+        tf.data.Dataset: the testing/challenge dataset.
+    """
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0, shuffle=False)
     mask_and_kspace_and_contrast_and_image_size_ds = files_ds.map(
         tf_filename_to_mask_and_kspace_and_contrast_and_image_size,
@@ -156,6 +250,35 @@ def test_masked_kspace_dataset_from_indexable(
     return masked_kspace_ds
 
 def test_filenames(path, AF=4, contrast=None, n_samples=None):
+    """The filenames associated with the test/challenge dataset function.
+
+    This is useful when you need to know to which file each output of the
+    `test_masked_kspace_dataset_from_indexable` corresponds to. You will typically
+    use this when submitting to fastMRI.
+
+    Arguments:
+        path (str): the path to the fastMRI files. Should end with a `/`.
+        AF (int): the acceleration factor, 4 or 8. A kspace is deemed to have
+            an acceleration factor of 4 if its actual acceleration factor is below
+            5.5. It will be deemed to have an acceleration afctor of 8 otherwise.
+            Defaults to 4.
+        scale_factor (int or float): the multiplicative scale factor for both the
+            kspace and the target reconstruction. Typically, 1e6 is a good value
+            for fastMRI, because it sets the values in a range acceptable for
+            neural networks training. See [R2020] (3.4 Training) for more details
+            on this value). Don't forget to use the same scaling factor for
+            training, evaluation and inference. Defaults to 1.
+        contrast (str or None): the contrast to select for this dataset. If None,
+            all contrasts are considered. Available contrasts for fastMRI single
+            coil are typically `CORPD_FBK` (Proton density) and `CORPDFS_FBK`
+            (Proton density with fat suppression). Defaults to None.
+        n_samples (int or None): the number of samples to consider for this inference.
+            Useful for debugging purposes. If None, all samples are used.
+            Defaults to None.
+
+    Returns:
+        tf.data.Dataset: the testing/challenge filenames dataset.
+    """
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', seed=0, shuffle=False)
     mask_and_contrast_and_filename_ds = files_ds.map(
         tf_filename_to_mask_and_contrast_and_filename,
