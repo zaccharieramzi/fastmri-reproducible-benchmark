@@ -5,6 +5,25 @@ from tensorflow.python.ops.signal.fft_ops import ifft2d, ifftshift, fftshift
 
 
 def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
+    """Extract raw sensitivity maps for kspaces
+
+    This function will first select a low frequency region in all the kspaces,
+    then Fourier invert it, and finally perform a normalisation by the root
+    sum-of-square.
+    kspace has to be of shape: nslices x ncoils x height x width
+
+    Arguments:
+        kspace (tf.Tensor): the kspace whose sensitivity maps you want extracted.
+        low_freq_percentage (int): the low frequency region to consider for
+            sensitivity maps extraction, given as a percentage of the width of
+            the kspace. In fastMRI, it's 8 for an acceleration factor of 4, and
+            4 for an acceleration factor of 8. Defaults to 8.
+        background_thresh (float): unused for now, will later allow to have
+            thresholded sensitivity maps.
+
+    Returns:
+        tf.Tensor: extracted raw sensitivity maps.
+    """
     n_low_freq = tf.cast(tf.shape(kspace)[-2:] * low_freq_percentage / 100, tf.int32)
     center_dimension = tf.cast(tf.shape(kspace)[-2:] / 2, tf.int32)
     low_freq_lower_locations = center_dimension - tf.cast(n_low_freq / 2, tf.int32)
