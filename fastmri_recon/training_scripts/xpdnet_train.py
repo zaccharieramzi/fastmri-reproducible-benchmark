@@ -20,6 +20,7 @@ def train_xpdnet(
         model_kwargs,
         model_size=None,
         multicoil=True,
+        fully_complex=False,
         af=4,
         contrast=None,
         cuda_visible_devices='0123',
@@ -49,6 +50,8 @@ def train_xpdnet(
         model_size (str or None): a string describing the size of the network
             used. This is used in the run id. Defaults to None.
         multicoil (bool): whether the input data is multicoil. Defaults to False.
+        fully_complex (bool): whether the submodel accepts complex-valued
+            inputs. Defaults to False.
         af (int): the acceleration factor for the retrospective undersampling
             of the data. Defaults to 4.
         contrast (str or None): the contrast used for this specific training.
@@ -140,12 +143,15 @@ def train_xpdnet(
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
         'res': res,
+        'fully_complex': fully_complex,
     }
 
     if multicoil:
         xpdnet_type = 'xpdnet_sense_'
     else:
         xpdnet_type = 'xpdnet_singlecoil_'
+    if fully_complex:
+        xpdnet_type = 'c' + xpdnet_type
     additional_info = f'af{af}'
     if contrast is not None:
         additional_info += f'_{contrast}'

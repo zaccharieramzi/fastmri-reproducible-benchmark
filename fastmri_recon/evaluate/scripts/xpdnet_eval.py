@@ -14,6 +14,7 @@ def evaluate_xpdnet(
         model_kwargs,
         run_id,
         multicoil=True,
+        fully_complex=False,
         n_epochs=200,
         contrast=None,
         af=4,
@@ -40,6 +41,7 @@ def evaluate_xpdnet(
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
         'res': res,
+        'fully_complex': fully_complex,
     }
 
     if multicoil:
