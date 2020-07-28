@@ -22,6 +22,7 @@ class UnetComplex(Model):
             dealiasing_nc_fastmri=False,
             im_size=None,
             dcomp=None,
+            multicoil=False,
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
@@ -39,9 +40,10 @@ class UnetComplex(Model):
             self.channel_attention_kwargs = channel_attention_kwargs
         self.dealiasing_nc_fastmri = dealiasing_nc_fastmri
         if self.dealiasing_nc_fastmri:
+            self.multicoil = multicoil
             self.adj_op = AdjNFFT(
                 im_size=im_size,
-                multicoil=False,
+                multicoil=self.multicoil,
                 density_compensation=dcomp,
             )
         self.unet = unet(
@@ -60,12 +62,20 @@ class UnetComplex(Model):
 
     def call(self, inputs):
         if self.dealiasing_nc_fastmri:
-            if len(inputs) == 2:
-                original_kspace, mask = inputs
-                op_args = ()
+            if self.multicoil:
+                if len(inputs) == 3:
+                    original_kspace, mask, smaps = inputs
+                    op_args = ()
+                else:
+                    original_kspace, mask, smaps, op_args = inputs
+                outputs = self.adj_op([original_kspace, mask, smaps, *op_args])
             else:
-                original_kspace, mask, op_args = inputs
-            outputs = self.adj_op([original_kspace, mask, *op_args])
+                if len(inputs) == 2:
+                    original_kspace, mask = inputs
+                    op_args = ()
+                else:
+                    original_kspace, mask, op_args = inputs
+                outputs = self.adj_op([original_kspace, mask, *op_args])
             # we do this to match the residual part.
             inputs = outputs
         else:
