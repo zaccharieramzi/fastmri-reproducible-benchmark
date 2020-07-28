@@ -63,7 +63,7 @@ def train_updnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False}
+        kwargs = {'parallel': False, 'output_shape_spec': brain}
     else:
         dataset = singlecoil_dataset
         kwargs = {}
@@ -76,7 +76,6 @@ def train_updnet(
         scale_factor=1e6,
         n_samples=n_samples,
         fixed_masks=fixed_masks,
-        output_shape_spec=brain,
         **kwargs
     )
     val_set = dataset(
@@ -86,7 +85,6 @@ def train_updnet(
         inner_slices=None,
         rand=True,
         scale_factor=1e6,
-        output_shape_spec=brain,
         **kwargs
     )
 

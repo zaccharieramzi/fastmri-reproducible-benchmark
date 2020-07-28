@@ -52,7 +52,7 @@ def evaluate_updnet(
 
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False}
+        kwargs = {'parallel': False, 'output_shape_spec': brain}
     else:
         dataset = singlecoil_dataset
         kwargs = {}
@@ -63,7 +63,6 @@ def evaluate_updnet(
         inner_slices=None,
         rand=False,
         scale_factor=1e6,
-        output_shape_spec=brain,
         **kwargs,
     )
     if n_samples is not None:
