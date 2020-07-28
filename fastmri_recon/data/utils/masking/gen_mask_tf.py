@@ -45,16 +45,20 @@ def gen_mask_equidistant_tf(kspace, accel_factor, multicoil=False):
     shape = tf.shape(kspace)
     num_cols = shape[-1]
     center_fraction = (32 // accel_factor) / 100
-    num_low_freqs = tf.cast(num_cols, center_fraction.dtype) * center_fraction
+    num_low_freqs = tf.cast(num_cols, tf.float32) * center_fraction
     num_low_freqs = tf.cast(tf.round(num_low_freqs), tf.int32)
     num_high_freqs = num_cols // accel_factor - num_low_freqs
     high_freqs_spacing = (num_cols - num_low_freqs) // num_high_freqs
     acs_lim = (num_cols - num_low_freqs + 1) // 2
-    mask_offset = tf.random.uniform([], maxval=high_freqs_spacing)
+    mask_offset = tf.random.uniform([], maxval=high_freqs_spacing, dtype=tf.int32)
     high_freqs_location = tf.range(mask_offset, num_cols, high_freqs_spacing)
     low_freqs_location = tf.range(acs_lim, acs_lim + num_low_freqs)
     mask_locations = tf.concat([high_freqs_location, low_freqs_location], 0)
-    mask = tf.scatter_nd(mask_locations, tf.ones(mask_locations.shape), [num_cols])
+    mask = tf.scatter_nd(
+        mask_locations[:, None],
+        tf.ones(mask_locations.shape)[:, None],
+        [num_cols, 1],
+    )
     final_mask = tf.where(
         tf.cast(mask, tf.bool),
         tf.ones_like(mask),
