@@ -56,7 +56,21 @@ def gen_mask_equidistant_tf(kspace, accel_factor, multicoil=False):
     mask_locations = tf.concat([high_freqs_location, low_freqs_location], 0)
     mask = tf.scatter_nd(mask_locations, tf.ones(mask_locations.shape), [num_cols])
     # Reshape the mask
-    mask_shape = [1 for _ in shape]
-    mask_shape[-1] = num_cols
-    mask = tf.reshape(mask, mask_shape)
-    return mask
+    mask_shape = tf.ones_like(shape)
+    if multicoil:
+        mask_shape = mask_shape[:3]
+    else:
+        mask_shape = mask_shape[:2]
+    final_mask_shape = tf.concat([
+        mask_shape,
+        tf.expand_dims(num_cols, axis=0),
+    ], axis=0)
+    final_mask_reshaped = tf.reshape(final_mask, final_mask_shape)
+    # we need the batch dimension for cases where we split the batch accross
+    # multiple GPUs
+    if multicoil:
+        final_mask_reshaped = tf.tile(final_mask_reshaped, [shape[0], 1, 1, 1])
+    else:
+        final_mask_reshaped = tf.tile(final_mask_reshaped, [shape[0], 1, 1])
+    fourier_mask = tf.cast(final_mask_reshaped, tf.uint8)
+    return fourier_mask
