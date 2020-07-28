@@ -190,10 +190,11 @@ def train_unet_nc(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'dealiasing_nc_fastmri': True,
+        'multicoil': multicoil,
     }
 
     if multicoil:
-        unet_type = 'unet_sense_'
+        unet_type = 'unet_mc_'
     else:
         unet_type = 'unet_singlecoil_'
     additional_info = ''
