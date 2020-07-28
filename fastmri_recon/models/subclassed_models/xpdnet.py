@@ -1,6 +1,6 @@
 from .multiscale_complex import  MultiscaleComplex
 from .cross_domain import CrossDomainNet
-from ..fully_complex.multiscale import Multiscale
+from .fully_complex.multiscale import Multiscale
 from ..utils.fourier import FFT, IFFT
 
 class XPDNet(CrossDomainNet):
