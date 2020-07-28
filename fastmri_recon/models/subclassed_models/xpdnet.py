@@ -1,5 +1,6 @@
 from .multiscale_complex import  MultiscaleComplex
 from .cross_domain import CrossDomainNet
+from ..fully_complex.multiscale import Multiscale
 from ..utils.fourier import FFT, IFFT
 
 class XPDNet(CrossDomainNet):
@@ -12,14 +13,16 @@ class XPDNet(CrossDomainNet):
     It works with (potentially multicoil) masked cartesian Fourier transforms.
 
     Specifications of the image correction model:
-        - input (tf.float32): nslices x h x w x 2*(n_primal + 1)
-        - output (tf.float32): nslices x h x w x 2*n_primal
+        - input: nslices x h x w x 2*(n_primal + 1)
+        - output: nslices x h x w x 2*n_primal
 
     Parameters:
         model_fun (function): the function initializing the image correction
             network. This allows to have different parameters for each block.
         model_kwargs (dict): the set of arguments used to initialize the image
             correction network.
+        fully_complex (bool): whether the submodel accepts complex-valued
+            inputs. Defaults to False.
         res (bool): whether we should add a residual connection for the image
             correction model. The residual connection will only take into account
             the first `n_primal` channel elements of the input.
@@ -41,6 +44,7 @@ class XPDNet(CrossDomainNet):
             self,
             model_fun,
             model_kwargs,
+            fully_complex=False,
             res=False,
             n_scales=0,
             n_primal=5,
@@ -51,6 +55,7 @@ class XPDNet(CrossDomainNet):
         ):
         self.model_fun = model_fun
         self.model_kwargs = model_kwargs
+        self.fully_complex = fully_complex
         self.res = res
         self.n_scales = n_scales
         self.n_primal = n_primal
@@ -70,7 +75,11 @@ class XPDNet(CrossDomainNet):
         )
         self.op = FFT(masked=True, multicoil=self.multicoil)
         self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
-        self.image_net = [MultiscaleComplex(
+        if self.fully_complex:
+            model_wrapper = Multiscale
+        else:
+            model_wrapper = MultiscaleComplex
+        self.image_net = [model_wrapper(
             model=self.model_fun(**self.model_kwargs),
             res=self.res,
             n_output_channels=self.n_primal,
