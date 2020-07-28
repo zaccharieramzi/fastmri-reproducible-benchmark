@@ -30,7 +30,6 @@ def gen_mask_equidistant(kspace, accel_factor=8, seed=None):
     num_cols = shape[-1]
 
     center_fraction = (32 // accel_factor) / 100
-    acceleration = accel_factor
 
     # Create the mask
     num_low_freqs = int(round(num_cols * center_fraction))
