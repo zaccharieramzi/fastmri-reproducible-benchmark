@@ -46,13 +46,15 @@ def train_masked_kspace_dataset_from_indexable(
         parallel=True,
         fixed_masks=False,
         output_shape_spec=False,
+        mask_type='random',
     ):
     r"""Dataset for the training/validation set of multi-coil fastMRI.
 
     The undersampling is performed retrospectively on the fully-sampled kspace,
-    using the cartesian masks described in [Z2018] for the knee dataset. These
+    using the cartesian masks described in [Z2018]. These
     masks have an autocalibration region whose width depends on the acceleration
-    factor and sample randomly in the high frequencies.
+    factor and sample randomly in the high frequencies when random or periodicly
+    when equidistant.
     The output of the dataset is of the form:
     ```
     model_inputs, ground_truth_reconstruction
@@ -100,6 +102,8 @@ def train_masked_kspace_dataset_from_indexable(
         output_shape_spec (bool): whether you need the output shape to be
             present in the model inputs. It is inferred from the ground truth
             reconstruction present in the file. Defaults to False.
+        mask_type (str): the type of mask to use to retrospectively undersample
+            the data. Can be 'random' or 'equidistant'. Defaults to 'random'.
 
     Returns:
         tf.data.Dataset: the training/validation multi-coil dataset.
@@ -163,7 +167,7 @@ def train_masked_kspace_dataset_from_indexable(
             parallel=parallel,
             fixed_masks=fixed_masks,
             output_shape_spec=output_shape_spec,
-            mask_type='equidistant' if brain else 'random',
+            mask_type=mask_type,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     ).repeat()
