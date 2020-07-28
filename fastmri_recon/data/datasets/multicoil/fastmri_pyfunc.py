@@ -163,6 +163,7 @@ def train_masked_kspace_dataset_from_indexable(
             parallel=parallel,
             fixed_masks=fixed_masks,
             output_shape_spec=output_shape_spec,
+            mask_type='equidistant' if brain else 'random',
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     ).repeat()
