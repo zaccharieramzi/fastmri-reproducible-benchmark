@@ -55,6 +55,11 @@ def gen_mask_equidistant_tf(kspace, accel_factor, multicoil=False):
     low_freqs_location = tf.range(acs_lim, acs_lim + num_low_freqs)
     mask_locations = tf.concat([high_freqs_location, low_freqs_location], 0)
     mask = tf.scatter_nd(mask_locations, tf.ones(mask_locations.shape), [num_cols])
+    final_mask = tf.where(
+        tf.cast(mask, tf.bool),
+        tf.ones_like(mask),
+        mask,
+    )
     # Reshape the mask
     mask_shape = tf.ones_like(shape)
     if multicoil:
