@@ -63,7 +63,15 @@ def train_updnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False, 'output_shape_spec': brain}
+        if brain:
+            mask_type = 'equidistant'
+        else:
+            mask_type = 'random'
+        kwargs = {
+            'parallel': False,
+            'output_shape_spec': brain,
+            'mask_type': mask_type,
+        }
     else:
         dataset = singlecoil_dataset
         kwargs = {}
