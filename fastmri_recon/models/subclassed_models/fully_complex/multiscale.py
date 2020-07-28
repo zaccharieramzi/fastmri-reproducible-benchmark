@@ -4,7 +4,7 @@ from tensorflow.keras.models import Model
 from ...utils.pad_for_pool import pad_for_pool
 
 
-class MultiscaleComplex(Model):
+class Multiscale(Model):
     """A wrapper model around a multiscale complex-valued network.
 
     This class allows to "decorate" a multiscale complex-valued network, in a
@@ -32,7 +32,7 @@ class MultiscaleComplex(Model):
             n_output_channels=1,
             **kwargs,
         ):
-        super(MultiscaleComplex, self).__init__(**kwargs)
+        super(Multiscale, self).__init__(**kwargs)
         self.model = model
         self.res = res
         self.n_scales = n_scales
