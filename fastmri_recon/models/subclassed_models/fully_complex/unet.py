@@ -94,14 +94,14 @@ class UNet(Model):
         ]
         self.down = MaxPooling2D(pool_size=(2, 2))
         self.before_last_conv = ComplexConv2D(
-            n_filters=max(4, self.n_outputs),
+            n_filters=max(4, 2*self.n_outputs),
             kernel_size=1,
             activation=self.activation,
             padding='same',
             kernel_initializer='glorot_uniform',
         )
         self.last_conv = ComplexConv2D(
-            n_filters=self.n_outputs,
+            n_filters=2*self.n_outputs,
             kernel_size=1,
             activation='linear',
             padding='same',

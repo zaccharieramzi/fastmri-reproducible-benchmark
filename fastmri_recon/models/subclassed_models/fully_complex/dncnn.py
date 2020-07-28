@@ -29,7 +29,7 @@ class DnCNN(Model):
             for i in range(self.n_convs-1)
         ]
         self.convs.append(ComplexConv2D(
-            self.n_outputs,
+            2*self.n_outputs,
             3,
             padding='same',
             activation='linear',
