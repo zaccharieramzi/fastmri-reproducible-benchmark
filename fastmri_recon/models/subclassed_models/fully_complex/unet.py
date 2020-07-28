@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import MaxPooling2D, UpSampling2D, Layer
+from tensorflow.keras.layers import AveragePooling2D, UpSampling2D, Layer
 from tensorflow.keras.models import Model
 from tf_complex.convolutions import ComplexConv2D
 
@@ -92,7 +92,9 @@ class UNet(Model):
             )
             for i_scale in range(self.n_scales-1, -1, -1)
         ]
-        self.down = MaxPooling2D(pool_size=(2, 2))
+        # we need average pooling here because max pooling for complex
+        # is not out of the box
+        self.down = AveragePooling2D(pool_size=(2, 2))
         self.before_last_conv = ComplexConv2D(
             n_filters=max(4, 2*self.n_outputs),
             kernel_size=1,
