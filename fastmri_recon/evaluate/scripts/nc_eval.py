@@ -148,6 +148,7 @@ def evaluate_unet(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'dealiasing_nc_fastmri': True,
+        'multicoil': multicoil,
     }
 
     model = UnetComplex(**run_params)
