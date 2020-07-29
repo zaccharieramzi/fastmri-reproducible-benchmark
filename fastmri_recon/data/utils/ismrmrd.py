@@ -10,10 +10,12 @@ from .masking.gen_mask import gen_mask_equidistant
 
 def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_factor=4, scale_factor=1e6):
     header = ismrmrd.xsd.CreateFromDocument(header)
+    # TODO: this is only for 3T, to adapt to make sure we use the corect one
+    header.experimentalConditions.H1resonanceFrequency_Hz = 128000000
     header.encoding[0].encodingLimits.kspace_encoding_step_1.maximum = kspace.shape[-1]
     header.encoding[0].encodingLimits.kspace_encoding_step_1.center = kspace.shape[-1] // 2
     header.encoding[0].parallelImaging.accelerationFactor.kspace_encoding_step_1 = accel_factor
-    header.encoding[0].parallelImaging.calibrationMode = 'other'
+    header.encoding[0].parallelImaging.calibrationMode = 'embedded'
     header = header.toxml()
     n_slices = kspace.shape[0]
     for i_slice in range(n_slices):
