@@ -15,7 +15,14 @@ n_volumes_test = {
 }
 
 brain_volumes_per_contrast = {
-    'validation':{
+    'train': {
+        'AXFLAIR': 344,
+        'AXT1POST': 949,
+        'AXT1PRE': 250,
+        'AXT1': 248,
+        'AXT2': 2678,
+    },
+    'validation': {
         'AXFLAIR': 107,
         'AXT1POST': 287,
         'AXT1PRE': 77,
@@ -40,7 +47,7 @@ brain_volumes_per_contrast = {
     }
 }
 
-brain_n_volumes_train = 5004
+brain_n_volumes_train = 4469
 brain_n_volumes_validation = 1378
 brain_n_volumes_test = {
     4: 281,
