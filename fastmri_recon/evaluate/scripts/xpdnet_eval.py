@@ -106,11 +106,11 @@ def evaluate_xpdnet(
     model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     if brain:
-        n_volumes = 1378
+        n_volumes = brain_n_volumes_validation
         if contrast is not None:
             n_volumes = brain_volumes_per_contrast['validation'][contrast]
     else:
-        n_volumes = 199
+        n_volumes = n_volumes_val
         if contrast is not None:
             n_volumes //= 2
             n_volumes += 1
