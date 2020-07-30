@@ -14,6 +14,7 @@ file_contrast = 'CORPD_FBK'
 
 @pytest.mark.parametrize('ds_kwargs, expected_kspace_shape', [
     ({}, kspace_shape[0:1] + kspace_shape[2:]),
+    ({'mask_type': 'equidistant'}, kspace_shape[0:1] + kspace_shape[2:]),
     ({'parallel': False}, kspace_shape),
     ({'inner_slices': 1}, [1,] + kspace_shape[2:]),
     ({'inner_slices': 1, 'rand': True}, [1,] + kspace_shape[2:]),
