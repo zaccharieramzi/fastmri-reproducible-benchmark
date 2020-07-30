@@ -200,7 +200,7 @@ def train_xpdnet(
     model = XPDNet(model_fun, model_kwargs, **run_params)
     if original_run_id is not None:
         lr = 1e-7
-        n_steps = n_volumes//2
+        n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
     else:
         lr = 1e-4
         n_steps = n_volumes
