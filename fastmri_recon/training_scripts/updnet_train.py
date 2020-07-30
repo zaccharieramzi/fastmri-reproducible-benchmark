@@ -31,6 +31,7 @@ def train_updnet(
         loss='mae',
         original_run_id=None,
         fixed_masks=False,
+        n_epochs_original=250,
     ):
     if brain:
         n_volumes = brain_n_volumes_train
@@ -164,8 +165,6 @@ def train_updnet(
     if original_run_id is not None:
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
-        else:
-            n_epochs_original = 250
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
