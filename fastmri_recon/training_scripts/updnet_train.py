@@ -13,10 +13,9 @@ from fastmri_recon.models.subclassed_models.updnet import UPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-n_volumes_train = 973
-
 def train_updnet(
         multicoil=True,
+        brain=False,
         af=4,
         contrast=None,
         cuda_visible_devices='0123',
@@ -33,10 +32,19 @@ def train_updnet(
         original_run_id=None,
         fixed_masks=False,
     ):
+    if brain:
+        n_volumes = brain_n_volumes_train
+    else:
+        n_volumes = n_volumes_train
+
     # paths
     if multicoil:
-        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -55,7 +63,15 @@ def train_updnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False}
+        if brain:
+            mask_type = 'equidistant'
+        else:
+            mask_type = 'random'
+        kwargs = {
+            'parallel': False,
+            'output_shape_spec': brain,
+            'mask_type': mask_type,
+        }
     else:
         dataset = singlecoil_dataset
         kwargs = {}
@@ -91,10 +107,13 @@ def train_updnet(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
         updnet_type = 'updnet_sense_'
+        if brain:
+            updnet_type += 'brain_'
     else:
         updnet_type = 'updnet_singlecoil_'
     additional_info = f'af{af}'
@@ -136,10 +155,10 @@ def train_updnet(
     model = UPDNet(**run_params)
     if original_run_id is not None:
         lr = 1e-7
-        n_steps = n_volumes_train//2
+        n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
     else:
         lr = 1e-4
-        n_steps = n_volumes_train
+        n_steps = n_volumes
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
@@ -159,6 +178,3 @@ def train_updnet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
-
-if __name__ == '__main__':
-    train_updnet_click()

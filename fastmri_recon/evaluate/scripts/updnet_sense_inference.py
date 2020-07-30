@@ -10,10 +10,12 @@ from ..utils.write_results import write_result
 
 
 def updnet_sense_inference(
+        brain=False,
         run_id='updnet_sense_af4_1588609141',
         exp_id='updnet',
         n_epochs=200,
         contrast=None,
+        scale_factor=1e6,
         af=4,
         n_iter=10,
         n_layers=3,
@@ -24,7 +26,10 @@ def updnet_sense_inference(
         n_samples=None,
         cuda_visible_devices='0123',
     ):
-    test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
+    if brain:
+        test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
+    else:
+        test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
@@ -40,14 +45,16 @@ def updnet_sense_inference(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(
         test_path,
         AF=af,
         contrast=contrast,
-        scale_factor=1e6,
+        scale_factor=scale_factor,
         n_samples=n_samples,
+        output_shape_spec=brain,
     )
     test_set_filenames = test_filenames(
         test_path,
@@ -65,7 +72,19 @@ def updnet_sense_inference(
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    tqdm_total = 30 if n_samples is None else n_samples
+    if n_samples is None:
+        if not brain:
+            if contrast:
+                tqdm_total = n_volumes_test[af] // 2
+            else:
+                tqdm_total = n_volumes_test[af]
+        else:
+            if contrast:
+                tqdm_total = brain_volumes_per_contrast['test'][af][contrast]
+            else:
+                tqdm_total = brain_n_volumes_test[af]
+    else:
+        tqdm_total = n_samples
     tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
     # TODO: change when the following issue has been dealt with
@@ -76,4 +95,10 @@ def updnet_sense_inference(
 
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total, desc=tqdm_desc):
         res = predict(data_example)
-        write_result(exp_id, res.numpy(), filename.numpy().decode('utf-8'))
+        write_result(
+            exp_id,
+            res.numpy(),
+            filename.numpy().decode('utf-8'),
+            scale_factor=scale_factor,
+            brain=brain,
+        )

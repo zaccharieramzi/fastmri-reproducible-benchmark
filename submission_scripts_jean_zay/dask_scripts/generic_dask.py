@@ -121,7 +121,14 @@ def infer_on_jz_dask(job_name, infer_function, runs, *args, **kwargs):
     client.gather(futures)
     print('Shutting down dask workers')
 
-def full_pipeline_dask(job_name, train_function, eval_function, infer_function, **kwargs):
+def full_pipeline_dask(
+        job_name,
+        train_function,
+        eval_function,
+        infer_function,
+        brain=False,
+        **kwargs,
+    ):
     # original training
     if os.environ.get('FASTMRI_DEBUG'):
         n_epochs_train = 1
@@ -160,6 +167,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
         train_function,
         af=af,
         n_epochs=n_epochs_train,
+        brain=brain,
         **kwargs,
         # this function has potential side effects
         pure=True,
@@ -189,7 +197,10 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
     )
     fine_tuning_cluster.scale(4)
     client = Client(fine_tuning_cluster)
-    contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
+    if brain:
+        contrasts = ['AXFLAIR', 'AXT1', 'AXT1POST', 'AXT1PRE', 'AXT2']
+    else:
+        contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
         for contrast in contrasts:
@@ -200,6 +211,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
                 contrast=contrast,
                 original_run_id=run_id,
                 n_epochs=n_epochs_fine_tune,
+                brain=brain,
                 **kwargs,
                 # this function has potential side effects
                 pure=True,
@@ -239,6 +251,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
             inference_futures += [client.submit(
                 # function to execute
                 infer_function,
+                brain=brain,
                 contrast=contrast,
                 af=af,
                 run_id=run_id,
@@ -252,6 +265,7 @@ def full_pipeline_dask(job_name, train_function, eval_function, infer_function, 
             eval_futures += [client.submit(
                 # function to execute
                 eval_function,
+                brain=brain,
                 contrast=contrast,
                 af=af,
                 run_id=run_id,
