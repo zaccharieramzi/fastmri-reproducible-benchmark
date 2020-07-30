@@ -65,6 +65,8 @@ class MultiscaleComplex(Model):
         outputs = to_complex(outputs, self.n_output_channels)
         if self.n_scales > 0:
             outputs = tf.cond(
+                # NOTE: this will not work with a padding of just 1 on the left
+                # this will need to be adapted if the situation occurs
                 tf.reduce_sum(padding) == 0,
                 lambda: outputs,
                 lambda: outputs[:, :, padding[0]:-padding[1]],
