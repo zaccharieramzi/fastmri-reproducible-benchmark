@@ -56,7 +56,7 @@ def gen_mask_equidistant_tf(kspace, accel_factor, multicoil=False):
     mask_locations = tf.concat([high_freqs_location, low_freqs_location], 0)
     mask = tf.scatter_nd(
         mask_locations[:, None],
-        tf.ones(mask_locations.shape)[:, None],
+        tf.ones(tf.shape(mask_locations))[:, None],
         [num_cols, 1],
     )
     final_mask = tf.where(
