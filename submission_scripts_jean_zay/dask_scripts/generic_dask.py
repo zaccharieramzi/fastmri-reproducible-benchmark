@@ -194,12 +194,12 @@ def full_pipeline_dask(
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    fine_tuning_cluster.scale(4)
-    client = Client(fine_tuning_cluster)
     if brain:
         contrasts = ['AXFLAIR', 'AXT1', 'AXT1POST', 'AXT1PRE', 'AXT2']
     else:
         contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
+    fine_tuning_cluster.scale(len(acceleration_factors) * len(contrasts))
+    client = Client(fine_tuning_cluster)
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
         for contrast in contrasts:
@@ -239,7 +239,7 @@ def full_pipeline_dask(
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    inference_eval_cluster.scale(8)
+    inference_eval_cluster.scale(2 * len(acceleration_factors) * len(contrasts))
     client = Client(inference_eval_cluster)
     i_run_id = 0
     inference_futures = []
