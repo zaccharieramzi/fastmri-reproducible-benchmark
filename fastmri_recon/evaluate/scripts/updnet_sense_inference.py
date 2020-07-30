@@ -15,6 +15,7 @@ def updnet_sense_inference(
         exp_id='updnet',
         n_epochs=200,
         contrast=None,
+        scale_factor=1e6,
         af=4,
         n_iter=10,
         n_layers=3,
@@ -51,7 +52,7 @@ def updnet_sense_inference(
         test_path,
         AF=af,
         contrast=contrast,
-        scale_factor=1e6,
+        scale_factor=scale_factor,
         n_samples=n_samples,
         output_shape_spec=brain,
     )
@@ -94,4 +95,10 @@ def updnet_sense_inference(
 
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total, desc=tqdm_desc):
         res = predict(data_example)
-        write_result(exp_id, res.numpy(), filename.numpy().decode('utf-8'))
+        write_result(
+            exp_id,
+            res.numpy(),
+            filename.numpy().decode('utf-8'),
+            scale_factor=scale_factor,
+            brain=brain,
+        )
