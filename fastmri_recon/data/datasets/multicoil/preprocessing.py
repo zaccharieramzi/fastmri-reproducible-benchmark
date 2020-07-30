@@ -2,7 +2,7 @@ import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
-from ...utils.masking.gen_mask_tf import gen_mask_tf
+from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
 from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
@@ -14,14 +14,24 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         parallel=True,
         fixed_masks=False,
         output_shape_spec=False,
+        mask_type='random',
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        mask = gen_mask_tf(
-            kspaces,
-            accel_factor=AF,
-            multicoil=not parallel,
-            fixed_masks=fixed_masks,
-        )
+        if mask_type == 'random':
+            mask = gen_mask_tf(
+                kspaces,
+                accel_factor=AF,
+                multicoil=not parallel,
+                fixed_masks=fixed_masks,
+            )
+        elif mask_type == 'equidistant':
+            mask = gen_mask_equidistant_tf(
+                kspaces,
+                accel_factor=AF,
+                multicoil=not parallel,
+            )
+        else:
+            raise NotImplementedError(f'{mask_type} masks are not implemented.')
         if parallel:
             images = tf.abs(tf_unmasked_adj_op(kspaces[..., None]))[..., 0]
         else:

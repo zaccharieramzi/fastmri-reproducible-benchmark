@@ -5,6 +5,7 @@ from ..functional_models.unet import unet
 from ..utils.complex import to_complex
 from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.fourier import AdjNFFT
+from ..utils.pad_for_pool import pad_for_pool
 
 
 class UnetComplex(Model):
@@ -80,18 +81,15 @@ class UnetComplex(Model):
             inputs = outputs
         else:
             outputs = inputs
-        n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(outputs)[-2], 2**(self.n_layers-1))
-        paddings = [
-            (0, 0),
-            (0, 0),  # here in the context of fastMRI there is nothing to worry about because the dim is 640 (128 x 5)
-            (n_pad//2, n_pad//2),
-            (0, 0),
-        ]
-        outputs = tf.pad(outputs, paddings)
+        outputs, padding = pad_for_pool(outputs, self.n_layers-1)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.unet(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
-        outputs = outputs[:, :, n_pad//2:-n_pad//2]
+        outputs = tf.cond(
+            tf.reduce_sum(padding) == 0,
+            lambda: outputs,
+            lambda: outputs[:, :, padding[0]:-padding[1]],
+        )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         if self.dealiasing_nc_fastmri:

@@ -14,6 +14,7 @@ def evaluate_xpdnet(
         model_kwargs,
         run_id,
         multicoil=True,
+        brain=False,
         n_epochs=200,
         contrast=None,
         af=4,
@@ -26,7 +27,10 @@ def evaluate_xpdnet(
         cuda_visible_devices='0123',
     ):
     if multicoil:
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
@@ -40,11 +44,20 @@ def evaluate_xpdnet(
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
         'res': res,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False}
+        if brain:
+            mask_type = 'equidistant'
+        else:
+            mask_type = 'random'
+        kwargs = {
+            'parallel': False,
+            'output_shape_spec': brain,
+            'mask_type': mask_type,
+        }
     else:
         dataset = singlecoil_dataset
         kwargs = {}
@@ -92,10 +105,15 @@ def evaluate_xpdnet(
 
     model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    n_volumes = 199
-    if contrast is not None:
-        n_volumes //= 2
-        n_volumes += 1
+    if brain:
+        n_volumes = brain_n_volumes_validation
+        if contrast is not None:
+            n_volumes = brain_volumes_per_contrast['validation'][contrast]
+    else:
+        n_volumes = n_volumes_val
+        if contrast is not None:
+            n_volumes //= 2
+            n_volumes += 1
     try:
         eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes if n_samples is None else None)
     except tf.errors.ResourceExhaustedError:
