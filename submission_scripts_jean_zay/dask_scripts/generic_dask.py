@@ -158,9 +158,9 @@ def full_pipeline_dask(
             '. ./submission_scripts_jean_zay/env_config.sh',
         ],
     )
-    train_cluster.scale(2)
-    client = Client(train_cluster)
     acceleration_factors = [4, 8]
+    train_cluster.scale(len(acceleration_factors))
+    client = Client(train_cluster)
     futures = [client.submit(
         # function to execute
         train_function,
