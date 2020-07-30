@@ -68,7 +68,7 @@ class UnetComplex(Model):
                     original_kspace, mask, smaps = inputs
                     op_args = ()
                 else:
-                    original_kspace, mask, smaps, op_args = inputs
+                    original_kspace, mask, smaps, *op_args = inputs
                 outputs = self.adj_op([original_kspace, mask, smaps, *op_args])
             else:
                 if len(inputs) == 2:
