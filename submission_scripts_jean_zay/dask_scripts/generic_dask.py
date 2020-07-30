@@ -127,6 +127,10 @@ def full_pipeline_dask(
         eval_function,
         infer_function,
         brain=False,
+        n_epochs_train=250,
+        n_epochs_fine_tune=50,
+        n_eval_samples=50,
+        n_inference_samples=None,
         **kwargs,
     ):
     # original training
@@ -135,11 +139,6 @@ def full_pipeline_dask(
         n_epochs_fine_tune = 1
         n_eval_samples = 1
         n_inference_samples = 1
-    else:
-        n_epochs_train = 250
-        n_epochs_fine_tune = 50
-        n_eval_samples = 50
-        n_inference_samples = None
     train_cluster = SLURMCluster(
         cores=1,
         job_cpu=20,
@@ -211,6 +210,7 @@ def full_pipeline_dask(
                 contrast=contrast,
                 original_run_id=run_id,
                 n_epochs=n_epochs_fine_tune,
+                n_epochs_original=n_epochs_train,
                 brain=brain,
                 **kwargs,
                 # this function has potential side effects
