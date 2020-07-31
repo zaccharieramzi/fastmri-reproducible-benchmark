@@ -1,4 +1,4 @@
-from dask.distributed import Client
+from dask.distributed import Client, LocalCluster
 from dask_jobqueue import SLURMCluster
 from sklearn.model_selection import ParameterGrid
 
@@ -139,25 +139,28 @@ def full_pipeline_dask(
         n_epochs_fine_tune = 1
         n_eval_samples = 1
         n_inference_samples = 1
-    train_cluster = SLURMCluster(
-        cores=1,
-        job_cpu=20,
-        memory='80GB',
-        job_name=job_name,
-        walltime='100:00:00',
-        interface='ib0',
-        job_extra=[
-            f'--gres=gpu:1',
-            '--qos=qos_gpu-t4',
-            '--distribution=block:block',
-            '--hint=nomultithread',
-            '--output=%x_%j.out',
-        ],
-        env_extra=[
-            'cd $WORK/fastmri-reproducible-benchmark',
-            '. ./submission_scripts_jean_zay/env_config.sh',
-        ],
-    )
+    if os.environ.get('JZ_LOCAL'):
+        train_cluster = LocalCluster()
+    else:
+        train_cluster = SLURMCluster(
+            cores=1,
+            job_cpu=20,
+            memory='80GB',
+            job_name=job_name,
+            walltime='100:00:00',
+            interface='ib0',
+            job_extra=[
+                f'--gres=gpu:1',
+                '--qos=qos_gpu-t4',
+                '--distribution=block:block',
+                '--hint=nomultithread',
+                '--output=%x_%j.out',
+            ],
+            env_extra=[
+                'cd $WORK/fastmri-reproducible-benchmark',
+                '. ./submission_scripts_jean_zay/env_config.sh',
+            ],
+        )
     acceleration_factors = [4, 8]
     train_cluster.scale(len(acceleration_factors))
     client = Client(train_cluster)
@@ -175,25 +178,28 @@ def full_pipeline_dask(
     client.close()
     train_cluster.close()
     # fine tuning
-    fine_tuning_cluster = SLURMCluster(
-        cores=1,
-        job_cpu=20,
-        memory='80GB',
-        job_name=job_name,
-        walltime='20:00:00',
-        interface='ib0',
-        job_extra=[
-            f'--gres=gpu:1',
-            '--qos=qos_gpu-t3',
-            '--distribution=block:block',
-            '--hint=nomultithread',
-            '--output=%x_%j.out',
-        ],
-        env_extra=[
-            'cd $WORK/fastmri-reproducible-benchmark',
-            '. ./submission_scripts_jean_zay/env_config.sh',
-        ],
-    )
+    if os.environ.get('JZ_LOCAL'):
+        fine_tuning_cluster = LocalCluster()
+    else:
+        fine_tuning_cluster = SLURMCluster(
+            cores=1,
+            job_cpu=20,
+            memory='80GB',
+            job_name=job_name,
+            walltime='20:00:00',
+            interface='ib0',
+            job_extra=[
+                f'--gres=gpu:1',
+                '--qos=qos_gpu-t3',
+                '--distribution=block:block',
+                '--hint=nomultithread',
+                '--output=%x_%j.out',
+            ],
+            env_extra=[
+                'cd $WORK/fastmri-reproducible-benchmark',
+                '. ./submission_scripts_jean_zay/env_config.sh',
+            ],
+        )
     if brain:
         contrasts = ['AXFLAIR', 'AXT1', 'AXT1POST', 'AXT1PRE', 'AXT2']
     else:
@@ -220,25 +226,28 @@ def full_pipeline_dask(
     client.close()
     fine_tuning_cluster.close()
     # inference and eval
-    inference_eval_cluster = SLURMCluster(
-        cores=1,
-        job_cpu=40,
-        memory='80GB',
-        job_name=job_name,
-        walltime='20:00:00',
-        interface='ib0',
-        job_extra=[
-            f'--gres=gpu:4',
-            '--qos=qos_gpu-t3',
-            '--distribution=block:block',
-            '--hint=nomultithread',
-            '--output=%x_%j.out',
-        ],
-        env_extra=[
-            'cd $WORK/fastmri-reproducible-benchmark',
-            '. ./submission_scripts_jean_zay/env_config.sh',
-        ],
-    )
+    if os.environ.get('JZ_LOCAL'):
+        inference_eval_cluster = LocalCluster()
+    else:
+        inference_eval_cluster = SLURMCluster(
+            cores=1,
+            job_cpu=40,
+            memory='80GB',
+            job_name=job_name,
+            walltime='20:00:00',
+            interface='ib0',
+            job_extra=[
+                f'--gres=gpu:4',
+                '--qos=qos_gpu-t3',
+                '--distribution=block:block',
+                '--hint=nomultithread',
+                '--output=%x_%j.out',
+            ],
+            env_extra=[
+                'cd $WORK/fastmri-reproducible-benchmark',
+                '. ./submission_scripts_jean_zay/env_config.sh',
+            ],
+        )
     inference_eval_cluster.scale(2 * len(acceleration_factors) * len(contrasts))
     client = Client(inference_eval_cluster)
     i_run_id = 0
