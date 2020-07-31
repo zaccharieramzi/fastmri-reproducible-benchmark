@@ -14,6 +14,9 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
     header.experimentalConditions.H1resonanceFrequency_Hz = 128000000
     header.encoding[0].encodingLimits.kspace_encoding_step_1.maximum = kspace.shape[-1]
     header.encoding[0].encodingLimits.kspace_encoding_step_1.center = kspace.shape[-1] // 2
+    header.encoding[0].encodingLimits.kspace_encoding_step_2.maximum = kspace.shape[-2]
+    header.encoding[0].encodingLimits.kspace_encoding_step_2.center = kspace.shape[-2] // 2
+    header.encoding[0].reconSpace = header.encoding[0].encodedSpace
     header.encoding[0].parallelImaging.accelerationFactor.kspace_encoding_step_1 = accel_factor
     header.encoding[0].parallelImaging.calibrationMode = 'embedded'
     header = header.toxml()
@@ -21,14 +24,14 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
     for i_slice in range(n_slices):
         kspace_slice = kspace[i_slice] * scale_factor
         path = Path(out_dir) / f'{file_index}_slice_{i_slice}.h5'
-        ds = ismrmrd.Dataset(path)
+        ds = Dataset(path)
         ds.write_xml_header(header)
         for i_line, m in enumerate(np.squeeze(mask)):
             if m:
                 acq = Acquisition.from_array(
                     kspace_slice[:, :, i_line],
                     idx=EncodingCounters(kspace_encode_step_1=i_line),
-                    center_sample=320,
+                    center_sample=kspace.shape[-2] // 2,
                 )
                 ds.append_acquisition(acq)
 
