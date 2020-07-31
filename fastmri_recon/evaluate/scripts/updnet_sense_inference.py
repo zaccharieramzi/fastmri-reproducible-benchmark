@@ -72,7 +72,7 @@ def updnet_sense_inference(
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
         ]
         if brain:
-            fake_inputs.append(tf.constant(1, 320, 320))
+            fake_inputs.append(tf.constant([1, 320, 320]))
         model(fake_inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     if n_samples is None:
