@@ -178,7 +178,6 @@ def full_pipeline_dask(
         # this function has potential side effects
         pure=True,
     ) for af in acceleration_factors]
-    train_cluster.adapt(minimum_jos=0, maximum_jobs=n_scale)
     run_ids = client.gather(futures)
     client.close()
     train_cluster.close()
@@ -231,7 +230,6 @@ def full_pipeline_dask(
                 # this function has potential side effects
                 pure=True,
             )]
-    fine_tuning_cluster.adapt(minimum_jos=0, maximum_jobs=n_scale)
     fine_tuned_run_ids = client.gather(futures)
     client.close()
     fine_tuning_cluster.close()
@@ -299,7 +297,6 @@ def full_pipeline_dask(
                 pure=True,
             )]
             i_run_id += 1
-    inference_eval_cluster.adapt(minimum_jos=0, maximum_jobs=n_scale)
     client.gather(inference_futures)
     # eval printing
     i_run_id = 0
