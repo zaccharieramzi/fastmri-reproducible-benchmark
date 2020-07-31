@@ -162,7 +162,11 @@ def full_pipeline_dask(
             ],
         )
     acceleration_factors = [4, 8]
-    train_cluster.scale(len(acceleration_factors))
+    if os.environ.get('JZ_LOCAL'):
+        n_scale = 1
+    else:
+        n_scale = len(acceleration_factors)
+    train_cluster.scale(n_scale)
     client = Client(train_cluster)
     futures = [client.submit(
         # function to execute
@@ -204,7 +208,11 @@ def full_pipeline_dask(
         contrasts = ['AXFLAIR', 'AXT1', 'AXT1POST', 'AXT1PRE', 'AXT2']
     else:
         contrasts = ['CORPDFS_FBK', 'CORPD_FBK']
-    fine_tuning_cluster.scale(len(acceleration_factors) * len(contrasts))
+    if os.environ.get('JZ_LOCAL'):
+        n_scale = 1
+    else:
+        n_scale = len(acceleration_factors) * len(contrasts)
+    fine_tuning_cluster.scale(n_scale)
     client = Client(fine_tuning_cluster)
     futures = []
     for af, run_id in zip(acceleration_factors, run_ids):
@@ -248,7 +256,11 @@ def full_pipeline_dask(
                 '. ./submission_scripts_jean_zay/env_config.sh',
             ],
         )
-    inference_eval_cluster.scale(2 * len(acceleration_factors) * len(contrasts))
+    if os.environ.get('JZ_LOCAL'):
+        n_scale = 1
+    else:
+        n_scale = 2 * len(acceleration_factors) * len(contrasts)
+    inference_eval_cluster.scale(n_scale)
     client = Client(inference_eval_cluster)
     i_run_id = 0
     inference_futures = []
