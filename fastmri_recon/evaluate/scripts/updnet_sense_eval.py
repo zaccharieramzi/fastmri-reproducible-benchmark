@@ -89,6 +89,8 @@ def evaluate_updnet(
         ]
         if multicoil:
             inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        if brain:
+            inputs.append(tf.constant([[320, 320]]))
         model(inputs)
         def tf_psnr(y_true, y_pred):
             perm_psnr = [3, 1, 2, 0]
