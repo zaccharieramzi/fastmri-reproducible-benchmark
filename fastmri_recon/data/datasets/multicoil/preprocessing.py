@@ -46,7 +46,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         else:
             model_inputs = (kspaces_channeled, mask, smaps)
         if output_shape_spec:
-            output_shape = tf.shape(images[1:])[None, :]
+            output_shape = tf.shape(images)[1:][None, :]
             output_shape = tf.tile(output_shape, [tf.shape(images)[0], 1])
             model_inputs += (output_shape,)
         return model_inputs, images_channeled
