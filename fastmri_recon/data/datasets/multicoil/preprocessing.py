@@ -110,7 +110,7 @@ def generic_prepare_mask_and_kspace(scale_factor=1, AF=4, output_shape_spec=Fals
         kspaces_channeled = kspaces_scaled[..., None]
         if output_shape_spec:
             image_size = image_size[None, :]
-            image_size = tf.tile(image_size, [shape[0], 1, 1])
+            image_size = tf.tile(image_size, [shape[0], 1])
             return kspaces_channeled, fourier_mask, smaps, image_size
         else:
             return kspaces_channeled, fourier_mask, smaps
