@@ -26,7 +26,9 @@ def general_fastmri_format(image, output_shape=None):
     if output_shape is None:
         cropy = cropx = 320
     else:
-        cropx = tf.squeeze(output_shape[-1])
-        cropy = tf.squeeze(output_shape[-2])
+        # we make the assumption that all output images have the same shape
+        # for this batch (or volume)
+        cropx = tf.squeeze(output_shape[0][-1])
+        cropy = tf.squeeze(output_shape[0][-2])
     cropped_image = _tf_crop(abs_image, cropx=cropx, cropy=cropy)
     return cropped_image
