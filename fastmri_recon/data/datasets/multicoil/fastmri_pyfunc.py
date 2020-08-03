@@ -18,7 +18,7 @@ def tf_filename_to_mask_and_kspace_and_contrast_and_image_size(filename):
     )
     mask.set_shape((None,))
     kspace.set_shape((None, None, None, None))
-    image_size.set_shape((None, None))
+    image_size.set_shape((2,))
     return mask, kspace, contrast, image_size
 
 def tf_filename_to_mask_and_contrast_and_filename(filename):
@@ -244,15 +244,15 @@ def test_masked_kspace_dataset_from_indexable(
         )
     if n_samples is not None:
         mask_and_kspace_and_image_size_ds = mask_and_kspace_and_image_size_ds.take(n_samples)
-    masked_kspace_ds = mask_and_kspace_and_image_size_ds.map(
-        generic_prepare_mask_and_kspace(
-            scale_factor=scale_factor,
-            AF=AF,
-            output_shape_spec=output_shape_spec,
-        )
-    )
+    # masked_kspace_ds = mask_and_kspace_and_image_size_ds.map(
+    #     generic_prepare_mask_and_kspace(
+    #         scale_factor=scale_factor,
+    #         AF=AF,
+    #         output_shape_spec=output_shape_spec,
+    #     )
+    # )
 
-    return masked_kspace_ds
+    return mask_and_kspace_and_image_size_ds
 
 def test_filenames(path, AF=4, contrast=None, n_samples=None):
     """The filenames associated with the test/challenge dataset function.
