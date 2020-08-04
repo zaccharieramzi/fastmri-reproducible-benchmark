@@ -221,7 +221,6 @@ def evaluate_nc_click(
     evaluate_function(
         af=af,
         loss=loss,
-        refine_smaps=refine_smaps,
         multicoil=multicoil,
         acq_type=acq_type,
         **add_kwargs,
