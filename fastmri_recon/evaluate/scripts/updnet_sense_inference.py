@@ -1,5 +1,6 @@
 import os
 
+import click
 import tensorflow as tf
 from tqdm import tqdm
 
@@ -105,3 +106,71 @@ def updnet_sense_inference(
             scale_factor=scale_factor,
             brain=brain,
         )
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=10,
+    help='The number of epochs used in the final training.'
+)
+@click.option(
+    'run_id',
+    '-r',
+    type=int,
+    default=None,
+    help='The run id of the final training.'
+)
+@click.option(
+    'exp_id',
+    '-x',
+    type=str,
+    default='updnet',
+    help='The experiment id.'
+)
+@click.option(
+    'contrast',
+    '-c',
+    type=str,
+    default=None,
+    help='The contrast to use for the training.'
+)
+def updnet_sense_inference_click(
+        af,
+        brain,
+        refine_smaps,
+        n_epochs,
+        run_id,
+        exp_id,
+        contrast,
+    ):
+    updnet_sense_inference(
+        af=af,
+        brain=brain,
+        refine_smaps=refine_smaps,
+        n_epochs=n_epochs,
+        run_id=run_id,
+        exp_id=exp_id,
+        contrast=contrast,
+    )
