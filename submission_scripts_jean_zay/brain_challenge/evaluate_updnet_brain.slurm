@@ -31,17 +31,17 @@ RUN_ID_AF8_AXT1 = ""
 RUN_ID_AF8_AXT2 = ""
 
 # AF4 finetuning
-opt[0]="-a 4 -b -rfs --orig-id ${RUN_ID_AF4_AXFLAIR} -e 10 -c AXFLAIR"
-opt[1]="-a 4 -b -rfs --orig-id ${RUN_ID_AF4_AXT1POST} -e 10 -c AXT1POST"
-opt[2]="-a 4 -b -rfs --orig-id ${RUN_ID_AF4_AXT1PRE} -e 10 -c AXT1PRE"
-opt[3]="-a 4 -b -rfs --orig-id ${RUN_ID_AF4_AXT1} -e 10 -c AXT1"
-opt[4]="-a 4 -b -rfs --orig-id ${RUN_ID_AF4_AXT2} -e 10 -c AXT2"
+opt[0]="-a 4 -b -rfs -r ${RUN_ID_AF4_AXFLAIR} -e 10 -c AXFLAIR"
+opt[1]="-a 4 -b -rfs -r ${RUN_ID_AF4_AXT1POST} -e 10 -c AXT1POST"
+opt[2]="-a 4 -b -rfs -r ${RUN_ID_AF4_AXT1PRE} -e 10 -c AXT1PRE"
+opt[3]="-a 4 -b -rfs -r ${RUN_ID_AF4_AXT1} -e 10 -c AXT1"
+opt[4]="-a 4 -b -rfs -r ${RUN_ID_AF4_AXT2} -e 10 -c AXT2"
 # AF8 finetuning
-opt[5]="-a 8 -b -rfs --orig-id ${RUN_ID_AF8_AXFLAIR} -e 10 -c AXFLAIR"
-opt[6]="-a 8 -b -rfs --orig-id ${RUN_ID_AF8_AXT1POST} -e 10 -c AXT1POST"
-opt[7]="-a 8 -b -rfs --orig-id ${RUN_ID_AF8_AXT1PRE} -e 10 -c AXT1PRE"
-opt[8]="-a 8 -b -rfs --orig-id ${RUN_ID_AF8_AXT1} -e 10 -c AXT1"
-opt[9]="-a 8 -b -rfs --orig-id ${RUN_ID_AF8_AXT2} -e 10 -c AXT2"
+opt[5]="-a 8 -b -rfs -r ${RUN_ID_AF8_AXFLAIR} -e 10 -c AXFLAIR"
+opt[6]="-a 8 -b -rfs -r ${RUN_ID_AF8_AXT1POST} -e 10 -c AXT1POST"
+opt[7]="-a 8 -b -rfs -r ${RUN_ID_AF8_AXT1PRE} -e 10 -c AXT1PRE"
+opt[8]="-a 8 -b -rfs -r ${RUN_ID_AF8_AXT1} -e 10 -c AXT1"
+opt[9]="-a 8 -b -rfs -r ${RUN_ID_AF8_AXT2} -e 10 -c AXT2"
 
 srun python ./fastmri_recon/evaluate/scripts/updnet_sense_eval.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
