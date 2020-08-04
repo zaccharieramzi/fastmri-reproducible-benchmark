@@ -19,11 +19,11 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-RUN_ID_RADIAL = ""
-RUN_ID_SPIRAL = ""
+export RUN_ID_RADIAL=""
+export RUN_ID_SPIRAL=""
 
-opt[0]="-a 4 -m pdnet -rfs -mc -t radial -e 100"
-opt[1]="-a 4 -m pdnet -rfs -mc -t spiral -e 100"
+opt[0]="-a 4 -m pdnet -rfs -mc -t radial -e 100 -r ${RUN_ID_RADIAL}"
+opt[1]="-a 4 -m pdnet -rfs -mc -t spiral -e 100 -r ${RUN_ID_SPIRAL}"
 
 srun python ./fastmri_recon/evaluate/scripts/nc_eval.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
