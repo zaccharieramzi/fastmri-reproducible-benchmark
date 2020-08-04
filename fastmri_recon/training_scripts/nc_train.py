@@ -2,6 +2,7 @@ import os
 import os.path as op
 import time
 
+import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
@@ -138,6 +139,7 @@ def train_ncpdnet(
         n_filters=32,
         n_primal=5,
         non_linearity='relu',
+        refine_smaps=True,
         **train_kwargs,
     ):
     run_params = {
@@ -149,6 +151,7 @@ def train_ncpdnet(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
+        'refine_smaps': refine_smaps,
     }
 
     if multicoil:
@@ -160,6 +163,8 @@ def train_ncpdnet(
         additional_info += f'_i{n_iter}'
     if non_linearity != 'relu':
         additional_info += f'_{non_linearity}'
+    if refine_smaps:
+        additional_info += '_rfs'
 
 
     run_id = f'{ncpdnet_type}_{additional_info}'
@@ -211,3 +216,71 @@ def train_unet_nc(
         dcomp=dcomp,
         **train_kwargs,
     )
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'multicoil',
+    '-mc',
+    is_flag=True,
+    help='Whether you want to use multicoil data.'
+)
+@click.option(
+    'model',
+    '-m',
+    type=str,
+    default='pdnet',
+    help='The NC model to use.'
+)
+@click.option(
+    'acq_type',
+    '-t',
+    type=str,
+    default='radial',
+    help='The trajectory to use.'
+)
+def train_ncnet_click(
+        af,
+        loss,
+        refine_smaps,
+        multicoil,
+        model,
+        acq_type,
+    ):
+    if model == 'pdnet':
+        train_function = train_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        train_function = train_unet_nc
+        add_kwargs = {}
+    train_function(
+        af=af,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        **add_kwargs,
+    )
+
+if __name__ == '__main__':
+    train_ncnet_click()
