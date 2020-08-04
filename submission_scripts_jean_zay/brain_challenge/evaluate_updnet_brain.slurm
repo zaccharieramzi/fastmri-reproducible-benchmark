@@ -12,7 +12,7 @@
 #SBATCH --qos=qos_gpu-t3
 #SBATCH --output=updnet_brain_eval%A_%a.out # nom du fichier de sortie
 #SBATCH --error=updnet_brain_eval%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
-#SBATCH --array=0-4
+#SBATCH --array=0-9
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
