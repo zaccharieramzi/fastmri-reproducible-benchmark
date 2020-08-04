@@ -23,17 +23,17 @@ RUN_ID_AF4 = ""
 RUN_ID_AF8 = ""
 
 # AF4 finetuning
-opt[0]="-a 4 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"
-opt[1]="-a 4 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1POST"
-opt[2]="-a 4 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1PRE"
-opt[3]="-a 4 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1"
-opt[4]="-a 4 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT2"
+opt[0]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"
+opt[1]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1POST"
+opt[2]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1PRE"
+opt[3]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1"
+opt[4]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF4} -e 10 -c AXT2"
 # AF8 finetuning
-opt[5]="-a 8 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXFLAIR"
-opt[6]="-a 8 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1POST"
-opt[7]="-a 8 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1PRE"
-opt[8]="-a 8 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1"
-opt[9]="-a 8 -b -l compound_mssim -rfs -n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT2"
+opt[5]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXFLAIR"
+opt[6]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1POST"
+opt[7]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1PRE"
+opt[8]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1"
+opt[9]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 200 --orig-id ${RUN_ID_AF8} -e 10 -c AXT2"
 
 
 srun python ./fastmri_recon/training_scripts/updnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
