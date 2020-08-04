@@ -120,6 +120,7 @@ def evaluate_updnet(
         if contrast is not None:
             n_volumes //= 2
             n_volumes += 1
+    # TODO: correct evaluation for multi gpu mode
     eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes if n_samples is None else None)
     return model.metrics_names, eval_res
 
@@ -127,7 +128,7 @@ def evaluate_updnet(
 @click.option(
     'run_id',
     '-r',
-    default='updnet_sense_af4_1588609141',
+    default=None,
     type=str,
     help='The run id of the trained network. Defaults to updnet_sense_af4_1588609141.',
 )
@@ -142,8 +143,8 @@ def evaluate_updnet(
     'contrast',
     '-c',
     default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK',], case_sensitive=False),
-    help='The contrast chosen for this evaluation. Defaults to CORPDFS_FBK.',
+    type=str,
+    help='The contrast chosen for this evaluation. Defaults to None.',
 )
 @click.option(
     'af',
@@ -202,6 +203,18 @@ def evaluate_updnet(
     type=click.Choice([None, 'dense', 'conv']),
     help='The type of channel attention to use. Default to None.',
 )
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
 def evaluate_updnet_sense_click(
         run_id,
         n_epochs,
@@ -214,6 +227,8 @@ def evaluate_updnet_sense_click(
         n_layers,
         base_n_filter,
         channel_attention,
+        refine_smaps,
+        brain,
     ):
     if channel_attention == 'dense':
         channel_attention_kwargs = {'dense': True}
@@ -233,6 +248,8 @@ def evaluate_updnet_sense_click(
         channel_attention_kwargs=channel_attention_kwargs,
         n_samples=n_samples,
         cuda_visible_devices=cuda_visible_devices,
+        refine_smaps=refine_smaps,
+        brain=brain,
     )
     print(metrics_names)
     print(eval_res)
