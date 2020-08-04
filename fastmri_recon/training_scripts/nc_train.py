@@ -273,6 +273,8 @@ def train_ncnet_click(
     elif model == 'unet':
         train_function = train_unet_nc
         add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
     train_function(
         af=af,
         loss=loss,

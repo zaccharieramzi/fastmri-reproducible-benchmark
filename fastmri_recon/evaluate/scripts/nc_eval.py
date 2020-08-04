@@ -218,6 +218,8 @@ def evaluate_nc_click(
     elif model == 'unet':
         evaluate_function = evaluate_unet
         add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
     evaluate_function(
         af=af,
         loss=loss,
