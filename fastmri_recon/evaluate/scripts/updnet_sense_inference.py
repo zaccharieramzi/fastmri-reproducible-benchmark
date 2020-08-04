@@ -174,3 +174,7 @@ def updnet_sense_inference_click(
         exp_id=exp_id,
         contrast=contrast,
     )
+
+
+if __name__ == '__main__':
+    updnet_sense_inference_click()
