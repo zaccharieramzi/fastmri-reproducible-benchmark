@@ -75,8 +75,19 @@ def evaluate_updnet(
         scale_factor=1e6,
         **kwargs,
     )
+    if brain:
+        n_volumes = brain_n_volumes_validation
+        if contrast is not None:
+            n_volumes = brain_volumes_per_contrast['validation'][contrast]
+    else:
+        n_volumes = n_volumes_val
+        if contrast is not None:
+            n_volumes //= 2
+            n_volumes += 1
     if n_samples is not None:
         val_set = val_set.take(n_samples)
+    else:
+        val_set = val_set.take(n_volumes)
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
@@ -95,17 +106,8 @@ def evaluate_updnet(
             inputs.append(tf.constant([[320, 320]]))
         model(inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    if brain:
-        n_volumes = brain_n_volumes_validation
-        if contrast is not None:
-            n_volumes = brain_volumes_per_contrast['validation'][contrast]
-    else:
-        n_volumes = n_volumes_val
-        if contrast is not None:
-            n_volumes //= 2
-            n_volumes += 1
     m = Metrics(METRIC_FUNCS)
-    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
+    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=4)
         m.push(y_true[..., 0], y_pred[..., 0])
     return METRIC_FUNCS, list(m.means().values())
