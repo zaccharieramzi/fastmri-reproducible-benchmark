@@ -2,6 +2,7 @@ import os
 import os.path as op
 import time
 
+import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
@@ -177,3 +178,84 @@ def train_updnet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
+
+
+@click.command()
+@click.option(
+    'acceleration_factor',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'n_epochs_original',
+    '--n-epochs-orig',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'original_run_id',
+    '--orig-id',
+    type=int,
+    default=200,
+    help='The run id of the original unspecific training.'
+)
+@click.option(
+    'contrast',
+    '-c',
+    type=str,
+    default=None,
+    help='The contrast to use for the training.'
+)
+def train_updnet_click(
+        acceleration_factor,
+        brain,
+        loss,
+        refine_smaps,
+        n_epochs,
+        n_epochs_original,
+        original_run_id,
+        contrast,
+    ):
+    train_updnet(
+        acceleration_factor=acceleration_factor,
+        brain=brain,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        n_epochs=n_epochs,
+        n_epochs_original=n_epochs_original,
+        original_run_id=original_run_id,
+        contrast=contrast,
+    )
+
+
+if __name__ == '__main__':
+    train_updnet_click()
