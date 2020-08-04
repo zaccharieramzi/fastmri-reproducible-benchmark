@@ -1,5 +1,6 @@
 import os
 
+import click
 import tensorflow as tf
 from tqdm import tqdm
 
@@ -101,6 +102,7 @@ def evaluate_ncpdnet(
         n_filters=32,
         n_primal=5,
         non_linearity='relu',
+        refine_smaps=True,
         **eval_kwargs
     ):
     run_params = {
@@ -112,6 +114,7 @@ def evaluate_ncpdnet(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
+        'refine_smaps': refine_smaps,
     }
 
     model = NCPDNet(**run_params)
@@ -158,3 +161,72 @@ def evaluate_unet(
         dcomp=dcomp,
         **eval_kwargs,
     )
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'run_id',
+    '-r',
+    type=str,
+    default=None,
+    help='The run id of the trained model.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'multicoil',
+    '-mc',
+    is_flag=True,
+    help='Whether you want to use multicoil data.'
+)
+@click.option(
+    'model',
+    '-m',
+    type=str,
+    default='pdnet',
+    help='The NC model to use.'
+)
+@click.option(
+    'acq_type',
+    '-t',
+    type=str,
+    default='radial',
+    help='The trajectory to use.'
+)
+def evaluate_nc_click(
+        af,
+        loss,
+        refine_smaps,
+        multicoil,
+        model,
+        acq_type,
+    ):
+    if model == 'pdnet':
+        evaluate_function = evaluate_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        evaluate_function = evaluate_unet
+        add_kwargs = {}
+    evaluate_function(
+        af=af,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        **add_kwargs,
+    )
+
+
+if __name__ == '__main__':
+    evaluate_nc_click()
