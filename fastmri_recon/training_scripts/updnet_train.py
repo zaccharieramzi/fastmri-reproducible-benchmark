@@ -182,7 +182,7 @@ def train_updnet(
 
 @click.command()
 @click.option(
-    'acceleration_factor',
+    'af',
     '-a',
     type=int,
     default=4,
@@ -236,7 +236,7 @@ def train_updnet(
     help='The contrast to use for the training.'
 )
 def train_updnet_click(
-        acceleration_factor,
+        af,
         brain,
         loss,
         refine_smaps,
@@ -246,7 +246,7 @@ def train_updnet_click(
         contrast,
     ):
     train_updnet(
-        acceleration_factor=acceleration_factor,
+        af=af,
         brain=brain,
         loss=loss,
         refine_smaps=refine_smaps,
