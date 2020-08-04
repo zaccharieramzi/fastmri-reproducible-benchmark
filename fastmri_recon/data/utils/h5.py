@@ -63,7 +63,9 @@ def from_test_file_to_mask_and_kspace(filename, selection=None):
     """
     if selection is not None:
         selection = {'kspace': selection}
-    return _from_file_to_stuff(filename, vals=['mask', 'kspace'], selection=selection)
+    mask, kspace = _from_file_to_stuff(filename, vals=['mask', 'kspace'], selection=selection)
+    mask = mask.astype('bool')
+    return mask, kspace
 
 
 def from_train_file_to_image_and_kspace(filename, selection=None):
@@ -114,13 +116,17 @@ def from_test_file_to_mask_and_kspace_and_contrast(filename, selection=None):
     """
     if selection is not None:
         selection = {'kspace': selection}
-    return _from_file_to_stuff(filename, vals=['mask', 'kspace'], attrs=['acquisition'], selection=selection)
+    mask, kspace, contrast = _from_file_to_stuff(filename, vals=['mask', 'kspace'], attrs=['acquisition'], selection=selection)
+    mask = mask.astype('bool')
+    return mask, kspace, contrast
 
 def from_test_file_to_mask_and_contrast(filename):
     """Get the mask and kspaces from an h5 file with 'mask'
     and 'kspace' keys.
     """
-    return _from_file_to_stuff(filename, vals=['mask'], attrs=['acquisition'])
+    mask, contrast = _from_file_to_stuff(filename, vals=['mask'], attrs=['acquisition'])
+    mask = mask.astype('bool')
+    return mask, contrast
 
 
 def from_file_to_kspace(filename, selection=None):
@@ -149,6 +155,7 @@ def from_test_file_to_mask_and_kspace_and_contrast_and_image_size(filename, sele
     hdr = ismrmrd.xsd.CreateFromDocument(ismrmrd_header)
     enc = hdr.encoding[0]
     enc_size = (enc.encodedSpace.matrixSize.x, enc.encodedSpace.matrixSize.y)
+    mask = mask.astype('bool')
     return mask, kspace, contrast, enc_size
 
 
