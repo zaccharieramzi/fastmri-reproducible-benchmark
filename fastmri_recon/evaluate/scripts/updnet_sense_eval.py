@@ -2,6 +2,7 @@ import os
 
 import click
 import tensorflow as tf
+from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
