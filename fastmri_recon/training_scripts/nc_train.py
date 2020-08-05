@@ -227,6 +227,13 @@ def train_unet_nc(
     help='The acceleration factor.'
 )
 @click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=70,
+    help='The number of epochs.'
+)
+@click.option(
     'loss',
     '-l',
     type=str,
@@ -261,6 +268,7 @@ def train_unet_nc(
 )
 def train_ncnet_click(
         af,
+        n_epochs,
         loss,
         refine_smaps,
         multicoil,
@@ -277,6 +285,7 @@ def train_ncnet_click(
         add_kwargs.update(dcomp=True)
     train_function(
         af=af,
+        n_epochs=n_epochs,
         loss=loss,
         multicoil=multicoil,
         acq_type=acq_type,
