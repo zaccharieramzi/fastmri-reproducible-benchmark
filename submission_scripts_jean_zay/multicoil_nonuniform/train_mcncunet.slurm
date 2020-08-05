@@ -19,8 +19,8 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-opt[0]="-a 4 -m unet -l compound_mssim -mc -t radial"
-opt[1]="-a 4 -m unet -l compound_mssim -mc -t spiral"
+opt[0]="-a 4 -m unet -l compound_mssim -mc -t radial -e 70"
+opt[1]="-a 4 -m unet -l compound_mssim -mc -t spiral -e 70"
 
 srun python ./fastmri_recon/training_scripts/nc_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
