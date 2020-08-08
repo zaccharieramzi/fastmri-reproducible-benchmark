@@ -19,18 +19,18 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-EXP_ID = "updnet_v1"
+export EXP_ID="updnet_v1"
 
-RUN_ID_AF4_AXFLAIR = ""
-RUN_ID_AF4_AXT1POST = ""
-RUN_ID_AF4_AXT1PRE = ""
-RUN_ID_AF4_AXT1 = ""
-RUN_ID_AF4_AXT2 = ""
-RUN_ID_AF8_AXFLAIR = ""
-RUN_ID_AF8_AXT1POST = ""
-RUN_ID_AF8_AXT1PRE = ""
-RUN_ID_AF8_AXT1 = ""
-RUN_ID_AF8_AXT2 = ""
+export RUN_ID_AF4_AXFLAIR="updnet_sense_brain__af4_AXFLAIR_compound_mssim_rf_sm_1596882703"
+export RUN_ID_AF4_AXT1POST="updnet_sense_brain__af4_AXT1POST_compound_mssim_rf_sm_1596882703"
+export RUN_ID_AF4_AXT1PRE="updnet_sense_brain__af4_AXT1PRE_compound_mssim_rf_sm_1596882702"
+export RUN_ID_AF4_AXT1="updnet_sense_brain__af4_AXT1_compound_mssim_rf_sm_1596882702"
+export RUN_ID_AF4_AXT2="updnet_sense_brain__af4_AXT2_compound_mssim_rf_sm_1596882702"
+export RUN_ID_AF8_AXFLAIR="updnet_sense_brain__af8_AXFLAIR_compound_mssim_rf_sm_1596882703"
+export RUN_ID_AF8_AXT1POST="updnet_sense_brain__af8_AXT1POST_compound_mssim_rf_sm_1596882703"
+export RUN_ID_AF8_AXT1PRE="updnet_sense_brain__af8_AXT1PRE_compound_mssim_rf_sm_1596882923"
+export RUN_ID_AF8_AXT1="updnet_sense_brain__af8_AXT1_compound_mssim_rf_sm_1596883631"
+export RUN_ID_AF8_AXT2="updnet_sense_brain__af8_AXT2_compound_mssim_rf_sm_1596883631"
 
 # AF4 infer
 opt[0]="-x ${EXP_ID} -a 4 -b -rfs -r ${RUN_ID_AF4_AXFLAIR} -e 10 -c AXFLAIR"
