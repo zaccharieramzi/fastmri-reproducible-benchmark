@@ -7,7 +7,7 @@ from tqdm import tqdm
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable, test_filenames
 from fastmri_recon.models.subclassed_models.updnet import UPDNet
-from ..utils.write_results import write_result
+from fastmri_recon.evaluate.utils.write_results import write_result
 
 
 def updnet_sense_inference(
