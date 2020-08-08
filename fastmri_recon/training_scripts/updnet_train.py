@@ -224,7 +224,7 @@ def train_updnet(
 @click.option(
     'original_run_id',
     '--orig-id',
-    type=int,
+    type=str,
     default=None,
     help='The run id of the original unspecific training.'
 )
