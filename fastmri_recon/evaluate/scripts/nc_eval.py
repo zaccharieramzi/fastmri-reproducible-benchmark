@@ -204,6 +204,12 @@ def evaluate_unet(
     default='radial',
     help='The trajectory to use.'
 )
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    help='The number of epochs during which the model was trained.'
+)
 def evaluate_nc_click(
         af,
         loss,
@@ -211,6 +217,7 @@ def evaluate_nc_click(
         multicoil,
         model,
         acq_type,
+        n_epochs,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -225,6 +232,7 @@ def evaluate_nc_click(
         loss=loss,
         multicoil=multicoil,
         acq_type=acq_type,
+        n_epochs=n_epochs,
         **add_kwargs,
     )
 
