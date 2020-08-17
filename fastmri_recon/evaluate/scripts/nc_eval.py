@@ -208,7 +208,15 @@ def evaluate_unet(
     'n_epochs',
     '-e',
     type=int,
+    default=200,
     help='The number of epochs during which the model was trained.'
+)
+@click.option(
+    'n_samples',
+    '-n',
+    type=int,
+    default=None,
+    help='The number of samples to use for evaluation.'
 )
 def evaluate_nc_click(
         af,
@@ -218,6 +226,7 @@ def evaluate_nc_click(
         model,
         acq_type,
         n_epochs,
+        n_samples,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -233,6 +242,7 @@ def evaluate_nc_click(
         multicoil=multicoil,
         acq_type=acq_type,
         n_epochs=n_epochs,
+        n_samples=n_samples,
         **add_kwargs,
     )
 
