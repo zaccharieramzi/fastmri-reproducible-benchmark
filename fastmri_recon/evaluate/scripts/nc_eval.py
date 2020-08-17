@@ -212,7 +212,7 @@ def evaluate_unet(
 )
 def evaluate_nc_click(
         af,
-        loss,
+        run_id,
         refine_smaps,
         multicoil,
         model,
@@ -229,7 +229,7 @@ def evaluate_nc_click(
         add_kwargs.update(dcomp=True)
     evaluate_function(
         af=af,
-        loss=loss,
+        run_id=run_id,
         multicoil=multicoil,
         acq_type=acq_type,
         n_epochs=n_epochs,
