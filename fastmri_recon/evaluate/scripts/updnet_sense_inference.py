@@ -138,7 +138,7 @@ def updnet_sense_inference(
 @click.option(
     'run_id',
     '-r',
-    type=int,
+    type=str,
     default=None,
     help='The run id of the final training.'
 )
