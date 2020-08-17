@@ -22,8 +22,8 @@ cd $WORK/fastmri-reproducible-benchmark
 export RUN_ID_RADIAL="ncpdnet_sense___rfs_radial_compound_mssim_dcomp_1596636372"
 export RUN_ID_SPIRAL="ncpdnet_sense___rfs_spiral_compound_mssim_dcomp_1596636369"
 
-opt[0]="-a 4 -m pdnet -rfs -mc -t radial -e 70 -r ${RUN_ID_RADIAL}"
-opt[1]="-a 4 -m pdnet -rfs -mc -t spiral -e 70 -r ${RUN_ID_SPIRAL}"
+opt[0]="-a 4 -m pdnet -rfs -mc -t radial -e 70 -n 50 -r ${RUN_ID_RADIAL}"
+opt[1]="-a 4 -m pdnet -rfs -mc -t spiral -e 70 -n 50 -r ${RUN_ID_SPIRAL}"
 
 srun python ./fastmri_recon/evaluate/scripts/nc_eval.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
