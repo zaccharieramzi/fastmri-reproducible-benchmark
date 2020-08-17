@@ -87,5 +87,5 @@ def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, shape, low_fre
         lambda: _crop_for_pad(coil_smap, shape, coil_smap.shape),
     )
     low_freq_rss = tf.norm(coil_smap, axis=1)
-    coil_smap = coil_smap / low_freq_rss
+    coil_smap = coil_smap / low_freq_rss[:, None]
     return coil_smap
