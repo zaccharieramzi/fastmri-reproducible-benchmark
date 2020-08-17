@@ -26,7 +26,10 @@ def evaluate_updnet(
         refine_smaps=False,
         n_samples=None,
         cuda_visible_devices='0123',
+        verbose=False,
     ):
+    if verbose:
+        print(f'Evaluating {run_id}')
     if multicoil:
         if brain:
             val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
@@ -203,6 +206,12 @@ def evaluate_updnet(
     is_flag=True,
     help='Whether you want to consider brain data.'
 )
+@click.option(
+    'verbose',
+    '-v',
+    is_flag=True,
+    help='Whether to print some logging info.',
+)
 def evaluate_updnet_sense_click(
         run_id,
         n_epochs,
@@ -217,6 +226,7 @@ def evaluate_updnet_sense_click(
         channel_attention,
         refine_smaps,
         brain,
+        verbose,
     ):
     if channel_attention == 'dense':
         channel_attention_kwargs = {'dense': True}
@@ -238,6 +248,7 @@ def evaluate_updnet_sense_click(
         cuda_visible_devices=cuda_visible_devices,
         refine_smaps=refine_smaps,
         brain=brain,
+        verbose=verbose,
     )
     print(metrics_names)
     print(eval_res)
