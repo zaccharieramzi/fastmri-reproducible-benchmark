@@ -88,7 +88,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
         dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
         extra_args = (orig_shape, dcomp)
-        smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back, orig_shape)
+        smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, nufftob_back, orig_shape[0])
         return (nc_kspaces_channeled, traj, smaps, *extra_args), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,

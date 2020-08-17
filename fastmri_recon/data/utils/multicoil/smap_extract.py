@@ -82,10 +82,10 @@ def non_cartesian_extract_smaps(kspace, trajs, dcomp, nufft_back, shape, low_fre
     low_freq_dcomp = tf.boolean_mask(dcomp, low_freq_bool_mask, axis=1)[:, None]
     coil_smap = nufft_back(low_freq_kspace * tf.cast(low_freq_dcomp, kspace.dtype), low_freq_traj)
     coil_smap = tf.cond(
-            tf.math.greater_equal(shape, coil_smap.shape[-1]),
-            lambda: coil_smap,
-            lambda: _crop_for_pad(coil_smap, shape, coil_smap.shape),
-        )
+        tf.math.greater_equal(shape, coil_smap.shape[-1]),
+        lambda: coil_smap,
+        lambda: _crop_for_pad(coil_smap, shape, coil_smap.shape),
+    )
     low_freq_rss = tf.norm(coil_smap, axis=1)
     coil_smap = coil_smap / low_freq_rss
     return coil_smap
