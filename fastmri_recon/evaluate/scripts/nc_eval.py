@@ -17,27 +17,11 @@ from fastmri_recon.models.subclassed_models.unet import UnetComplex
 # cropping
 IM_SIZE = (640, 400)
 
-# TODO: replace these stupid functions with just extraction of the first slice...
-def _extract_inputs_shape(inputs, no_batch=True):
+def _extract_first_elem_of_batch(inputs):
     if isinstance(inputs, (list, tuple)):
-        return [_extract_inputs_shape(i, no_batch=no_batch) for i in inputs]
+        return [_extract_first_elem_of_batch(i) for i in inputs]
     else:
-        if no_batch:
-            return [1] + inputs.shape[1:]
-        else:
-            return inputs.shape
-
-def _extract_inputs_dtype(inputs):
-    if isinstance(inputs, (list, tuple)):
-        return [_extract_inputs_dtype(i) for i in inputs]
-    else:
-        return inputs.dtype
-
-def _zeros_from_shape(shapes, dtypes):
-    if isinstance(shapes, (list, tuple)):
-        return [_zeros_from_shape(s, d) for s, d in zip(shapes, dtypes)]
-    else:
-        return tf.zeros(shapes, dtype=dtypes)
+        return inputs[0:1]
 
 def evaluate_nc(
         model,
@@ -79,12 +63,7 @@ def evaluate_nc(
         val_set = val_set.take(199)
 
     example_input = next(iter(val_set))[0]
-    inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
-    inputs_dtype = _extract_inputs_dtype(example_input)
-
-    inputs = _zeros_from_shape(inputs_shape, inputs_dtype)
-    # special case for the shape:
-    inputs[-1][0] = tf.constant([[372]])
+    inputs = _extract_first_elem_of_batch(example_input)
     model(inputs)
     if run_id is not None:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
