@@ -2,6 +2,7 @@ import os
 import os.path as op
 import time
 
+import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
@@ -9,6 +10,7 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
@@ -224,3 +226,122 @@ def train_xpdnet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
+
+
+@click.command()
+@click.option(
+    'model_name',
+    '-m',
+    type=str,
+    default='MWCNN',
+    help='The type of model you want to use for the XPDNet',
+)
+@click.option(
+    'model_size',
+    '-s',
+    type=str,
+    default='big',
+    help='The size of the model you want to use for the XPDNet',
+)
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'n_epochs_original',
+    '--n-epochs-orig',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'original_run_id',
+    '--orig-id',
+    type=str,
+    default=None,
+    help='The run id of the original unspecific training.'
+)
+@click.option(
+    'contrast',
+    '-c',
+    type=str,
+    default=None,
+    help='The contrast to use for the training.'
+)
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
+def train_xpdnet_click(
+        model_name,
+        model_size,
+        af,
+        brain,
+        loss,
+        refine_smaps,
+        n_epochs,
+        n_epochs_original,
+        original_run_id,
+        contrast,
+        equidistant_fake,
+    ):
+    n_primal = 5
+    model_fun, kwargs, n_scales = [
+         model_fun, kwargs, n_scales
+         for m_name, m_size, model_fun, kwargs, _, n_scales, _
+         in get_model_specs(n_primal=n_primal, force_res=True)
+         if m_name == model_name and m_size == model_size
+    ][0]
+
+    train_xpdnet(
+        model_fun=model_fun,
+        model_kwargs=kwargs,
+        model_size=model_size,
+        multicoil=True,
+        af=af,
+        brain=brain,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        n_scales=n_scales,
+        n_primal=n_primal,
+        n_epochs=n_epochs,
+        n_epochs_original=n_epochs_original,
+        original_run_id=original_run_id,
+        contrast=contrast,
+        equidistant_fake=equidistant_fake,
+    )
+
+
+if __name__ == '__main__':
+    train_xpdnet_click()
