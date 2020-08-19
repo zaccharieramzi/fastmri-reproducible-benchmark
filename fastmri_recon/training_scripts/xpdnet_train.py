@@ -35,6 +35,8 @@ def train_xpdnet(
         loss='mae',
         original_run_id=None,
         fixed_masks=False,
+        n_epochs_original=250,
+        equidistant_fake=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -85,6 +87,11 @@ def train_xpdnet(
             weights. Defaults to None.
         fixed_masks (bool): whether fixed masks should be used for the
             retrospective undersampling. Defaults to False
+        n_epochs_original (int): the number of epochs used to pre-train the
+            model, only applicable if original_run_id is not None. Defaults to
+            250.
+        equidistant_fake (bool): whether to use fake equidistant masks from
+            fastMRI. Defaults to False.
 
     Returns:
         - str: the run id of the trained network.
@@ -120,7 +127,10 @@ def train_xpdnet(
     if multicoil:
         dataset = multicoil_dataset
         if brain:
-            mask_type = 'equidistant'
+            if equidistant_fake:
+                mask_type = 'equidistant_fake'
+            else:
+                mask_type = 'equidistant'
         else:
             mask_type = 'random'
         kwargs = {
@@ -211,8 +221,6 @@ def train_xpdnet(
     if original_run_id is not None:
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
-        else:
-            n_epochs_original = 250
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
@@ -317,10 +325,10 @@ def train_xpdnet_click(
         equidistant_fake,
     ):
     n_primal = 5
-    model_fun, kwargs, n_scales = [
-         model_fun, kwargs, n_scales
-         for m_name, m_size, model_fun, kwargs, _, n_scales, _
-         in get_model_specs(n_primal=n_primal, force_res=True)
+    model_fun, kwargs, n_scales, res = [
+         model_fun, kwargs, n_scales, res
+         for m_name, m_size, model_fun, kwargs, _, n_scales, res
+         in get_model_specs(n_primal=n_primal, force_res=False)
          if m_name == model_name and m_size == model_size
     ][0]
 
@@ -331,6 +339,7 @@ def train_xpdnet_click(
         multicoil=True,
         af=af,
         brain=brain,
+        res=res,
         loss=loss,
         refine_smaps=refine_smaps,
         n_scales=n_scales,
