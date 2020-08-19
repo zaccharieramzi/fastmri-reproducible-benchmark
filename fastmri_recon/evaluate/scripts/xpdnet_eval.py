@@ -25,6 +25,7 @@ def evaluate_xpdnet(
         refine_smaps=False,
         n_samples=None,
         cuda_visible_devices='0123',
+        equidistant_fake=False,
     ):
     if multicoil:
         if brain:
@@ -49,7 +50,9 @@ def evaluate_xpdnet(
 
     if multicoil:
         dataset = multicoil_dataset
-        if brain:
+        if equidistant_fake:
+            mask_type = 'equidistant_fake'
+        else:
             mask_type = 'equidistant'
         else:
             mask_type = 'random'
@@ -84,47 +87,24 @@ def evaluate_xpdnet(
     else:
         val_set = val_set.take(n_volumes)
 
-    if multicoil:
-        kspace_size = [1, 15, 640, 372]
-    else:
-        kspace_size = [1, 640, 372]
+    mirrored_strategy = tf.distribute.MirroredStrategy()
+    with mirrored_strategy.scope():
+        if multicoil:
+            kspace_size = [1, 15, 640, 372]
+        else:
+            kspace_size = [1, 640, 372]
 
-    model = XPDNet(model_fun, model_kwargs, **run_params)
-    inputs = [
-        tf.zeros(kspace_size + [1], dtype=tf.complex64),
-        tf.zeros(kspace_size, dtype=tf.complex64),
-    ]
-    if multicoil:
-        inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
-    model(inputs)
-    def tf_psnr(y_true, y_pred):
-        perm_psnr = [3, 1, 2, 0]
-        psnr = tf.image.psnr(
-            tf.transpose(y_true, perm_psnr),
-            tf.transpose(y_pred, perm_psnr),
-            tf.reduce_max(y_true),
-        )
-        return psnr
-    def tf_ssim(y_true, y_pred):
-        perm_ssim = [0, 1, 2, 3]
-        ssim = tf.image.ssim(
-            tf.transpose(y_true, perm_ssim),
-            tf.transpose(y_pred, perm_ssim),
-            tf.reduce_max(y_true),
-        )
-        return ssim
-
-    model.compile(loss=tf_psnr, metrics=[tf_ssim])
+        model = XPDNet(model_fun, model_kwargs, **run_params)
+        inputs = [
+            tf.zeros(kspace_size + [1], dtype=tf.complex64),
+            tf.zeros(kspace_size, dtype=tf.complex64),
+        ]
+        if multicoil:
+            inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        model(inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    try:
-        eval_res = model.evaluate(val_set, verbose=1, steps=n_volumes if n_samples is None else None)
-    except tf.errors.ResourceExhaustedError:
-        eval_res = Metrics(METRIC_FUNCS)
-        if n_samples is None:
-            val_set = val_set.take(n_volumes)
-        for data in val_set:
-            y_true = data[1].numpy()
-            y_pred = model.predict(data[0], batch_size=1)
-            eval_res.push(y_true[..., 0], y_pred[..., 0])
-        eval_res = [eval_res.means()['PSNR'], eval_res.means()['SSIM']]
-    return model.metrics_names, eval_res
+    eval_res = Metrics(METRIC_FUNCS)
+    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
+        y_pred = model.predict(x, batch_size=4)
+        eval_res.push(y_true[..., 0], y_pred[..., 0])
+    return METRIC_FUNCS, list(m.means().values())
