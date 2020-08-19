@@ -239,6 +239,12 @@ def train_updnet(
     default=None,
     help='The contrast to use for the training.'
 )
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
 def train_updnet_click(
         af,
         brain,
@@ -248,6 +254,7 @@ def train_updnet_click(
         n_epochs_original,
         original_run_id,
         contrast,
+        equidistant_fake,
     ):
     train_updnet(
         af=af,
@@ -258,6 +265,7 @@ def train_updnet_click(
         n_epochs_original=n_epochs_original,
         original_run_id=original_run_id,
         contrast=contrast,
+        equidistant_fake=equidistant_fake,
     )
 
 

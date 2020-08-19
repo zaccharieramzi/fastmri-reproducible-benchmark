@@ -216,6 +216,12 @@ def evaluate_updnet(
     is_flag=True,
     help='Whether to print some logging info.',
 )
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
 def evaluate_updnet_sense_click(
         run_id,
         n_epochs,
@@ -231,6 +237,7 @@ def evaluate_updnet_sense_click(
         refine_smaps,
         brain,
         verbose,
+        equidistant_fake,
     ):
     if channel_attention == 'dense':
         channel_attention_kwargs = {'dense': True}
@@ -253,6 +260,7 @@ def evaluate_updnet_sense_click(
         refine_smaps=refine_smaps,
         brain=brain,
         verbose=verbose,
+        equidistant_fake=equidistant_fake,
     )
     print(metrics_names)
     print(eval_res)
