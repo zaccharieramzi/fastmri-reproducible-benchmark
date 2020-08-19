@@ -30,6 +30,13 @@ def generic_from_kspace_to_masked_kspace_and_mask(
                 accel_factor=AF,
                 multicoil=not parallel,
             )
+        elif mask_type == 'equidistant_fake':
+            mask = gen_mask_equidistant_tf(
+                kspaces,
+                accel_factor=AF,
+                multicoil=not parallel,
+                mask_type='fake',
+            )
         else:
             raise NotImplementedError(f'{mask_type} masks are not implemented.')
         if parallel:

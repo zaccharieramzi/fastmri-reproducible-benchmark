@@ -33,6 +33,7 @@ def train_updnet(
         original_run_id=None,
         fixed_masks=False,
         n_epochs_original=250,
+        equidistant_fake=False,
     ):
     if brain:
         n_volumes = brain_n_volumes_train
@@ -66,7 +67,10 @@ def train_updnet(
     if multicoil:
         dataset = multicoil_dataset
         if brain:
-            mask_type = 'equidistant'
+            if equidistant_fake:
+                mask_type = 'equidistant_fake'
+            else:
+                mask_type = 'equidistant'
         else:
             mask_type = 'random'
         kwargs = {
