@@ -326,9 +326,8 @@ def train_xpdnet_click(
     ):
     n_primal = 5
     model_fun, kwargs, n_scales, res = [
-         model_fun, kwargs, n_scales, res
-         for m_name, m_size, model_fun, kwargs, _, n_scales, res
-         in get_model_specs(n_primal=n_primal, force_res=False)
+         (model_fun, kwargs, n_scales, res)
+         for m_name, m_size, model_fun, kwargs, _, n_scales, res in get_model_specs(n_primal=n_primal, force_res=False)
          if m_name == model_name and m_size == model_size
     ][0]
 
