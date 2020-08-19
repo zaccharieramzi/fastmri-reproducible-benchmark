@@ -1,11 +1,13 @@
 import os
 
+import click
 import tensorflow as tf
 
 from ..metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 
 
@@ -50,10 +52,11 @@ def evaluate_xpdnet(
 
     if multicoil:
         dataset = multicoil_dataset
-        if equidistant_fake:
-            mask_type = 'equidistant_fake'
-        else:
-            mask_type = 'equidistant'
+        if brain:
+            if equidistant_fake:
+                mask_type = 'equidistant_fake'
+            else:
+                mask_type = 'equidistant'
         else:
             mask_type = 'random'
         kwargs = {
@@ -108,3 +111,136 @@ def evaluate_xpdnet(
         y_pred = model.predict(x, batch_size=4)
         eval_res.push(y_true[..., 0], y_pred[..., 0])
     return METRIC_FUNCS, list(m.means().values())
+
+@click.command()
+@click.option(
+    'model_name',
+    '-m',
+    type=str,
+    default='MWCNN',
+    help='The type of model you want to use for the XPDNet',
+)
+@click.option(
+    'model_size',
+    '-s',
+    type=str,
+    default='big',
+    help='The size of the model you want to use for the XPDNet',
+)
+@click.option(
+    'run_id',
+    '-r',
+    default=None,
+    type=str,
+    help='The run id of the trained network.',
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    default=200,
+    type=int,
+    help='The number of epochs for which the model was trained or fine-tuned. Defaults to 200.',
+)
+@click.option(
+    'contrast',
+    '-c',
+    default=None,
+    type=str,
+    help='The contrast chosen for this evaluation. Defaults to None.',
+)
+@click.option(
+    'af',
+    '-a',
+    default='4',
+    type=click.Choice(['4', '8']),
+    help='The acceleration factor chosen for this fine tuning. Defaults to 4.',
+)
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
+    '-n',
+    'n_samples',
+    default=None,
+    type=int,
+    help='The number of samples to take from the dataset. Default to None (all samples taken).',
+)
+@click.option(
+    'cuda_visible_devices',
+    '-gpus',
+    '--cuda-visible-devices',
+    default='0123',
+    type=str,
+    help='The visible GPU devices. Defaults to 0123',
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
+def evaluate_xpdnet_click(
+        model_name,
+        model_size,
+        run_id,
+        n_epochs,
+        contrast,
+        af,
+        n_iter,
+        cuda_visible_devices,
+        n_samples,
+        non_linearity,
+        n_layers,
+        base_n_filter,
+        channel_attention,
+        refine_smaps,
+        brain,
+        equidistant_fake,
+    ):
+    n_primal = 5
+    model_fun, kwargs, n_scales, res = [
+         model_fun, kwargs, n_scales, res
+         for m_name, m_size, model_fun, kwargs, _, n_scales, res
+         in get_model_specs(n_primal=n_primal, force_res=False)
+         if m_name == model_name and m_size == model_size
+    ][0]
+
+    metrics_names, eval_res = evaluate_xpdnet(
+        model_fun=model_fun,
+        model_kwargs=kwargs,
+        model_size=model_size,
+        multicoil=True,
+        run_id=run_id,
+        n_epochs=n_epochs,
+        contrast=contrast,
+        af=af,
+        n_iter=n_iter,
+        n_primal=n_primal,
+        n_scales=n_scales,
+        n_samples=n_samples,
+        cuda_visible_devices=cuda_visible_devices,
+        refine_smaps=refine_smaps,
+        brain=brain,
+        equidistant_fake=equidistant_fake,
+    )
+    print(metrics_names)
+    print(eval_res)
+
+if __name__ == '__main__':
+    evaluate_xpdnet_click()
