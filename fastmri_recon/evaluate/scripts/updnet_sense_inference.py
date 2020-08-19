@@ -123,6 +123,13 @@ def updnet_sense_inference(
     help='Whether you want to consider brain data.'
 )
 @click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
     'refine_smaps',
     '-rfs',
     is_flag=True,
@@ -159,6 +166,7 @@ def updnet_sense_inference(
 def updnet_sense_inference_click(
         af,
         brain,
+        n_iter,
         refine_smaps,
         n_epochs,
         run_id,
@@ -168,6 +176,7 @@ def updnet_sense_inference_click(
     updnet_sense_inference(
         af=af,
         brain=brain,
+        n_iter=n_iter,
         refine_smaps=refine_smaps,
         n_epochs=n_epochs,
         run_id=run_id,

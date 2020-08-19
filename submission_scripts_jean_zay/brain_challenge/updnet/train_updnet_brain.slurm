@@ -19,8 +19,8 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-opt[0]="-a 4 -b -l compound_mssim -rfs -e 100"
-opt[1]="-a 8 -b -l compound_mssim -rfs -e 100"
+opt[0]="-a 4 -b -l compound_mssim -rfs -e 100 -i 20"
+opt[1]="-a 8 -b -l compound_mssim -rfs -e 100 -i 20"
 
 srun python ./fastmri_recon/training_scripts/updnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 

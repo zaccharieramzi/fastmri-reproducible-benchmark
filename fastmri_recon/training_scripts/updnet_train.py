@@ -199,6 +199,13 @@ def train_updnet(
     help='Whether you want to consider brain data.'
 )
 @click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
     'loss',
     '-l',
     type=str,
@@ -247,6 +254,7 @@ def train_updnet(
 )
 def train_updnet_click(
         af,
+        n_iter,
         brain,
         loss,
         refine_smaps,
@@ -258,6 +266,7 @@ def train_updnet_click(
     ):
     train_updnet(
         af=af,
+        n_iter=n_iter,
         brain=brain,
         loss=loss,
         refine_smaps=refine_smaps,
