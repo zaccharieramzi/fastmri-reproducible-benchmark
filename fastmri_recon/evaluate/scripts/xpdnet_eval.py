@@ -205,10 +205,6 @@ def evaluate_xpdnet_click(
         n_iter,
         cuda_visible_devices,
         n_samples,
-        non_linearity,
-        n_layers,
-        base_n_filter,
-        channel_attention,
         refine_smaps,
         brain,
         equidistant_fake,
@@ -224,7 +220,6 @@ def evaluate_xpdnet_click(
     metrics_names, eval_res = evaluate_xpdnet(
         model_fun=model_fun,
         model_kwargs=kwargs,
-        model_size=model_size,
         multicoil=True,
         run_id=run_id,
         n_epochs=n_epochs,
