@@ -14,6 +14,7 @@ from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_datas
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
+from .custom_objects import CUSTOM_TF_OBJECTS
 from .model_saving_workaround import ModelCheckpointWorkAround
 
 
@@ -236,7 +237,10 @@ def train_xpdnet(
             n_steps = n_volumes
         default_model_compile(model, lr=lr, loss=loss)
     else:
-        model = load_model(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}')
+        model = load_model(
+            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+            custom_objects=CUSTOM_TF_OBJECTS,
+        )
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=n_epochs*n_steps,
