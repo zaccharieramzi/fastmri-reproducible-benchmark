@@ -24,6 +24,16 @@ class Subpixel(Conv2D):
         upscaled_output = tf.nn.depth_to_space(conv_output, self.r)
         return upscaled_output
 
+    def get_config(self):
+        config = super(Subpixel, self).get_config()
+        r = self.r
+        filters = self.filters // r**2
+        config.update({
+            'r': r,
+            'filters': filters,
+        })
+        return config
+
 class DUB(Model):
     def __init__(
             self,
@@ -108,6 +118,15 @@ class DUB(Model):
         outputs = outputs + inputs
         return outputs
 
+    def get_config(self):
+        config = super(DUB, self).get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'n_scales': self.n_scales,
+            'convs_per_scale': self.convs_per_scale,
+        })
+        return config
+
 class ReconBlock(Layer):
     def __init__(self, n_convs=9, n_filters=256, **kwargs):
         super(ReconBlock, self).__init__(**kwargs)
@@ -135,6 +154,14 @@ class ReconBlock(Layer):
             outputs = conv(outputs)
         outputs = outputs + inputs
         return outputs
+
+    def get_config(self):
+        config = super(ReconBlock, self).get_config()
+        config.update({
+            'n_convs': self.n_convs,
+            'n_filters': self.n_filters,
+        })
+        return config
 
 
 class DIDN(Model):
@@ -223,3 +250,16 @@ class DIDN(Model):
         if self.res:
             outputs = outputs + inputs
         return outputs
+
+    def get_config(self):
+        config = super(DIDN, self).get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'n_dubs': self.n_dubs,
+            'n_scales': self.n_scales,
+            'convs_per_scale': self.convs_per_scale,
+            'n_convs_recon': self.n_convs_recon,
+            'n_outputs': self.n_outputs,
+            'res': self.res,
+        })
+        return config

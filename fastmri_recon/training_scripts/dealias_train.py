@@ -102,9 +102,9 @@ def train_dealiaser(
     )
     tqdm_cback = TQDMProgressBar()
 
-    sub_model = build_model_from_specs(model_fun, model_kwargs, 2)
     model = MultiscaleComplex(
-        sub_model,
+        model_fun=model_fun,
+        model_kwargs=model_kwargs,
         res=False,
         n_scales=n_scales,
         fastmri_format=True,
@@ -122,6 +122,7 @@ def train_dealiaser(
             n_epochs_original = 1
         else:
             n_epochs_original = 250
+        model(next(iter(train_set))[0])
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
