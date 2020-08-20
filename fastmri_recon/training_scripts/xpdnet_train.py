@@ -241,6 +241,8 @@ def train_xpdnet(
             f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
             custom_objects=CUSTOM_TF_OBJECTS,
         )
+        n_steps = n_volumes
+
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=n_epochs*n_steps,
