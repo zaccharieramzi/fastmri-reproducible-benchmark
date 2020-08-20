@@ -249,7 +249,7 @@ def train_xpdnet(
         save_weights_only=not save_state,
     )
     print(run_id)
-    if original_run_id is not None:
+    if original_run_id is not None and not checkpoint_epoch:
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
