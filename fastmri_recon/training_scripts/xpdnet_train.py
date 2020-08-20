@@ -212,7 +212,7 @@ def train_xpdnet(
     else:
         run_id = original_run_id
     final_epoch = checkpoint_epoch + n_epochs
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{final_epoch:02d}'
+    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
     if not save_state:
         chkpt_path += '.hdf5'
 
