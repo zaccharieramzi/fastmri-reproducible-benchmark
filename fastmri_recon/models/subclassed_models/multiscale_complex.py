@@ -20,7 +20,8 @@ class MultiscaleComplex(Model):
     2 shape.
 
     Parameters:
-        model (tf.keras.models.Model): the multiscale float-valued network.
+        model_fun (function): the function to initialize the submodel.
+        model_kwargs (dict): the kwargs to initialize the submodel.
         res (bool): whether you want to add a residual connection to the network
             that only takes into account `n_output_channels` channel elements
             of the input. Defaults to False.
@@ -34,7 +35,8 @@ class MultiscaleComplex(Model):
     """
     def __init__(
             self,
-            model,
+            model_fun,
+            model_kwargs,
             res=False,
             n_scales=0,
             n_output_channels=1,
@@ -42,13 +44,15 @@ class MultiscaleComplex(Model):
             **kwargs,
         ):
         super(MultiscaleComplex, self).__init__(**kwargs)
-        self.model = model
+        self.model_fun = model_fun
+        self.model_kwargs = model_kwargs
         self.res = res
         self.n_scales = n_scales
         self.n_output_channels = n_output_channels
         self.fastmri_format = fastmri_format
         if self.fastmri_format:
             self.adj_op = IFFT(masked=False, multicoil=False)
+        self.model = self.model_fun(**self.model_kwargs)
 
     def call(self, inputs):
         if not self.fastmri_format:
@@ -76,3 +80,15 @@ class MultiscaleComplex(Model):
         if self.fastmri_format:
             outputs = tf_fastmri_format(outputs)
         return outputs
+
+    def get_config(self):
+        config = super(MultiscaleComplex, self).get_config()
+        config.update({
+            'model_fun': self.model_fun,
+            'model_kwargs': self.model_kwargs,
+            'res': self.res,
+            'n_scales': self.n_scales,
+            'n_output_channels': self.n_output_channels,
+            'fastmri_format': self.fastmri_format,
+        })
+        return config

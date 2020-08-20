@@ -44,3 +44,14 @@ class DnCNN(Model):
         if self.res:
             outputs = inputs + outputs
         return outputs
+
+    def get_config(self):
+        config = super(DnCNN, self).get_config()
+        config.update({
+            'n_convs': self.n_convs,
+            'n_filters': self.n_filters,
+            'n_outputs': self.n_outputs,
+            'activation': self.activation,
+            'res': self.res,
+        })
+        return config
