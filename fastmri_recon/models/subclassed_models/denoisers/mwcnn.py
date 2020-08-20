@@ -40,6 +40,16 @@ class MWCNNConvBlock(Layer):
         outputs = self.activation(outputs)
         return outputs
 
+    def get_config(self):
+        config = super(MWCNNConvBlock, self).get_config()
+        bn = not(self.bn is None)
+        config.update({
+            'bn': bn,
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+        })
+        return config
+
 class DWT(Layer):
     def call(self, inputs):
         # taken from
@@ -213,3 +223,18 @@ class MWCNN(Model):
         else:
             outputs = current_feature
         return outputs
+
+    def get_config(self):
+        config = super(MWCNN, self).get_config()
+        config.update({
+            'n_scales': self.n_scales,
+            'kernel_size': self.kernel_size,
+            'bn': self.bn,
+            'n_filters_per_scale': self.n_filters_per_scale,
+            'n_convs_per_scale': self.n_convs_per_scale,
+            'n_first_convs': self.n_first_convs,
+            'first_conv_n_filters': self.first_conv_n_filters,
+            'res': self.res,
+            'n_outputs': self.n_outputs,
+        })
+        return config

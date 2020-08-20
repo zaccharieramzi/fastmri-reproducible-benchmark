@@ -316,3 +316,20 @@ class CrossDomainNet(Model):
                 return self.adj_op([kspace, smaps, *op_args])
             else:
                 return self.adj_op(kspace)
+
+    def get_config(self):
+        config = super(CrossDomainNet, self).get_config()
+        config.update({
+            'domain_sequence': self.domain_sequence,
+            'data_consistency_mode': self.data_consistency_mode,
+            'i_buffer_mode': self.i_buffer_mode,
+            'k_buffer_mode': self.k_buffer_mode,
+            'i_buffer_size': self.i_buffer_size,
+            'k_buffer_size': self.k_buffer_size,
+            'multicoil': self.multicoil,
+            'refine_smaps': self.refine_smaps,
+            'normalize_image': self.normalize_image,
+            'multi_gpu': self.multi_gpu,
+            'output_shape_spec': self.output_shape_spec,
+        })
+        return config
