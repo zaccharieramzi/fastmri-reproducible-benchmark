@@ -256,7 +256,6 @@ class FocNet(Model):
 
     def get_config(self):
         config = super(FocNet, self).get_config()
-        bn = not(self.bn is None)
         config.update({
             'n_scales': self.n_scales,
             'n_filters': self.n_filters,
