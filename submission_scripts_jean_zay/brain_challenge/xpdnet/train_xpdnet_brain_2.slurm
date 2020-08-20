@@ -19,8 +19,11 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-opt[0]="-a 4 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50"
-opt[1]="-a 8 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50"
+export RUN_ID_AF4=""
+export RUN_ID_AF8=""
+
+opt[0]="-a 4 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id "
+opt[1]="-a 8 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id "
 
 srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
