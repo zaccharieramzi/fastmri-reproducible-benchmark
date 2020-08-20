@@ -5,6 +5,7 @@ import time
 import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras.models import load_model
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
@@ -26,6 +27,8 @@ def train_xpdnet(
         cuda_visible_devices='0123',
         n_samples=None,
         n_epochs=200,
+        checkpoint_epoch=0,
+        save_state=False,
         n_iter=10,
         res=True,
         n_scales=0,
@@ -64,6 +67,14 @@ def train_xpdnet(
             training. If None, all samples are considered. Defaults to None.
         n_epochs (int): the number of epochs (i.e. one pass though all the
             volumes/samples) for this training. Defaults to 200.
+        checkpoint_epoch (int): the number of epochs used to train the model
+            during the first step of the full training. This is typically used
+            when on a cluster the training duration exceeds the maximum job
+            duration. Defaults to 0, which means that the training is done
+            without checkpoints.
+        save_state (bool): whether you should save the entire model state for
+            this training, for example to retrain where left off. Defaults to
+            False.
         n_iter (int): the number of iterations for the XPDNet.
         res (bool): whether the XPDNet image correction networks should be
             residual.
@@ -195,10 +206,15 @@ def train_xpdnet(
     submodel_info = model_fun.__name__
     if model_size is not None:
         submodel_info += model_size
-    run_id = f'{xpdnet_type}_{additional_info}_{submodel_info}_{int(time.time())}'
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+    if checkpoint_epoch == 0:
+        run_id = f'{xpdnet_type}_{additional_info}_{submodel_info}_{int(time.time())}'
+    else:
+        run_id = original_run_id
+    final_epoch = checkpoint_epoch + n_epochs
+    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{final_epoch:02d}'
+    if not save_state:
+        chkpt_path += '.hdf5'
 
-    chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
     tboard_cback = TensorBoard(
         profile_batch=0,
@@ -209,14 +225,18 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    model = XPDNet(model_fun, model_kwargs, **run_params)
-    if original_run_id is not None:
-        lr = 1e-7
-        n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+    if checkpoint_epoch == 0:
+        model = XPDNet(model_fun, model_kwargs, **run_params)
+        if original_run_id is not None:
+            lr = 1e-7
+            n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+        else:
+            lr = 1e-4
+            n_steps = n_volumes
+        default_model_compile(model, lr=lr, loss=loss)
     else:
-        lr = 1e-4
-        n_steps = n_volumes
-    default_model_compile(model, lr=lr, loss=loss)
+        model = load_model(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}')
+    chkpt_cback = ModelCheckpoint(chkpt_path, save_freq=n_epochs*n_steps, save_weights_only=not save_state)
     print(run_id)
     if original_run_id is not None:
         if os.environ.get('FASTMRI_DEBUG'):
@@ -226,7 +246,8 @@ def train_xpdnet(
     model.fit(
         train_set,
         steps_per_epoch=n_steps,
-        epochs=n_epochs,
+        initial_epoch=checkpoint_epoch,
+        epochs=final_epoch,
         validation_data=val_set,
         validation_steps=5,
         validation_freq=5,
@@ -282,7 +303,14 @@ def train_xpdnet(
     '-e',
     type=int,
     default=200,
-    help='The number of epochs used in the original unspecific training.'
+    help='The number of epochs used for training.'
+)
+@click.option(
+    'checkpoint_epoch',
+    '-ec',
+    type=int,
+    default=0,
+    help='The number of epochs used in the first step of training.'
 )
 @click.option(
     'n_epochs_original',
@@ -290,6 +318,12 @@ def train_xpdnet(
     type=int,
     default=200,
     help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'save_state',
+    '-ss',
+    is_flag=True,
+    help='Whether you want to save the model state.'
 )
 @click.option(
     'original_run_id',
@@ -319,7 +353,9 @@ def train_xpdnet_click(
         loss,
         refine_smaps,
         n_epochs,
+        checkpoint_epoch,
         n_epochs_original,
+        save_state,
         original_run_id,
         contrast,
         equidistant_fake,
@@ -344,7 +380,9 @@ def train_xpdnet_click(
         n_scales=n_scales,
         n_primal=n_primal,
         n_epochs=n_epochs,
+        checkpoint_epoch=checkpoint_epoch,
         n_epochs_original=n_epochs_original,
+        save_state=save_state,
         original_run_id=original_run_id,
         contrast=contrast,
         equidistant_fake=equidistant_fake,
