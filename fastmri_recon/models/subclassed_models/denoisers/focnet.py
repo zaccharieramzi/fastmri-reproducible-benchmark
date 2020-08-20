@@ -54,6 +54,16 @@ class FocConvBlock(Layer):
         outputs = self.activation(outputs)
         return outputs
 
+    def get_config(self):
+        config = super(FocConvBlock, self).get_config()
+        bn = not(self.bn is None)
+        config.update({
+            'bn': bn,
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+        })
+        return config
+
 class SwitchLayer(Layer):
     # form what I understand from the code this is what a switch layer looks
     # like
@@ -243,3 +253,18 @@ class FocNet(Model):
         # this could be -1 instead of self.n_convs_per_scale[0], but it's an
         # extra sanity check that everything is going alright
         return outputs
+
+    def get_config(self):
+        config = super(FocNet, self).get_config()
+        bn = not(self.bn is None)
+        config.update({
+            'n_scales': self.n_scales,
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'bn': self.bn,
+            'n_convs_per_scale': self.n_convs_per_scale,
+            'communications_between_scales': self.communications_between_scales,
+            'beta': self.beta,
+            'n_outputs': self.n_outputs,
+        })
+        return config
