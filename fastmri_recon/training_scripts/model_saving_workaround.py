@@ -1,6 +1,6 @@
 from tensorflow.keras.callbacks import ModelCheckpoint
 
-
+# taken from https://github.com/tensorflow/tensorflow/issues/39679
 class ModelCheckpointWorkAround(ModelCheckpoint):
     def set_model(self, model):
         # Work around, so that the if at
