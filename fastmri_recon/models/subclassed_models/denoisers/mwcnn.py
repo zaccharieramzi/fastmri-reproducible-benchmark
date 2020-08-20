@@ -145,13 +145,13 @@ class MWCNN(Model):
                 n_filters=self.first_conv_n_filters,
                 kernel_size=self.kernel_size,
                 bn=self.bn,
-            ) for _ in range(2 * self.n_first_convs)]
-            self.first_convs[-1] = Conv2D(
+            ) for _ in range(2 * self.n_first_convs - 1)]
+            self.first_convs.append(Conv2D(
                 self.n_outputs,
                 self.kernel_size,
                 padding='same',
                 use_bias=True,
-            )
+            ))
         self.conv_blocks_per_scale = [
             [MWCNNConvBlock(
                 n_filters=self.n_filters_for_conv_for_scale(i_scale, i_conv),
@@ -163,6 +163,8 @@ class MWCNN(Model):
         # the last convolution is without bn and relu, and also has only
         # 4 filters, that's why we treat it separately
         if self.n_first_convs < 1:
+            # TODO: this would need to be handled differently if we want
+            # to save the model and not just the weights
             self.conv_blocks_per_scale[0][-1] = Conv2D(
                 4 * self.n_outputs,
                 self.kernel_size,
