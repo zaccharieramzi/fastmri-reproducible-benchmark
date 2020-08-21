@@ -14,8 +14,8 @@ from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_datas
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
-from .custom_objects import CUSTOM_TF_OBJECTS
-from .model_saving_workaround import ModelCheckpointWorkAround
+from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
+from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
 
 def train_xpdnet(
