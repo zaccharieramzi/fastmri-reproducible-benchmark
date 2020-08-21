@@ -5,7 +5,7 @@ from ...data.utils.crop import crop_center
 from ...data.utils.fourier import ifft
 
 
-def reco_grappa(kspace, af=4, **grappa_kwargs):
+def reco_grappa_kspace(kspace, af=4, **grappa_kwargs):
     n_slices, _, _, sy = kspace.shape[:]
     if af == 4:
         n_acs = int(sy * 8 / 100)
@@ -21,6 +21,10 @@ def reco_grappa(kspace, af=4, **grappa_kwargs):
             coil_axis=0,
             **grappa_kwargs,
         )
+    return recon
+
+def reco_grappa(kspace, af=4, **grappa_kwargs):
+    recon = reco_grappa_kspace(kspace, af=af, **grappa_kwargs)
     recon = ifft(recon)
     x_final = np.linalg.norm(recon, axis=1)
     x_final = crop_center(x_final, 320)
