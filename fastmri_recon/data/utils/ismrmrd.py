@@ -15,8 +15,8 @@ def get_flag_for_position(i_line, mask, accel_factor=4):
     acs_lim = (num_cols - num_low_freqs + 1) // 2
     if i_line < acs_lim or i_line >= acs_lim + num_low_freqs:
         return 0
-    mask_offset = np.where(mask)[0][0] % 2
-    if i_line % 2 == mask_offset:
+    mask_offset = np.where(mask)[0][0] % accel_factor
+    if i_line % accel_factor == mask_offset:
         return 21
     else:
         return 20
