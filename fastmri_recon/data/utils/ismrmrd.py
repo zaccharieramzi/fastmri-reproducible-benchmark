@@ -8,6 +8,19 @@ from .h5 import _from_file_to_stuff
 from .masking.gen_mask import gen_mask_equidistant
 
 
+def get_flag_for_position(i_line, mask, accel_factor=4):
+    num_cols = len(mask)
+    center_fraction = (32 // accel_factor) / 100
+    num_low_freqs = int(round(num_cols * center_fraction))
+    acs_lim = (num_cols - num_low_freqs + 1) // 2
+    if i_line < acs_lim or i_line >= acs_lim + num_low_freqs:
+        return 0
+    mask_offset = np.where(mask)[0][0] % 2
+    if i_line % 2 == mask_offset:
+        return 21
+    else:
+        return 20
+
 def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_factor=4, scale_factor=1e6):
     header = ismrmrd.xsd.CreateFromDocument(header)
     # TODO: this is only for 3T, to adapt to make sure we use the corect one
@@ -28,10 +41,12 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
         ds.write_xml_header(header)
         for i_line, m in enumerate(np.squeeze(mask)):
             if m:
+                flag = get_flag_for_position(i_line, mask, accel_factor=accel_factor)
                 acq = Acquisition.from_array(
                     kspace_slice[:, :, i_line],
                     idx=EncodingCounters(kspace_encode_step_1=i_line),
                     center_sample=kspace.shape[-2] // 2,
+                    flag=flag,
                 )
                 ds.append_acquisition(acq)
 
