@@ -12,10 +12,13 @@ def gadgetron_execution(in_file, out_file, config_name, out_group):
         '-G', out_group
     ])
 
-def gadgetron_grappa_reconstruction(in_file, out_file):
+def gadgetron_grappa_reconstruction(in_file, out_file, my_config=False):
+    config = 'Generic_Cartesian_Grappa.xml'
+    if my_config:
+        config = 'my_grappa_gadgetron_config.xml'
     gadgetron_execution(
         in_file,
         out_file,
-        'Generic_Cartesian_Grappa.xml',
+        config,
         GRAPPA_RECON_DS_NAME,
     )

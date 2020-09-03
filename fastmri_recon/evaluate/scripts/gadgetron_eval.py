@@ -36,7 +36,7 @@ def generate_ismrmrd_files(af=4, split='val', organ='knee'):
     for f in tqdm(filenames):
         from_fastmri_to_ismrmrd(f, out_dir=ismrmrd_dir)
 
-def eval_gadgetron(af=4, split='val', organ='knee'):
+def eval_gadgetron(af=4, split='val', organ='knee', my_config=False):
     original_directory = f'multicoil_{split}'
     if organ == 'brain':
         original_directory = 'brain_' + original_directory
@@ -50,7 +50,7 @@ def eval_gadgetron(af=4, split='val', organ='knee'):
     for f in tqdm(filenames):
         volume = corresponding_volume(f)
         out_f = ismrmrd_out_dir / 'out' + f.name
-        gadgetron_grappa_reconstruction(f, out_f)
+        gadgetron_grappa_reconstruction(f, out_f, my_config)
         if current_volume != volume:
             # make a volume out of the recons
             # get the corresponding gt from fastmri
