@@ -36,7 +36,7 @@ def generate_ismrmrd_files(af=4, split='val', organ='knee'):
     for f in tqdm(filenames):
         from_fastmri_to_ismrmrd(f, out_dir=ismrmrd_dir)
 
-def eval_gadgetron(af=4, split='val', organ='knee', my_config=False):
+def eval_gadgetron(af=4, split='val', organ='knee', my_config=False, n_volumes=50):
     original_directory = f'multicoil_{split}'
     if organ == 'brain':
         original_directory = 'brain_' + original_directory
@@ -46,6 +46,7 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False):
     filenames = sorted(list(ismrmrd_dir.glob('*.h5')))
     current_volume = None
     current_volume_slices = []
+    i_volume = 0
     m = Metrics(METRIC_FUNCS)
     for f in tqdm(filenames):
         volume = corresponding_volume(f)
@@ -60,6 +61,9 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False):
                 corresponding_fastmri_file = original_directory / (volume + '.h5')
                 gt_volume = from_multicoil_train_file_to_image(corresponding_fastmri_file)
                 m.push(gt_volume, recon_volume)
+                i_volume += 1
+                if i_volume >= n_volumes:
+                    break
             current_volume_slices = []
             current_volume = volume
         # append the slice to the volume
@@ -67,10 +71,11 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False):
         current_volume_slices.append(recon_slice)
 
     # do one final evaluation for the last volume
-    recon_volume = np.array(current_volume_slices)
-    corresponding_fastmri_file = original_directory / (volume + '.h5')
-    gt_volume = from_multicoil_train_file_to_image(corresponding_fastmri_file)
-    m.push(gt_volume, recon_volume)
+    if i_volume < n_volumes:
+        recon_volume = np.array(current_volume_slices)
+        corresponding_fastmri_file = original_directory / (volume + '.h5')
+        gt_volume = from_multicoil_train_file_to_image(corresponding_fastmri_file)
+        m.push(gt_volume, recon_volume)
 
     print(m)
     return m
