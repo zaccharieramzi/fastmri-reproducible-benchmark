@@ -59,7 +59,7 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False, n_volumes=5
             # reset current_volume to the new volume
             if current_volume_slices:
                 recon_volume = np.array(current_volume_slices)
-                corresponding_fastmri_file = original_directory / (volume + '.h5')
+                corresponding_fastmri_file = original_directory / (current_volume + '.h5')
                 gt_volume = from_multicoil_train_file_to_image(corresponding_fastmri_file)
                 m.push(gt_volume, recon_volume)
                 i_volume += 1
