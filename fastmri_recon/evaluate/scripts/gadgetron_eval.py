@@ -78,5 +78,6 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False, n_volumes=5
         gt_volume = from_multicoil_train_file_to_image(corresponding_fastmri_file)
         m.push(gt_volume, recon_volume)
 
-    print(m)
+    if n_volumes > 1:
+        print(m)
     return m
