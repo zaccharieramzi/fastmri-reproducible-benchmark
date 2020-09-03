@@ -36,7 +36,7 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
     n_slices = kspace.shape[0]
     for i_slice in range(n_slices):
         kspace_slice = kspace[i_slice] * scale_factor
-        path = Path(out_dir) / f'{file_index}_slice_{i_slice}.h5'
+        path = Path(out_dir) / f'{file_index}_slice_{i_slice:02d}.h5'
         ds = Dataset(path)
         ds.write_xml_header(header)
         for i_line, m in enumerate(np.squeeze(mask)):
