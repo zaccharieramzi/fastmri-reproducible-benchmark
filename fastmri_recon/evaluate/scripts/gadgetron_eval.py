@@ -43,6 +43,7 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False, n_volumes=5
     original_directory = Path(FASTMRI_DATA_DIR) / original_directory
     ismrmrd_dir = Path(FASTMRI_DATA_DIR) / f'{split}_{organ}_{af}_ismrmrd/'
     ismrmrd_out_dir = ismrmrd_dir.parent / (ismrmrd_dir.name + '_results')
+    ismrmrd_out_dir.mkdir(exist_ok=True)
     filenames = sorted(list(ismrmrd_dir.glob('*.h5')))
     current_volume = None
     current_volume_slices = []
