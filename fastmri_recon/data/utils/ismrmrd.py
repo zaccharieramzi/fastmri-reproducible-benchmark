@@ -41,13 +41,14 @@ def kspace_to_ismrmrd(kspace, header, mask, file_index, out_dir='./', accel_fact
         ds.write_xml_header(header)
         for i_line, m in enumerate(np.squeeze(mask)):
             if m:
-                flag = get_flag_for_position(i_line, mask, accel_factor=accel_factor)
+                flag = get_flag_for_position(i_line, np.squeeze(mask), accel_factor=accel_factor)
                 acq = Acquisition.from_array(
                     kspace_slice[:, :, i_line],
                     idx=EncodingCounters(kspace_encode_step_1=i_line),
                     center_sample=kspace.shape[-2] // 2,
-                    flag=flag,
                 )
+                if flag:
+                    acq.set_flag(flag)
                 ds.append_acquisition(acq)
 
 def from_fastmri_to_ismrmrd(filename, out_dir='./', accel_factor=4, split='val', scale_factor=1e6):
