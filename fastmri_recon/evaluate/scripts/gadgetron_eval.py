@@ -50,7 +50,7 @@ def eval_gadgetron(af=4, split='val', organ='knee', my_config=False, n_volumes=5
     m = Metrics(METRIC_FUNCS)
     for f in tqdm(filenames):
         volume = corresponding_volume(f)
-        out_f = ismrmrd_out_dir / 'out' + f.name
+        out_f = ismrmrd_out_dir / ('out' + f.name)
         gadgetron_grappa_reconstruction(f, out_f, my_config)
         if current_volume != volume:
             # make a volume out of the recons
