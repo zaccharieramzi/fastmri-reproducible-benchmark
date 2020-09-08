@@ -165,7 +165,6 @@ def train_updnet_block(
     else:
         lr = 1e-4
         n_steps = n_volumes
-    default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
         if os.environ.get('FASTMRI_DEBUG'):
@@ -173,6 +172,7 @@ def train_updnet_block(
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
     for i_block in range(n_iter):
         model.block_to_train = i_block
+        default_model_compile(model, lr=lr, loss=loss)
         model.fit(
             train_set,
             steps_per_epoch=n_steps,
