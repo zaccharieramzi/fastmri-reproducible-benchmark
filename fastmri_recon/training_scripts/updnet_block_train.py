@@ -186,99 +186,107 @@ def train_updnet_block(
     return run_id
 
 #
-# @click.command()
-# @click.option(
-#     'af',
-#     '-a',
-#     type=int,
-#     default=4,
-#     help='The acceleration factor.'
-# )
-# @click.option(
-#     'brain',
-#     '-b',
-#     is_flag=True,
-#     help='Whether you want to consider brain data.'
-# )
-# @click.option(
-#     'n_iter',
-#     '-i',
-#     default=10,
-#     type=int,
-#     help='The number of epochs to train the model. Default to 300.',
-# )
-# @click.option(
-#     'loss',
-#     '-l',
-#     type=str,
-#     default='mae',
-#     help='The loss to use for the training.'
-# )
-# @click.option(
-#     'refine_smaps',
-#     '-rfs',
-#     is_flag=True,
-#     help='Whether you want to use an smaps refiner.'
-# )
-# @click.option(
-#     'n_epochs',
-#     '-e',
-#     type=int,
-#     default=200,
-#     help='The number of epochs used in the original unspecific training.'
-# )
-# @click.option(
-#     'n_epochs_original',
-#     '--n-epochs-orig',
-#     type=int,
-#     default=200,
-#     help='The number of epochs used in the original unspecific training.'
-# )
-# @click.option(
-#     'original_run_id',
-#     '--orig-id',
-#     type=str,
-#     default=None,
-#     help='The run id of the original unspecific training.'
-# )
-# @click.option(
-#     'contrast',
-#     '-c',
-#     type=str,
-#     default=None,
-#     help='The contrast to use for the training.'
-# )
-# @click.option(
-#     'equidistant_fake',
-#     '-eqf',
-#     is_flag=True,
-#     help='Whether you want to use fake equidistant masks for brain data.'
-# )
-# def train_updnet_click(
-#         af,
-#         n_iter,
-#         brain,
-#         loss,
-#         refine_smaps,
-#         n_epochs,
-#         n_epochs_original,
-#         original_run_id,
-#         contrast,
-#         equidistant_fake,
-#     ):
-#     train_updnet(
-#         af=af,
-#         n_iter=n_iter,
-#         brain=brain,
-#         loss=loss,
-#         refine_smaps=refine_smaps,
-#         n_epochs=n_epochs,
-#         n_epochs_original=n_epochs_original,
-#         original_run_id=original_run_id,
-#         contrast=contrast,
-#         equidistant_fake=equidistant_fake,
-#     )
-#
-#
-# if __name__ == '__main__':
-#     train_updnet_click()
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'singlecoil',
+    '-sc',
+    is_flag=True,
+    help='Whether you want to consider single coil data.'
+)
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'n_epochs_per_block',
+    '-eb',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'n_epochs_original',
+    '--n-epochs-orig',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'original_run_id',
+    '--orig-id',
+    type=str,
+    default=None,
+    help='The run id of the original unspecific training.'
+)
+@click.option(
+    'contrast',
+    '-c',
+    type=str,
+    default=None,
+    help='The contrast to use for the training.'
+)
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
+def train_updnet_block_click(
+        af,
+        n_iter,
+        brain,
+        singlecoil,
+        loss,
+        refine_smaps,
+        n_epochs_per_block,
+        n_epochs_original,
+        original_run_id,
+        contrast,
+        equidistant_fake,
+    ):
+    train_updnet_block(
+        multicoil=not singlecoil,
+        af=af,
+        n_iter=n_iter,
+        brain=brain,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        n_epochs_per_block=n_epochs_per_block,
+        n_epochs_original=n_epochs_original,
+        original_run_id=original_run_id,
+        contrast=contrast,
+        equidistant_fake=equidistant_fake,
+    )
+
+
+if __name__ == '__main__':
+    train_updnet_block_click()
