@@ -199,6 +199,12 @@ def train_updnet(
     help='Whether you want to consider brain data.'
 )
 @click.option(
+    'singlecoil',
+    '-sc',
+    is_flag=True,
+    help='Whether you want to consider single coil data.'
+)
+@click.option(
     'n_iter',
     '-i',
     default=10,
@@ -256,6 +262,7 @@ def train_updnet_click(
         af,
         n_iter,
         brain,
+        singlecoil,
         loss,
         refine_smaps,
         n_epochs,
@@ -265,6 +272,7 @@ def train_updnet_click(
         equidistant_fake,
     ):
     train_updnet(
+        multicoil=not singlecoil,
         af=af,
         n_iter=n_iter,
         brain=brain,
