@@ -38,13 +38,14 @@ def evaluate_xpdnet_dealiasing(
     else:
         val_set = val_set.take(199)
 
-    sub_model = build_model_from_specs(model_fun, model_kwargs, 2)
     model = MultiscaleComplex(
-        sub_model,
+        model_fun=model_fun,
+        model_kwargs=model_kwargs,
         res=False,
         n_scales=n_scales,
         fastmri_format=True,
     )
+    model(next(iter(val_set))[0])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     m = Metrics(METRIC_FUNCS)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):

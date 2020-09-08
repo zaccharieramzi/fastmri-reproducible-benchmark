@@ -71,7 +71,8 @@ class XPDNet(CrossDomainNet):
         self.op = FFT(masked=True, multicoil=self.multicoil)
         self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
         self.image_net = [MultiscaleComplex(
-            model=self.model_fun(**self.model_kwargs),
+            model_fun=self.model_fun,
+            model_kwargs=self.model_kwargs,
             res=self.res,
             n_output_channels=self.n_primal,
             n_scales=self.n_scales,
