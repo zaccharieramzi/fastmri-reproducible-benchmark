@@ -121,7 +121,7 @@ def train_updnet_block(
         if brain:
             updnet_type += 'brain_'
     else:
-        updnet_type = 'updnet_singlecoil_'
+        updnet_type = 'updnet_singlecoil_bbb_'
     additional_info = f'af{af}'
     if contrast is not None:
         additional_info += f'_{contrast}'
