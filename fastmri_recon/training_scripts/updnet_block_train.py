@@ -117,7 +117,7 @@ def train_updnet_block(
     }
 
     if multicoil:
-        updnet_type = 'updnet_sense_'
+        updnet_type = 'updnet_sense_bbb_'
         if brain:
             updnet_type += 'brain_'
     else:
