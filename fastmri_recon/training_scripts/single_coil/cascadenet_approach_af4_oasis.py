@@ -3,8 +3,8 @@ import random
 import time
 
 import tensorflow as tf
-from keras_tqdm import TQDMCallback
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.data.sequences.oasis_sequences import Masked2DSequence
 from fastmri_recon.models.functional_models.cascading import cascade_net
@@ -53,9 +53,7 @@ tboard_cback = TensorBoard(
     write_graph=True,
     write_images=False,
 )
-tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
-tqdm_cb.on_train_batch_begin = tqdm_cb.on_batch_begin
-tqdm_cb.on_train_batch_end = tqdm_cb.on_batch_end
+tqdm_cb = TQDMProgressBar()
 
 model = cascade_net(input_size=(None, None, 1), fastmri=False, lr=1e-3, **run_params)
 
