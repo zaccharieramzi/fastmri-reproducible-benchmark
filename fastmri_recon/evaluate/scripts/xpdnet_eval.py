@@ -104,6 +104,8 @@ def evaluate_xpdnet(
         ]
         if multicoil:
             inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        if brain:
+            inputs.append(tf.constant([[320, 320]]))
         model(inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = Metrics(METRIC_FUNCS)
