@@ -252,6 +252,19 @@ def train_xpdnet(
     if original_run_id is not None and not checkpoint_epoch:
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
+        if multicoil:
+            kspace_size = [1, 15, 640, 372]
+        else:
+            kspace_size = [1, 640, 372]
+        inputs = [
+            tf.zeros(kspace_size + [1], dtype=tf.complex64),
+            tf.zeros(kspace_size, dtype=tf.complex64),
+        ]
+        if multicoil:
+            inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+        if brain:
+            inputs.append(tf.constant([[320, 320]]))
+        model(inputs)
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
