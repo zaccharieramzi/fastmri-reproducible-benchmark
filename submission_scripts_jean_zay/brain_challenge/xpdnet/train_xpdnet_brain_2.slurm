@@ -13,18 +13,18 @@
 #SBATCH --output=xpdnet_brain_train2_%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_train2_%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-1
-#SBATCH --dependency=afterok:jobid
+#SBATCH --dependency=afterok:137866
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4=""
-export RUN_ID_AF8=""
+export RUN_ID_AF4="xpdnet_sense_brain__af4_compound_mssim_rf_sm_MWCNNbig_1598004740"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_compound_mssim_rf_sm_MWCNNbig_1598004949"
 
-opt[0]="-a 4 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id "
-opt[1]="-a 8 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id "
+opt[0]="-a 4 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id ${RUN_ID_AF4}"
+opt[1]="-a 8 -b -l compound_mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 --orig-id ${RUN_ID_AF8}"
 
 srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
 
