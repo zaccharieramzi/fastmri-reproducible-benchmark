@@ -20,6 +20,6 @@ cd $WORK/fastmri-reproducible-benchmark
 . ./submission_scripts_jean_zay/env_config.sh
 
 opt[0]="updnet_train.py -e 200"
-opt[1]="updnet_train.py -eb 20"
+opt[1]="updnet_train.py -eb 200"
 
 srun python ./fastmri_recon/training_scripts/${opt[$SLURM_ARRAY_TASK_ID]} -a 4 -sc -l compound_mssim
