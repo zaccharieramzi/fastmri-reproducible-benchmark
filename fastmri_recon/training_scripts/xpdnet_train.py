@@ -3,6 +3,7 @@ import os.path as op
 import time
 
 import click
+import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.models import load_model
