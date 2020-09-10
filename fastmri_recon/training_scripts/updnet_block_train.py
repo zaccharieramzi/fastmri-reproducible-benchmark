@@ -171,7 +171,7 @@ def train_updnet_block(
             n_epochs_original = 1
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
     for i_block in range(n_iter):
-        model.block_to_train = i_block
+        model.blocks_to_train = i_block
         default_model_compile(model, lr=lr, loss=loss)
         model.fit(
             train_set,
