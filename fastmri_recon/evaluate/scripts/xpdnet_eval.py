@@ -2,11 +2,12 @@ import os
 
 import click
 import tensorflow as tf
+from tqdm import tqdm
 
-from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 
