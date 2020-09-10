@@ -3,7 +3,7 @@ import os
 import click
 import tensorflow as tf
 
-from ..metrics.np_metrics import Metrics, METRIC_FUNCS
+from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
