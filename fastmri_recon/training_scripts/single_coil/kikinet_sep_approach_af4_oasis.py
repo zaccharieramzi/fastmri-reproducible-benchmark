@@ -3,8 +3,8 @@ import random
 import time
 
 from keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
-from keras_tqdm import TQDMCallback
 import tensorflow as tf
+from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.data.sequences.oasis_sequences import Masked2DSequence, KIKISequence
 from fastmri_recon.models.functional_models.kiki_sep import kiki_sep_net
@@ -74,7 +74,7 @@ def train_model(model, space='K', n=1):
         write_images=False,
     )
     lrate_cback = LearningRateScheduler(learning_rate_from_epoch)
-    tqdm_cb = TQDMCallback(metric_format="{name}: {value:e}")
+    tqdm_cb = TQDMProgressBar()
     if space == 'K':
         train_gen = train_gen_k
         val_gen = val_gen_k
