@@ -274,7 +274,7 @@ def train_updnet_block(
 )
 def train_updnet_block_click(
         af,
-        block_size
+        block_size,
         n_iter,
         brain,
         singlecoil,
