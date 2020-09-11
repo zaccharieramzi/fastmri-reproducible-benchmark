@@ -181,8 +181,8 @@ def train_updnet_block(
         model.fit(
             train_set,
             steps_per_epoch=n_steps,
-            initial_epoch=i_block*n_epochs_per_block,
-            epochs=(i_block+1)*n_epochs_per_block,
+            initial_epoch=i_step*n_epochs_per_block,
+            epochs=(i_step+1)*n_epochs_per_block,
             validation_data=val_set,
             validation_steps=2,
             verbose=0,
