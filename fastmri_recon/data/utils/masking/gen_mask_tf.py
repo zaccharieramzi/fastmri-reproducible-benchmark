@@ -55,8 +55,11 @@ def gen_mask_equidistant_tf(kspace, accel_factor, multicoil=False, mask_type='re
         high_freqs_location = tf.range(mask_offset, num_cols, high_freqs_spacing)
     else:
         adjusted_accel = (accel_factor * (num_low_freqs - num_cols)) / (num_low_freqs * accel_factor - num_cols)
-        mask_offset = tf.random.uniform([], maxval=tf.round(adjusted_accel), dtype=tf.int32)
+        adjusted_accel_round = tf.cast(tf.round(adjusted_accel), tf.int32)
+        mask_offset = tf.random.uniform([], maxval=tf.round(adjusted_accel_round), dtype=tf.int32)
         high_freqs_location = tf.range(mask_offset, num_cols, adjusted_accel)
+        high_freqs_location = tf.cast(tf.round(high_freqs_location), tf.int32)
+        high_freqs_location = tf.minimum(high_freqs_location, num_cols-1)
     low_freqs_location = tf.range(acs_lim, acs_lim + num_low_freqs)
     mask_locations = tf.concat([high_freqs_location, low_freqs_location], 0)
     mask = tf.scatter_nd(
