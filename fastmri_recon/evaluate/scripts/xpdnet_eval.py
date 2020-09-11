@@ -113,7 +113,7 @@ def evaluate_xpdnet(
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=4)
         eval_res.push(y_true[..., 0], y_pred[..., 0])
-    return METRIC_FUNCS, list(m.means().values())
+    return METRIC_FUNCS, list(eval_res.means().values())
 
 @click.command()
 @click.option(
