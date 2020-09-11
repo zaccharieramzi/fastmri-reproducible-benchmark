@@ -1,5 +1,6 @@
 import os
 
+import click
 import tensorflow as tf
 from tqdm import tqdm
 
@@ -16,27 +17,11 @@ from fastmri_recon.models.subclassed_models.unet import UnetComplex
 # cropping
 IM_SIZE = (640, 400)
 
-# TODO: replace these stupid functions with just extraction of the first slice...
-def _extract_inputs_shape(inputs, no_batch=True):
+def _extract_first_elem_of_batch(inputs):
     if isinstance(inputs, (list, tuple)):
-        return [_extract_inputs_shape(i, no_batch=no_batch) for i in inputs]
+        return [_extract_first_elem_of_batch(i) for i in inputs]
     else:
-        if no_batch:
-            return [1] + inputs.shape[1:]
-        else:
-            return inputs.shape
-
-def _extract_inputs_dtype(inputs):
-    if isinstance(inputs, (list, tuple)):
-        return [_extract_inputs_dtype(i) for i in inputs]
-    else:
-        return inputs.dtype
-
-def _zeros_from_shape(shapes, dtypes):
-    if isinstance(shapes, (list, tuple)):
-        return [_zeros_from_shape(s, d) for s, d in zip(shapes, dtypes)]
-    else:
-        return tf.zeros(shapes, dtype=dtypes)
+        return inputs[0:1]
 
 def evaluate_nc(
         model,
@@ -78,12 +63,7 @@ def evaluate_nc(
         val_set = val_set.take(199)
 
     example_input = next(iter(val_set))[0]
-    inputs_shape = _extract_inputs_shape(example_input, no_batch=True)
-    inputs_dtype = _extract_inputs_dtype(example_input)
-
-    inputs = _zeros_from_shape(inputs_shape, inputs_dtype)
-    # special case for the shape:
-    inputs[-1][0] = tf.constant([[372]])
+    inputs = _extract_first_elem_of_batch(example_input)
     model(inputs)
     if run_id is not None:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
@@ -101,6 +81,7 @@ def evaluate_ncpdnet(
         n_filters=32,
         n_primal=5,
         non_linearity='relu',
+        refine_smaps=True,
         **eval_kwargs
     ):
     run_params = {
@@ -112,6 +93,7 @@ def evaluate_ncpdnet(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
+        'refine_smaps': refine_smaps,
     }
 
     model = NCPDNet(**run_params)
@@ -158,3 +140,93 @@ def evaluate_unet(
         dcomp=dcomp,
         **eval_kwargs,
     )
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'run_id',
+    '-r',
+    type=str,
+    default=None,
+    help='The run id of the trained model.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'multicoil',
+    '-mc',
+    is_flag=True,
+    help='Whether you want to use multicoil data.'
+)
+@click.option(
+    'model',
+    '-m',
+    type=str,
+    default='pdnet',
+    help='The NC model to use.'
+)
+@click.option(
+    'acq_type',
+    '-t',
+    type=str,
+    default='radial',
+    help='The trajectory to use.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=200,
+    help='The number of epochs during which the model was trained.'
+)
+@click.option(
+    'n_samples',
+    '-n',
+    type=int,
+    default=None,
+    help='The number of samples to use for evaluation.'
+)
+def evaluate_nc_click(
+        af,
+        run_id,
+        refine_smaps,
+        multicoil,
+        model,
+        acq_type,
+        n_epochs,
+        n_samples,
+    ):
+    if model == 'pdnet':
+        evaluate_function = evaluate_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        evaluate_function = evaluate_unet
+        add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
+    metric_names, metrics = evaluate_function(
+        af=af,
+        run_id=run_id,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        n_epochs=n_epochs,
+        n_samples=n_samples,
+        **add_kwargs,
+    )
+    print(metric_names)
+    print(metrics)
+
+
+if __name__ == '__main__':
+    evaluate_nc_click()

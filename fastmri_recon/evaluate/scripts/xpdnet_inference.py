@@ -6,23 +6,24 @@ from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable, test_filenames
-from fastmri_recon.models.subclassed_models.updnet import UPDNet
+from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
+from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.evaluate.utils.write_results import write_result
 
 
-def updnet_sense_inference(
+def xpdnet_inference(
+        model_fun,
+        model_kwargs,
+        run_id,
+        exp_id='xpdnet',
         brain=False,
-        run_id='updnet_sense_af4_1588609141',
-        exp_id='updnet',
         n_epochs=200,
         contrast=None,
-        scale_factor=1e6,
         af=4,
         n_iter=10,
-        n_layers=3,
-        base_n_filter=16,
-        non_linearity='relu',
-        channel_attention_kwargs=None,
+        res=True,
+        n_scales=0,
+        n_primal=5,
         refine_smaps=False,
         n_samples=None,
         cuda_visible_devices='0123',
@@ -36,16 +37,12 @@ def updnet_sense_inference(
     af = int(af)
 
     run_params = {
-        'n_primal': 5,
-        'n_dual': 1,
-        'primal_only': True,
+        'n_primal': n_primal,
         'multicoil': True,
-        'n_layers': n_layers,
-        'layers_n_channels': [base_n_filter * 2**i for i in range(n_layers)],
-        'non_linearity': non_linearity,
+        'n_scales': n_scales,
         'n_iter': n_iter,
-        'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'res': res,
         'output_shape_spec': brain,
     }
 
@@ -53,7 +50,7 @@ def updnet_sense_inference(
         test_path,
         AF=af,
         contrast=contrast,
-        scale_factor=scale_factor,
+        scale_factor=1e6,
         n_samples=n_samples,
         output_shape_spec=brain,
     )
@@ -66,7 +63,7 @@ def updnet_sense_inference(
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
-        model = UPDNet(**run_params)
+        model = XPDNet(model_fun, model_kwargs, **run_params)
         fake_inputs = [
             tf.zeros([1, 15, 640, 372, 1], dtype=tf.complex64),
             tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
@@ -103,12 +100,26 @@ def updnet_sense_inference(
             exp_id,
             res.numpy(),
             filename.numpy().decode('utf-8'),
-            scale_factor=scale_factor,
+            scale_factor=1e6,
             brain=brain,
         )
 
 
 @click.command()
+@click.option(
+    'model_name',
+    '-m',
+    type=str,
+    default='MWCNN',
+    help='The type of model you want to use for the XPDNet',
+)
+@click.option(
+    'model_size',
+    '-s',
+    type=str,
+    default='big',
+    help='The size of the model you want to use for the XPDNet',
+)
 @click.option(
     'af',
     '-a',
@@ -121,13 +132,6 @@ def updnet_sense_inference(
     '-b',
     is_flag=True,
     help='Whether you want to consider brain data.'
-)
-@click.option(
-    'n_iter',
-    '-i',
-    default=10,
-    type=int,
-    help='The number of epochs to train the model. Default to 300.',
 )
 @click.option(
     'refine_smaps',
@@ -163,27 +167,40 @@ def updnet_sense_inference(
     default=None,
     help='The contrast to use for the training.'
 )
-def updnet_sense_inference_click(
+def xpdnet_inference_click(
+        model_name,
+        model_size,
         af,
         brain,
-        n_iter,
         refine_smaps,
         n_epochs,
         run_id,
         exp_id,
         contrast,
     ):
-    updnet_sense_inference(
+    n_primal = 5
+    model_fun, kwargs, n_scales, res = [
+         (model_fun, kwargs, n_scales, res)
+         for m_name, m_size, model_fun, kwargs, _, n_scales, res
+         in get_model_specs(n_primal=n_primal, force_res=False)
+         if m_name == model_name and m_size == model_size
+    ][0]
+
+    xpdnet_inference(
+        model_fun=model_fun,
+        model_kwargs=kwargs,
         af=af,
         brain=brain,
-        n_iter=n_iter,
         refine_smaps=refine_smaps,
         n_epochs=n_epochs,
         run_id=run_id,
         exp_id=exp_id,
         contrast=contrast,
+        res=res,
+        n_scales=n_scales,
+        n_primal=n_primal,
     )
 
 
 if __name__ == '__main__':
-    updnet_sense_inference_click()
+    xpdnet_inference_click()

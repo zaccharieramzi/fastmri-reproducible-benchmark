@@ -16,8 +16,9 @@ def test_gen_mask_tf(fixed_masks, multicoil):
         tf_tester.assertAllEqual(mask, mask_again)
 
 @pytest.mark.parametrize('multicoil', [True, False])
-def test_gen_mask_equidistant_tf(multicoil):
+@pytest.mark.parametrize('mask_type', ['real', 'fake'])
+def test_gen_mask_equidistant_tf(multicoil, mask_type):
     kspace = tf.random.uniform([2, 5, 64, 32])
     kspace = tf.cast(kspace, tf.complex64)
     accel_factor = 2
-    gen_mask_equidistant_tf(kspace, accel_factor, multicoil)
+    gen_mask_equidistant_tf(kspace, accel_factor, multicoil, mask_type=mask_type)

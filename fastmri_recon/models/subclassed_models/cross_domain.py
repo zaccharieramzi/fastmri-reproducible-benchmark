@@ -228,7 +228,7 @@ class CrossDomainNet(Model):
             else:
                 # NOTE: for now we don't consider the case of a specified
                 # output shape as well as extra arguments for the op.
-                original_kspace, mask, smaps, *op_args = inputs
+                original_kspace, mask, smaps, op_args = inputs
                 output_shape = None
             if self.refine_smaps:
                 smaps = self._refine_smaps(smaps)
