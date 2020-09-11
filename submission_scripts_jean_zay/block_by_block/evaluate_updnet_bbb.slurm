@@ -13,6 +13,7 @@
 #SBATCH --output=updnet_bbb_eval%A_%a.out # nom du fichier de sortie
 #SBATCH --error=updnet_bbb_eval%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-1
+#SBATCH --dependency=afterok:167459
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
@@ -22,9 +23,9 @@ cd $WORK/fastmri-reproducible-benchmark
 export RUN_ID_BBB="updnet_singlecoil_bbb__af4_compound_mssim_"
 export RUN_ID_CLASSIC="updnet_singlecoil__af4_compound_mssim_"
 
-opt[0]="-r ${RUN_ID_CLASSIC} -e 200"
-opt[1]="-r ${RUN_ID_BBB} -e 2000"
+opt[0]="-r ${RUN_ID_BBB} -e 2000"
+opt[1]="-r ${RUN_ID_CLASSIC} -e 200"
 
-srun python ./fastmri_recon/evaluate/scripts/updnet_sense_eval.py -e 200 -a 4 -n 50 -r ${opt[$SLURM_ARRAY_TASK_ID]}&
+srun python ./fastmri_recon/evaluate/scripts/updnet_sense_eval.py -a 4 -n 50 ${opt[$SLURM_ARRAY_TASK_ID]}&
 
 wait  # wait for all ccc_mprun(s) to complete.

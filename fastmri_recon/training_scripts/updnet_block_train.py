@@ -22,6 +22,7 @@ def train_updnet_block(
         cuda_visible_devices='0123',
         n_samples=None,
         n_epochs_per_block=20,
+        block_size=1,
         n_iter=10,
         use_mixed_precision=False,
         n_layers=3,
@@ -170,8 +171,12 @@ def train_updnet_block(
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
-    for i_block in range(n_iter):
-        model.block_to_train = i_block
+    for i_step in range(n_iter // block_size):
+        first_block_to_train = i_step * block_size
+        blocks = list(range(first_block_to_train, first_block_to_train + block_size))
+        if i_step == n_iter // block_size - 1:
+            blocks += list(range(first_block_to_train + block_size, n_iter))
+        model.blocks_to_train = blocks
         default_model_compile(model, lr=lr, loss=loss)
         model.fit(
             train_set,
@@ -207,11 +212,18 @@ def train_updnet_block(
     help='Whether you want to consider single coil data.'
 )
 @click.option(
+    'block_size',
+    '-bs',
+    default=1,
+    type=int,
+    help='The number of blocks to train at a time. Default to 1.',
+)
+@click.option(
     'n_iter',
     '-i',
     default=10,
     type=int,
-    help='The number of epochs to train the model. Default to 300.',
+    help='The number of iterations in the unrolled net. Default to 10.',
 )
 @click.option(
     'loss',
@@ -262,6 +274,7 @@ def train_updnet_block(
 )
 def train_updnet_block_click(
         af,
+        block_size
         n_iter,
         brain,
         singlecoil,
@@ -276,6 +289,7 @@ def train_updnet_block_click(
     train_updnet_block(
         multicoil=not singlecoil,
         af=af,
+        block_size=block_size,
         n_iter=n_iter,
         brain=brain,
         loss=loss,
