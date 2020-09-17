@@ -29,4 +29,4 @@ opt[6]="fastmri_recon/tests/training_scripts/unet_nc_train_test.py"
 opt[7]="fastmri_recon/tests/training_scripts/updnet_train_test.py"
 opt[8]="fastmri_recon/tests/training_scripts/xpdnet_train_test.py"
 
-srun pytest -s ${opt[$SLURM_ARRAY_TASK_ID]}
+srun pytest -s --basetemp=$SCRATCH/pytest-tmp ${opt[$SLURM_ARRAY_TASK_ID]}
