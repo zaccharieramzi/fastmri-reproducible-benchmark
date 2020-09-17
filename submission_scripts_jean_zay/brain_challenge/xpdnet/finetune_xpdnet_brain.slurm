@@ -13,14 +13,15 @@
 #SBATCH --output=xpdnet_brain_finetune%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_finetune%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-9
+#SBATCH --dependency=afterok:167459
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="xpdnet_brain__af4_compound_mssim_rf_sm_1596620478"
-export RUN_ID_AF8="xpdnet_brain__af8_compound_mssim_rf_sm_1596620478"
+export RUN_ID_AF4="xpdnet_sense_brain__af4_compound_mssim_rf_sm_MWCNNbig_1598004740"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_compound_mssim_rf_sm_MWCNNbig_1598004949"
 
 # AF4 finetuning
 opt[0]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"

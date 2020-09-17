@@ -215,7 +215,7 @@ def evaluate_nc_click(
         add_kwargs = {}
     if multicoil:
         add_kwargs.update(dcomp=True)
-    evaluate_function(
+    metric_names, metrics = evaluate_function(
         af=af,
         run_id=run_id,
         multicoil=multicoil,
@@ -224,6 +224,8 @@ def evaluate_nc_click(
         n_samples=n_samples,
         **add_kwargs,
     )
+    print(metric_names)
+    print(metrics)
 
 
 if __name__ == '__main__':

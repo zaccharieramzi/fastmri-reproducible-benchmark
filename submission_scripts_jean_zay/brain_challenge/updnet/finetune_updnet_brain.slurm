@@ -19,21 +19,21 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="updnet_sense_brain__af4_compound_mssim_rf_sm_1596620478"
-export RUN_ID_AF8="updnet_sense_brain__af8_compound_mssim_rf_sm_1596620478"
+export RUN_ID_AF4="updnet_sense_brain__af4_i20_compound_mssim_rf_sm_1597844210"
+export RUN_ID_AF8="updnet_sense_brain__af8_i20_compound_mssim_rf_sm_1597844210"
 
 # AF4 finetuning
-opt[0]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"
-opt[1]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1POST"
-opt[2]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1PRE"
-opt[3]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1"
-opt[4]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT2"
+opt[0]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"
+opt[1]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1POST"
+opt[2]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1PRE"
+opt[3]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1"
+opt[4]="-a 4 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF4} -e 10 -c AXT2"
 # AF8 finetuning
-opt[5]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXFLAIR"
-opt[6]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1POST"
-opt[7]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1PRE"
-opt[8]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1"
-opt[9]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT2"
+opt[5]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF8} -e 10 -c AXFLAIR"
+opt[6]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1POST"
+opt[7]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1PRE"
+opt[8]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1"
+opt[9]="-a 8 -b -l compound_mssim -rfs --n-epochs-orig 100 -i 20 --orig-id ${RUN_ID_AF8} -e 10 -c AXT2"
 
 
 srun python ./fastmri_recon/training_scripts/updnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
