@@ -144,6 +144,8 @@ def train_updnet_block(
         additional_info += '_rf_sm'
     if fixed_masks:
         additional_info += '_fixed_masks'
+    if block_size != 1:
+        additional_info += f'_bksize_{block_size}'
 
     run_id = f'{updnet_type}_{additional_info}_{int(time.time())}'
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
