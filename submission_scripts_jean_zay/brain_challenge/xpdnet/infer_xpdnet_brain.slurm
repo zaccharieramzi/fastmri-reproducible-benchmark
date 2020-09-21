@@ -20,7 +20,7 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export EXP_ID="xpdnet_v1"
+export EXP_ID="xpdnet_v2"
 
 export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_mssim_rf_sm_MWCNNbig_1599650393"
 export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_mssim_rf_sm_MWCNNbig_1599650393"
