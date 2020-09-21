@@ -20,23 +20,23 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="xpdnet_sense_brain__af4_compound_mssim_rf_sm_MWCNNbig_1598004740"
-export RUN_ID_AF8="xpdnet_sense_brain__af8_compound_mssim_rf_sm_MWCNNbig_1598004949"
+export RUN_ID_AF4="xpdnet_sense_brain__af4_mssim_rf_sm_MWCNNbig_1598004740"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_mssim_rf_sm_MWCNNbig_1598004949"
 
 # AF4 finetuning
-opt[0]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXFLAIR"
-opt[1]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1POST"
-opt[2]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1PRE"
-opt[3]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT1"
-opt[4]="-a 4 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF4} -e 10 -c AXT2"
+opt[0]="-a 4 --orig-id ${RUN_ID_AF4} -c AXFLAIR"
+opt[1]="-a 4 --orig-id ${RUN_ID_AF4} -c AXT1POST"
+opt[2]="-a 4 --orig-id ${RUN_ID_AF4} -c AXT1PRE"
+opt[3]="-a 4 --orig-id ${RUN_ID_AF4} -c AXT1"
+opt[4]="-a 4 --orig-id ${RUN_ID_AF4} -c AXT2"
 # AF8 finetuning
-opt[5]="-a 8 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXFLAIR"
-opt[6]="-a 8 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1POST"
-opt[7]="-a 8 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1PRE"
-opt[8]="-a 8 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT1"
-opt[9]="-a 8 -b -l compound_mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 --orig-id ${RUN_ID_AF8} -e 10 -c AXT2"
+opt[5]="-a 8 --orig-id ${RUN_ID_AF8} -c AXFLAIR"
+opt[6]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT1POST"
+opt[7]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT1PRE"
+opt[8]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT1"
+opt[9]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT2"
 
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]}&
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -l mssim -rfs -m MWCNN -s big -eqf --n-epochs-orig 100 -e 10&
 
 wait  # wait for all ccc_mprun(s) to complete.
