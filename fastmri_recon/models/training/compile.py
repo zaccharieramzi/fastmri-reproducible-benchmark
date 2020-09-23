@@ -16,7 +16,7 @@ def default_model_compile(model, lr, loss='mean_absolute_error'):
     if loss == 'compound_mssim':
         loss = compound_l1_mssim_loss
     elif loss == 'mssim':
-        loss = partial(compound_l1_mssim_loss, alpha=100)
+        loss = partial(compound_l1_mssim_loss, alpha=0.9999)
         loss.__name__ = "mssim"
     model.compile(
         optimizer=tfa.optimizers.RectifiedAdam(lr=lr, **opt_kwargs),
