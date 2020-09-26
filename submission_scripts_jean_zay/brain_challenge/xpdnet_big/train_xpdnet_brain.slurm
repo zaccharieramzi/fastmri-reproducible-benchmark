@@ -22,6 +22,6 @@ cd $WORK/fastmri-reproducible-benchmark
 opt[0]="-a 4"
 opt[1]="-a 8"
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 20 -b -l compound_mssim -rfs -ss -e 25 -m MWCNN -s big -eqf&
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 18 -b -l compound_mssim -rfs -ss -e 25 -m MWCNN -s big -eqf&
 
 wait  # wait for all ccc_mprun(s) to complete.
