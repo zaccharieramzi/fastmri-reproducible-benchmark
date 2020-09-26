@@ -370,6 +370,13 @@ def train_xpdnet(
     is_flag=True,
     help='Whether you want to use fake equidistant masks for brain data.'
 )
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of unrolled steps. Default to 10.',
+)
 def train_xpdnet_click(
         model_name,
         model_size,
@@ -384,6 +391,7 @@ def train_xpdnet_click(
         original_run_id,
         contrast,
         equidistant_fake,
+        n_iter,
     ):
     n_primal = 5
     model_fun, kwargs, n_scales, res = [
@@ -401,6 +409,7 @@ def train_xpdnet_click(
         brain=brain,
         res=res,
         loss=loss,
+        n_iter=n_iter,
         refine_smaps=refine_smaps,
         n_scales=n_scales,
         n_primal=n_primal,
