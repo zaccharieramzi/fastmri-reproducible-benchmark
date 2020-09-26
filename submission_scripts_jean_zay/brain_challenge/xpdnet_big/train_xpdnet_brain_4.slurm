@@ -20,8 +20,8 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="xpdnet_sense_brain__af4_mssim_rf_sm_MWCNNbig_1601070404"
-export RUN_ID_AF8="xpdnet_sense_brain__af8_mssim_rf_sm_MWCNNbig_1601070401"
+export RUN_ID_AF4="xpdnet_sense_brain__af4_i15_compound_mssim_rf_sm_MWCNNbig_1601145752"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_i15_compound_mssim_rf_sm_MWCNNbig_1601145752"
 
 opt[0]="-a 4 --orig-id ${RUN_ID_AF4}"
 opt[1]="-a 8 --orig-id ${RUN_ID_AF8}"
