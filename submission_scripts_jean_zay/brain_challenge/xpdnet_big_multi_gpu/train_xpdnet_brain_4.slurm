@@ -2,7 +2,7 @@
 #SBATCH --job-name=xpdnet_brain_train_2     # nom du job
 #SBATCH --ntasks=1                   # nombre de tâche MPI
 #SBATCH --ntasks-per-node=1          # nombre de tâche MPI par noeud
-#SBATCH --gres=gpu:1                 # nombre de GPU à réserver par nœud
+#SBATCH --gres=gpu:4                 # nombre de GPU à réserver par nœud
 #SBATCH --cpus-per-task=20           # nombre de coeurs à réserver par tâche
 # /!\ Attention, la ligne suivante est trompeuse mais dans le vocabulaire
 # de Slurm "multithread" fait bien référence à l'hyperthreading.
