@@ -43,6 +43,7 @@ def train_xpdnet(
         fixed_masks=False,
         n_epochs_original=250,
         equidistant_fake=False,
+        multi_gpu=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -106,6 +107,8 @@ def train_xpdnet(
             250.
         equidistant_fake (bool): whether to use fake equidistant masks from
             fastMRI. Defaults to False.
+        multi_gpu (bool): whether to use multiple GPUs for the XPDNet training.
+            Defaults to False.
 
     Returns:
         - str: the run id of the trained network.
@@ -184,6 +187,7 @@ def train_xpdnet(
         'refine_smaps': refine_smaps,
         'res': res,
         'output_shape_spec': brain,
+        'multi_gpu': multi_gpu,
     }
 
     if multicoil:
@@ -377,6 +381,12 @@ def train_xpdnet(
     type=int,
     help='The number of unrolled steps. Default to 10.',
 )
+@click.option(
+    'multi_gpu',
+    '-mg',
+    is_flag=True,
+    help='Whether you want to use multiple GPUs for training.'
+)
 def train_xpdnet_click(
         model_name,
         model_size,
@@ -392,6 +402,7 @@ def train_xpdnet_click(
         contrast,
         equidistant_fake,
         n_iter,
+        multi_gpu,
     ):
     n_primal = 5
     model_fun, kwargs, n_scales, res = [
@@ -420,6 +431,7 @@ def train_xpdnet_click(
         original_run_id=original_run_id,
         contrast=contrast,
         equidistant_fake=equidistant_fake,
+        multi_gpu=multi_gpu,
     )
 
 
