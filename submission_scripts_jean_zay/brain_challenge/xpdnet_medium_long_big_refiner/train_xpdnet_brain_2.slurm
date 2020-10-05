@@ -13,7 +13,7 @@
 #SBATCH --output=xpdnet_brain_train2_%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_train2_%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-1
-#SBATCH --dependency=afterok:384682
+#SBATCH --dependency=afterok:461051
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
