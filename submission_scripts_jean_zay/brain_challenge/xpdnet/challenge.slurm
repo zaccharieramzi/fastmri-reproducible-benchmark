@@ -46,6 +46,6 @@ opt[7]="-a 8 -r ${RUN_ID_AF8_AXT1PRE} -c AXT1PRE"
 opt[8]="-a 8 -r ${RUN_ID_AF8_AXT1} -c AXT1"
 opt[9]="-a 8 -r ${RUN_ID_AF8_AXT2} -c AXT2"
 
-srun python ./fastmri_recon/evaluate/scripts/xpdnet_inference.py ${opt[$SLURM_ARRAY_TASK_ID]} -x ${EXP_ID} -b -rfs -m MWCNN -s big -e 10 -c&
+srun python ./fastmri_recon/evaluate/scripts/xpdnet_inference.py ${opt[$SLURM_ARRAY_TASK_ID]} -x ${EXP_ID} -b -rfs -m MWCNN -s big -e 10 -ch&
 
 wait  # wait for all ccc_mprun(s) to complete.

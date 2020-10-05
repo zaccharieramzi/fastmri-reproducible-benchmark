@@ -129,7 +129,7 @@ def updnet_sense_inference(
 )
 @click.option(
     'challenge',
-    '-c',
+    '-ch',
     is_flag=True,
     help='Whether you want to consider challenge data (only for brain).'
 )
