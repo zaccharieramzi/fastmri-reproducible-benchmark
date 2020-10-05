@@ -26,6 +26,7 @@ def evaluate_xpdnet(
         n_scales=0,
         n_primal=5,
         refine_smaps=False,
+        refine_big=False,
         n_samples=None,
         cuda_visible_devices='0123',
         equidistant_fake=False,
@@ -49,6 +50,7 @@ def evaluate_xpdnet(
         'refine_smaps': refine_smaps,
         'res': res,
         'output_shape_spec': brain,
+        'refine_big': refine_big,
     }
 
     if multicoil:
@@ -187,6 +189,12 @@ def evaluate_xpdnet(
     help='Whether you want to use an smaps refiner.'
 )
 @click.option(
+    'refine_big',
+    '-rfsb',
+    is_flag=True,
+    help='Whether you want to use a big smaps refiner.'
+)
+@click.option(
     'brain',
     '-b',
     is_flag=True,
@@ -209,6 +217,7 @@ def evaluate_xpdnet_click(
         cuda_visible_devices,
         n_samples,
         refine_smaps,
+        refine_big,
         brain,
         equidistant_fake,
     ):
@@ -233,7 +242,8 @@ def evaluate_xpdnet_click(
         n_scales=n_scales,
         n_samples=n_samples,
         cuda_visible_devices=cuda_visible_devices,
-        refine_smaps=refine_smaps,
+        refine_smaps=refine_smaps or refine_big,
+        refine_big=refine_big,
         brain=brain,
         equidistant_fake=equidistant_fake,
     )

@@ -26,6 +26,7 @@ def xpdnet_inference(
         n_scales=0,
         n_primal=5,
         refine_smaps=False,
+        refine_big=False,
         n_samples=None,
         cuda_visible_devices='0123',
     ):
@@ -46,6 +47,7 @@ def xpdnet_inference(
         'n_scales': n_scales,
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
+        'refine_big': refine_big,
         'res': res,
         'output_shape_spec': brain,
     }
@@ -151,6 +153,12 @@ def xpdnet_inference(
     help='Whether you want to use an smaps refiner.'
 )
 @click.option(
+    'refine_big',
+    '-rfsb',
+    is_flag=True,
+    help='Whether you want to use a big smaps refiner.'
+)
+@click.option(
     'n_epochs',
     '-e',
     type=int,
@@ -185,6 +193,7 @@ def xpdnet_inference_click(
         brain,
         challenge,
         refine_smaps,
+        refine_big,
         n_epochs,
         run_id,
         exp_id,
@@ -204,7 +213,8 @@ def xpdnet_inference_click(
         af=af,
         brain=brain,
         challenge=challenge,
-        refine_smaps=refine_smaps,
+        refine_smaps=refine_smaps or refine_big,
+        refine_big=refine_big,
         n_epochs=n_epochs,
         run_id=run_id,
         exp_id=exp_id,
