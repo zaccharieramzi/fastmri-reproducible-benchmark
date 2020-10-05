@@ -12,6 +12,7 @@ from fastmri_recon.evaluate.utils.write_results import write_result
 
 def updnet_sense_inference(
         brain=False,
+        challenge=False,
         run_id='updnet_sense_af4_1588609141',
         exp_id='updnet',
         n_epochs=200,
@@ -28,7 +29,10 @@ def updnet_sense_inference(
         cuda_visible_devices='0123',
     ):
     if brain:
-        test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
+        if challenge:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_challenge/'
+        else:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
     else:
         test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
@@ -105,6 +109,7 @@ def updnet_sense_inference(
             filename.numpy().decode('utf-8'),
             scale_factor=scale_factor,
             brain=brain,
+            challenge=challenge,
         )
 
 
@@ -121,6 +126,12 @@ def updnet_sense_inference(
     '-b',
     is_flag=True,
     help='Whether you want to consider brain data.'
+)
+@click.option(
+    'challenge',
+    '-c',
+    is_flag=True,
+    help='Whether you want to consider challenge data (only for brain).'
 )
 @click.option(
     'n_iter',
@@ -166,6 +177,7 @@ def updnet_sense_inference(
 def updnet_sense_inference_click(
         af,
         brain,
+        challenge,
         n_iter,
         refine_smaps,
         n_epochs,
@@ -176,6 +188,7 @@ def updnet_sense_inference_click(
     updnet_sense_inference(
         af=af,
         brain=brain,
+        challenge=challenge,
         n_iter=n_iter,
         refine_smaps=refine_smaps,
         n_epochs=n_epochs,

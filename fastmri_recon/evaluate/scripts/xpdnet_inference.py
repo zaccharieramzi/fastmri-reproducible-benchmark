@@ -17,6 +17,7 @@ def xpdnet_inference(
         run_id,
         exp_id='xpdnet',
         brain=False,
+        challenge=False,
         n_epochs=200,
         contrast=None,
         af=4,
@@ -29,7 +30,10 @@ def xpdnet_inference(
         cuda_visible_devices='0123',
     ):
     if brain:
-        test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
+        if challenge:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_challenge/'
+        else:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
     else:
         test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
@@ -102,6 +106,7 @@ def xpdnet_inference(
             filename.numpy().decode('utf-8'),
             scale_factor=1e6,
             brain=brain,
+            challenge=challenge,
         )
 
 
@@ -132,6 +137,12 @@ def xpdnet_inference(
     '-b',
     is_flag=True,
     help='Whether you want to consider brain data.'
+)
+@click.option(
+    'challenge',
+    '-c',
+    is_flag=True,
+    help='Whether you want to consider challenge data (only for brain).'
 )
 @click.option(
     'refine_smaps',
@@ -172,6 +183,7 @@ def xpdnet_inference_click(
         model_size,
         af,
         brain,
+        challenge,
         refine_smaps,
         n_epochs,
         run_id,
@@ -191,6 +203,7 @@ def xpdnet_inference_click(
         model_kwargs=kwargs,
         af=af,
         brain=brain,
+        challenge=challenge,
         refine_smaps=refine_smaps,
         n_epochs=n_epochs,
         run_id=run_id,
