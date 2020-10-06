@@ -20,16 +20,16 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_mssim_rf_sm_MWCNNbig_1601799094"
-export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_mssim_rf_sm_MWCNNbig_1601799212"
-export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_mssim_rf_sm_MWCNNbig_1601799239"
-export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_mssim_rf_sm_MWCNNbig_1601799240"
-export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_mssim_rf_sm_MWCNNbig_1601799267"
-export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_mssim_rf_sm_MWCNNbig_1601799267"
-export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_mssim_rf_sm_MWCNNbig_1601799271"
-export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_mssim_rf_sm_MWCNNbig_1601799270"
-export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_mssim_rf_sm_MWCNNbig_1601799271"
-export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_mssim_rf_sm_MWCNNbig_1601799298"
+export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_compound_mssim_rf_sm_MWCNNbig_1601799094"
+export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_compound_mssim_rf_sm_MWCNNbig_1601799212"
+export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_compound_mssim_rf_sm_MWCNNbig_1601799239"
+export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_compound_mssim_rf_sm_MWCNNbig_1601799240"
+export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_compound_mssim_rf_sm_MWCNNbig_1601799267"
+export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_compound_mssim_rf_sm_MWCNNbig_1601799267"
+export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_compound_mssim_rf_sm_MWCNNbig_1601799271"
+export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_compound_mssim_rf_sm_MWCNNbig_1601799270"
+export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_compound_mssim_rf_sm_MWCNNbig_1601799271"
+export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_compound_mssim_rf_sm_MWCNNbig_1601799298"
 
 # AF4 eval
 opt[0]="-a 4 -r ${RUN_ID_AF4_AXFLAIR} -c AXFLAIR"
@@ -44,6 +44,6 @@ opt[7]="-a 8 -r ${RUN_ID_AF8_AXT1PRE} -c AXT1PRE"
 opt[8]="-a 8 -r ${RUN_ID_AF8_AXT1} -c AXT1"
 opt[9]="-a 8 -r ${RUN_ID_AF8_AXT2} -c AXT2"
 
-srun python ./fastmri_recon/evaluate/scripts/xpdnet_eval.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -eqf -n 30 -rfs -m MWCNN -s big -e 10&
+srun python ./fastmri_recon/evaluate/scripts/xpdnet_eval.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -eqf -n 30 -rfsb -m MWCNN -s big -e 10&
 
 wait  # wait for all ccc_mprun(s) to complete.

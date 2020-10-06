@@ -19,12 +19,12 @@ cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="xpdnet_sense_brain__af4_mssim_rf_sm_MWCNNbig_1601070404"
-export RUN_ID_AF8="xpdnet_sense_brain__af8_mssim_rf_sm_MWCNNbig_1601070401"
+export RUN_ID_AF4="xpdnet_sense_brain__af4_compound_mssim_rf_sm_MWCNNbig_1601070404"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_compound_mssim_rf_sm_MWCNNbig_1601070401"
 
 opt[0]="-a 4 --orig-id ${RUN_ID_AF4}"
 opt[1]="-a 8 --orig-id ${RUN_ID_AF8}"
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -l mssim -rfs -e 50 -m MWCNN -s big -eqf -ec 50 &
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -l compound_mssim -rfsb -e 50 -m MWCNN -s big -eqf -ec 50 &
 
 wait  # wait for all ccc_mprun(s) to complete.

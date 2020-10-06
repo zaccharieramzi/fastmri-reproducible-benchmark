@@ -22,16 +22,16 @@ cd $WORK/fastmri-reproducible-benchmark
 
 export EXP_ID="xpdnet_v1"
 
-export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_compound_mssim_rf_sm_MWCNNbig_1599650393"
-export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_compound_mssim_rf_sm_MWCNNbig_1599650393"
-export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_compound_mssim_rf_sm_MWCNNbig_1599651112"
-export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_compound_mssim_rf_sm_MWCNNbig_1599651112"
-export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_compound_mssim_rf_sm_MWCNNbig_1599653371"
-export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_compound_mssim_rf_sm_MWCNNbig_1599653371"
-export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_compound_mssim_rf_sm_MWCNNbig_1599653470"
-export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_compound_mssim_rf_sm_MWCNNbig_1599653566"
-export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_compound_mssim_rf_sm_MWCNNbig_1599653591"
-export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_compound_mssim_rf_sm_MWCNNbig_1599653591"
+export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_compound_compound_mssim_rf_sm_MWCNNbig_1599650393"
+export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_compound_compound_mssim_rf_sm_MWCNNbig_1599650393"
+export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_compound_compound_mssim_rf_sm_MWCNNbig_1599651112"
+export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_compound_compound_mssim_rf_sm_MWCNNbig_1599651112"
+export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_compound_compound_mssim_rf_sm_MWCNNbig_1599653371"
+export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_compound_compound_mssim_rf_sm_MWCNNbig_1599653371"
+export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_compound_compound_mssim_rf_sm_MWCNNbig_1599653470"
+export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_compound_compound_mssim_rf_sm_MWCNNbig_1599653566"
+export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_compound_compound_mssim_rf_sm_MWCNNbig_1599653591"
+export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_compound_compound_mssim_rf_sm_MWCNNbig_1599653591"
 
 # AF4 infer
 opt[0]=" -a 4 -r ${RUN_ID_AF4_AXFLAIR} -c AXFLAIR"
@@ -46,6 +46,6 @@ opt[7]="-a 8 -r ${RUN_ID_AF8_AXT1PRE} -c AXT1PRE"
 opt[8]="-a 8 -r ${RUN_ID_AF8_AXT1} -c AXT1"
 opt[9]="-a 8 -r ${RUN_ID_AF8_AXT2} -c AXT2"
 
-srun python ./fastmri_recon/evaluate/scripts/xpdnet_inference.py ${opt[$SLURM_ARRAY_TASK_ID]} -x ${EXP_ID} -b -rfs -m MWCNN -s big -e 10 -ch&
+srun python ./fastmri_recon/evaluate/scripts/xpdnet_inference.py ${opt[$SLURM_ARRAY_TASK_ID]} -x ${EXP_ID} -b -rfsb -m MWCNN -s big -e 10 -ch&
 
 wait  # wait for all ccc_mprun(s) to complete.
