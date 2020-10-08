@@ -39,6 +39,7 @@ def train_xpdnet(
         use_mixed_precision=False,
         refine_smaps=False,
         refine_big=False,
+        refine_extrabig=False,
         loss='mae',
         original_run_id=None,
         fixed_masks=False,
@@ -190,6 +191,7 @@ def train_xpdnet(
         'output_shape_spec': brain,
         'multi_gpu': multi_gpu,
         'refine_big': refine_big,
+        'refine_extrabig': refine_extrabig,
     }
 
     if multicoil:
@@ -211,6 +213,8 @@ def train_xpdnet(
         additional_info += '_rf_sm'
         if refine_big:
             additional_info += 'b'
+        elif refine_extrabig:
+            additional_info += 'x'
     if fixed_masks:
         additional_info += '_fixed_masks'
 
@@ -338,6 +342,12 @@ def train_xpdnet(
     help='Whether you want to use a big smaps refiner.'
 )
 @click.option(
+    'refine_extrabig',
+    '-rfsx',
+    is_flag=True,
+    help='Whether you want to use a extra big smaps refiner.'
+)
+@click.option(
     'n_epochs',
     '-e',
     type=int,
@@ -405,6 +415,7 @@ def train_xpdnet_click(
         loss,
         refine_smaps,
         refine_big,
+        refine_extrabig,
         n_epochs,
         checkpoint_epoch,
         n_epochs_original,
@@ -432,8 +443,9 @@ def train_xpdnet_click(
         res=res,
         loss=loss,
         n_iter=n_iter,
-        refine_smaps=refine_smaps or refine_big,
+        refine_smaps=refine_smaps or refine_big or refine_extrabig,
         refine_big=refine_big,
+        refine_extrabig=refine_extrabig,
         n_scales=n_scales,
         n_primal=n_primal,
         n_epochs=n_epochs,

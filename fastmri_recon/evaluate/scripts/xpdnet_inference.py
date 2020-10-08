@@ -27,6 +27,7 @@ def xpdnet_inference(
         n_primal=5,
         refine_smaps=False,
         refine_big=False,
+        refine_extrabig=False,
         n_samples=None,
         cuda_visible_devices='0123',
     ):
@@ -50,6 +51,7 @@ def xpdnet_inference(
         'refine_big': refine_big,
         'res': res,
         'output_shape_spec': brain,
+        'refine_extrabig': refine_extrabig,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(
@@ -159,6 +161,12 @@ def xpdnet_inference(
     help='Whether you want to use a big smaps refiner.'
 )
 @click.option(
+    'refine_extrabig',
+    '-rfsx',
+    is_flag=True,
+    help='Whether you want to use a extra big smaps refiner.'
+)
+@click.option(
     'n_epochs',
     '-e',
     type=int,
@@ -194,6 +202,7 @@ def xpdnet_inference_click(
         challenge,
         refine_smaps,
         refine_big,
+        refine_extrabig,
         n_epochs,
         run_id,
         exp_id,
@@ -213,7 +222,8 @@ def xpdnet_inference_click(
         af=af,
         brain=brain,
         challenge=challenge,
-        refine_smaps=refine_smaps or refine_big,
+        refine_smaps=refine_smaps or refine_big or refine_extrabig,
+        refine_extrabig=refine_extrabig,
         refine_big=refine_big,
         n_epochs=n_epochs,
         run_id=run_id,
