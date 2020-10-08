@@ -13,7 +13,7 @@
 #SBATCH --output=xpdnet_brain_infer%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_infer%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-9
-#SBATCH --dependency=afterok:384652
+#SBATCH --dependency=afterok:386938
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
@@ -22,16 +22,16 @@ cd $WORK/fastmri-reproducible-benchmark
 
 export EXP_ID="xpdnet_v2"
 
-export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_mssim_rf_sm_MWCNNbig_1599650393"
-export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_mssim_rf_sm_MWCNNbig_1599650393"
-export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_mssim_rf_sm_MWCNNbig_1599651112"
-export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_mssim_rf_sm_MWCNNbig_1599651112"
-export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_mssim_rf_sm_MWCNNbig_1599653371"
-export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_mssim_rf_sm_MWCNNbig_1599653371"
-export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_mssim_rf_sm_MWCNNbig_1599653470"
-export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_mssim_rf_sm_MWCNNbig_1599653566"
-export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_mssim_rf_sm_MWCNNbig_1599653591"
-export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_mssim_rf_sm_MWCNNbig_1599653591"
+export RUN_ID_AF4_AXFLAIR="xpdnet_sense_brain__af4_AXFLAIR_i25_compound_mssim_rf_sm_MWCNNmedium_1602138822"
+export RUN_ID_AF4_AXT1POST="xpdnet_sense_brain__af4_AXT1POST_i25_compound_mssim_rf_sm_MWCNNmedium_1602138821"
+export RUN_ID_AF4_AXT1PRE="xpdnet_sense_brain__af4_AXT1PRE_i25_compound_mssim_rf_sm_MWCNNmedium_1602138821"
+export RUN_ID_AF4_AXT1="xpdnet_sense_brain__af4_AXT1_i25_compound_mssim_rf_sm_MWCNNmedium_1602138821"
+export RUN_ID_AF4_AXT2="xpdnet_sense_brain__af4_AXT2_i25_compound_mssim_rf_sm_MWCNNmedium_1602138822"
+export RUN_ID_AF8_AXFLAIR="xpdnet_sense_brain__af8_AXFLAIR_i25_compound_mssim_rf_sm_MWCNNmedium_1602138822"
+export RUN_ID_AF8_AXT1POST="xpdnet_sense_brain__af8_AXT1POST_i25_compound_mssim_rf_sm_MWCNNmedium_1602138734"
+export RUN_ID_AF8_AXT1PRE="xpdnet_sense_brain__af8_AXT1PRE_i25_compound_mssim_rf_sm_MWCNNmedium_1602138733"
+export RUN_ID_AF8_AXT1="xpdnet_sense_brain__af8_AXT1_i25_compound_mssim_rf_sm_MWCNNmedium_1602138821"
+export RUN_ID_AF8_AXT2="xpdnet_sense_brain__af8_AXT2_i25_compound_mssim_rf_sm_MWCNNmedium_1602138821"
 
 # AF4 infer
 opt[0]=" -a 4 -r ${RUN_ID_AF4_AXFLAIR} -c AXFLAIR"
