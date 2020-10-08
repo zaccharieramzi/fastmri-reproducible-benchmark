@@ -117,8 +117,6 @@ class CrossDomainNet(Model):
             multicoil=False,
             refine_smaps=False,
             refine_big=False,
-            refine_extrabig=False,
-            # TODO: really change this bs parameters at some point during refactor
             normalize_image=False,
             multi_gpu=False,
             output_shape_spec=False,
@@ -135,13 +133,9 @@ class CrossDomainNet(Model):
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
         self.refine_big = refine_big
-        self.refine_extrabig = refine_extrabig
         if self.refine_big:
             n_layers_unet_sens = 4
             n_base_filters_unet_sens = 8
-        elif self.refine_extrabig:
-            n_layers_unet_sens = 4
-            n_base_filters_unet_sens = 16
         else:
             n_layers_unet_sens = 3
             n_base_filters_unet_sens = 4
