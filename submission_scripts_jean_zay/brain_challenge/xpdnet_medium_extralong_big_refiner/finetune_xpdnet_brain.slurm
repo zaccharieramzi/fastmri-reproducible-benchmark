@@ -37,6 +37,6 @@ opt[8]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT1"
 opt[9]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT2"
 
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 25 -b -l compound_mssim -rfsx -m MWCNN -s medium -eqf --n-epochs-orig 100 -e 10&
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 40 -b -l compound_mssim -rfsb -m MWCNN -s medium -eqf --n-epochs-orig 100 -e 10&
 
 wait  # wait for all ccc_mprun(s) to complete.
