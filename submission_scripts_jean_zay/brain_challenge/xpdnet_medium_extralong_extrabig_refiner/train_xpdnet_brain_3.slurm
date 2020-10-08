@@ -26,6 +26,6 @@ export RUN_ID_AF8="xpdnet_sense_brain__af8_i25_compound_mssim_rf_smb_MWCNNmedium
 opt[0]="-a 4 --orig-id ${RUN_ID_AF4}"
 opt[1]="-a 8 --orig-id ${RUN_ID_AF8}"
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 40 -b -l compound_mssim -rfsx -e 25 -ss -m MWCNN -s medium -eqf -ec 50&
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 35 -b -l compound_mssim -rfsx -e 25 -ss -m MWCNN -s medium -eqf -ec 50&
 
 wait  # wait for all ccc_mprun(s) to complete.
