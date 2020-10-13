@@ -14,8 +14,9 @@ def tf_adj_op(y, idx=0):
     return x_inv
 
 def tf_unmasked_adj_op(x, idx=0):
-    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
-    return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x[..., idx], axes=[1, 2])), axes=[1, 2]), axis=-1)
+    axes = [len(x.shape) - 3, len(x.shape) - 2]
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[-3:-1]), 'float32')), x.dtype)
+    return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x[..., idx], axes=axes)), axes=axes), axis=-1)
 
 def tf_op(y, idx=0):
     x, mask = y
@@ -224,11 +225,13 @@ class NFFTBase(Layer):
 
     def op(self, inputs):
         if self.multicoil:
-            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
+            image, ktraj, smaps = inputs
         else:
             image, ktraj = inputs
-            # for tfkbnufft we need a coil dimension even if there is none
-            image = image[:, None, ..., 0]
+        # for tfkbnufft we need a coil dimension even if there is none
+        image = image[:, None, ..., 0]
+        if self.multicoil:
+            image = image * smaps
 
         kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
         # TODO: get rid of shape return as not needed in the end.
@@ -238,29 +241,33 @@ class NFFTBase(Layer):
 
     def adj_op(self, inputs):
         if self.multicoil:
-            raise NotImplementedError('Multicoil NFFT is not implemented yet.')
-        elif self.density_compensation:
-            kspace, ktraj, shape, dcomp = inputs
+            if self.density_compensation:
+                kspace, ktraj, smaps, shape, dcomp, = inputs
+            else:
+                kspace, ktraj, smaps, shape = inputs
         else:
-            kspace, ktraj, shape = inputs
-        shape = shape[0]
-        if len(shape) == 1:
-            shape = tf.reshape(shape, [])
+            if self.density_compensation:
+                kspace, ktraj, shape, dcomp = inputs
+            else:
+                kspace, ktraj, shape = inputs
+        shape = tf.reshape(shape[0], [])
         if self.density_compensation:
             kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
         else:
             kspace = kspace[..., 0]
         image = self.backward_op(kspace, ktraj)
-        if not self.multicoil:
-            image = image[:, 0]
-
-        image_adapted = tf.cond(
-            tf.reduce_any(tf.math.greater_equal(shape, self.im_size)),
+        image_reshaped = tf.cond(
+            tf.math.greater_equal(shape, self.im_size[-1]),
+            lambda: image,
             lambda: self.crop_for_pad(image, shape),
             lambda: image,
         )
-        image_adapted = image_adapted[..., None]
-        return image_adapted
+        if self.multicoil:
+            image = tf.reduce_sum(image_reshaped * tf.math.conj(smaps), axis=1)
+        else:
+            image = image_reshaped[:, 0]
+        image = image[..., None]
+        return image
 
 class NFFT(NFFTBase):
     def call(self, inputs):

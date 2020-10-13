@@ -5,6 +5,7 @@ from ..functional_models.unet import unet
 from ..utils.complex import to_complex
 from ..utils.fastmri_format import tf_fastmri_format
 from ..utils.fourier import AdjNFFT
+from ..utils.pad_for_pool import pad_for_pool
 
 
 class UnetComplex(Model):
@@ -22,6 +23,7 @@ class UnetComplex(Model):
             dealiasing_nc_fastmri=False,
             im_size=None,
             dcomp=None,
+            multicoil=False,
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
@@ -39,9 +41,10 @@ class UnetComplex(Model):
             self.channel_attention_kwargs = channel_attention_kwargs
         self.dealiasing_nc_fastmri = dealiasing_nc_fastmri
         if self.dealiasing_nc_fastmri:
+            self.multicoil = multicoil
             self.adj_op = AdjNFFT(
                 im_size=im_size,
-                multicoil=False,
+                multicoil=self.multicoil,
                 density_compensation=dcomp,
             )
         self.unet = unet(
@@ -60,28 +63,33 @@ class UnetComplex(Model):
 
     def call(self, inputs):
         if self.dealiasing_nc_fastmri:
-            if len(inputs) == 2:
-                original_kspace, mask = inputs
-                op_args = ()
+            if self.multicoil:
+                if len(inputs) == 3:
+                    original_kspace, mask, smaps = inputs
+                    op_args = ()
+                else:
+                    original_kspace, mask, smaps, op_args = inputs
+                outputs = self.adj_op([original_kspace, mask, smaps, *op_args])
             else:
-                original_kspace, mask, op_args = inputs
-            outputs = self.adj_op([original_kspace, mask, *op_args])
+                if len(inputs) == 2:
+                    original_kspace, mask = inputs
+                    op_args = ()
+                else:
+                    original_kspace, mask, op_args = inputs
+                outputs = self.adj_op([original_kspace, mask, *op_args])
             # we do this to match the residual part.
             inputs = outputs
         else:
             outputs = inputs
-        n_pad = 2**self.n_layers - tf.math.floormod(tf.shape(outputs)[-2], 2**(self.n_layers-1))
-        paddings = [
-            (0, 0),
-            (0, 0),  # here in the context of fastMRI there is nothing to worry about because the dim is 640 (128 x 5)
-            (n_pad//2, n_pad//2),
-            (0, 0),
-        ]
-        outputs = tf.pad(outputs, paddings)
+        outputs, padding = pad_for_pool(outputs, self.n_layers-1)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.unet(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
-        outputs = outputs[:, :, n_pad//2:-n_pad//2]
+        outputs = tf.cond(
+            tf.reduce_sum(padding) == 0,
+            lambda: outputs,
+            lambda: outputs[:, :, padding[0]:-padding[1]],
+        )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         if self.dealiasing_nc_fastmri:

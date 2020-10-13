@@ -2,6 +2,7 @@ import os
 import os.path as op
 import time
 
+import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
@@ -13,10 +14,9 @@ from fastmri_recon.models.subclassed_models.updnet import UPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-n_volumes_train = 973
-
 def train_updnet(
         multicoil=True,
+        brain=False,
         af=4,
         contrast=None,
         cuda_visible_devices='0123',
@@ -32,11 +32,22 @@ def train_updnet(
         loss='mae',
         original_run_id=None,
         fixed_masks=False,
+        n_epochs_original=250,
+        equidistant_fake=False,
     ):
+    if brain:
+        n_volumes = brain_n_volumes_train
+    else:
+        n_volumes = n_volumes_train
+
     # paths
     if multicoil:
-        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -55,7 +66,18 @@ def train_updnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        kwargs = {'parallel': False}
+        if brain:
+            if equidistant_fake:
+                mask_type = 'equidistant_fake'
+            else:
+                mask_type = 'equidistant'
+        else:
+            mask_type = 'random'
+        kwargs = {
+            'parallel': False,
+            'output_shape_spec': brain,
+            'mask_type': mask_type,
+        }
     else:
         dataset = singlecoil_dataset
         kwargs = {}
@@ -91,10 +113,13 @@ def train_updnet(
         'n_iter': n_iter,
         'channel_attention_kwargs': channel_attention_kwargs,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     if multicoil:
         updnet_type = 'updnet_sense_'
+        if brain:
+            updnet_type += 'brain_'
     else:
         updnet_type = 'updnet_singlecoil_'
     additional_info = f'af{af}'
@@ -136,17 +161,15 @@ def train_updnet(
     model = UPDNet(**run_params)
     if original_run_id is not None:
         lr = 1e-7
-        n_steps = n_volumes_train//2
+        n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes//2)
     else:
         lr = 1e-4
-        n_steps = n_volumes_train
+        n_steps = n_volumes
     default_model_compile(model, lr=lr, loss=loss)
     print(run_id)
     if original_run_id is not None:
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
-        else:
-            n_epochs_original = 250
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
@@ -159,6 +182,101 @@ def train_updnet(
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
     return run_id
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to consider brain data.'
+)
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of epochs to train the model. Default to 300.',
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'n_epochs_original',
+    '--n-epochs-orig',
+    type=int,
+    default=200,
+    help='The number of epochs used in the original unspecific training.'
+)
+@click.option(
+    'original_run_id',
+    '--orig-id',
+    type=str,
+    default=None,
+    help='The run id of the original unspecific training.'
+)
+@click.option(
+    'contrast',
+    '-c',
+    type=str,
+    default=None,
+    help='The contrast to use for the training.'
+)
+@click.option(
+    'equidistant_fake',
+    '-eqf',
+    is_flag=True,
+    help='Whether you want to use fake equidistant masks for brain data.'
+)
+def train_updnet_click(
+        af,
+        n_iter,
+        brain,
+        loss,
+        refine_smaps,
+        n_epochs,
+        n_epochs_original,
+        original_run_id,
+        contrast,
+        equidistant_fake,
+    ):
+    train_updnet(
+        af=af,
+        n_iter=n_iter,
+        brain=brain,
+        loss=loss,
+        refine_smaps=refine_smaps,
+        n_epochs=n_epochs,
+        n_epochs_original=n_epochs_original,
+        original_run_id=original_run_id,
+        contrast=contrast,
+        equidistant_fake=equidistant_fake,
+    )
+
 
 if __name__ == '__main__':
     train_updnet_click()

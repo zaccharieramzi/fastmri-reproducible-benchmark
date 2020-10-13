@@ -1,8 +1,21 @@
 language: python
 cache: pip
 install:
-  - pip install pytest
+  - pip install pyxb
+  - pip install pytest==5.0.0 ismrmrd
   - pip install .
 
+env:
+  - TEST_SUITE=fastmri_recon/tests/data
+  - TEST_SUITE=fastmri_recon/tests/models
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/denoising
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/multi_coil
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/dealiasing_train_test.py
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/ncpdnet_train_test.py
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/unet_nc_train_test.py
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/updnet_train_test.py
+  - TEST_SUITE=fastmri_recon/tests/training_scripts/xpdnet_train_test.py
+
+
 script:
-  - pytest -s fastmri_recon/tests
+  - pytest -s $TEST_SUITE

@@ -2,12 +2,14 @@ import os
 import os.path as op
 import time
 
+import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
@@ -37,7 +39,6 @@ def train_ncnet(
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
-        raise ValueError('Non cartesian multicoil is not implemented yet')
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -54,10 +55,9 @@ def train_ncnet(
     mixed_precision.set_policy(policy)
     # generators
     if multicoil:
-        pass
+        dataset = multicoil_dataset
     else:
         dataset = singlecoil_dataset
-        kwargs = acq_kwargs
     train_set = dataset(
         train_path,
         IM_SIZE,
@@ -68,7 +68,7 @@ def train_ncnet(
         rand=True,
         scale_factor=1e6,
         n_samples=n_samples,
-        **kwargs
+        **acq_kwargs
     )
     val_set = dataset(
         val_path,
@@ -79,7 +79,7 @@ def train_ncnet(
         inner_slices=None,
         rand=True,
         scale_factor=1e6,
-        **kwargs
+        **acq_kwargs
     )
 
     additional_info = f'{acq_type}'
@@ -139,6 +139,7 @@ def train_ncpdnet(
         n_filters=32,
         n_primal=5,
         non_linearity='relu',
+        refine_smaps=True,
         **train_kwargs,
     ):
     run_params = {
@@ -150,6 +151,7 @@ def train_ncpdnet(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
+        'refine_smaps': refine_smaps,
     }
 
     if multicoil:
@@ -161,6 +163,8 @@ def train_ncpdnet(
         additional_info += f'_i{n_iter}'
     if non_linearity != 'relu':
         additional_info += f'_{non_linearity}'
+    if refine_smaps:
+        additional_info += '_rfs'
 
 
     run_id = f'{ncpdnet_type}_{additional_info}'
@@ -191,10 +195,11 @@ def train_unet_nc(
         'im_size': IM_SIZE,
         'dcomp': dcomp,
         'dealiasing_nc_fastmri': True,
+        'multicoil': multicoil,
     }
 
     if multicoil:
-        unet_type = 'unet_sense_'
+        unet_type = 'unet_mc_'
     else:
         unet_type = 'unet_singlecoil_'
     additional_info = ''
@@ -211,3 +216,81 @@ def train_unet_nc(
         dcomp=dcomp,
         **train_kwargs,
     )
+
+
+@click.command()
+@click.option(
+    'af',
+    '-a',
+    type=int,
+    default=4,
+    help='The acceleration factor.'
+)
+@click.option(
+    'n_epochs',
+    '-e',
+    type=int,
+    default=70,
+    help='The number of epochs.'
+)
+@click.option(
+    'loss',
+    '-l',
+    type=str,
+    default='mae',
+    help='The loss to use for the training.'
+)
+@click.option(
+    'refine_smaps',
+    '-rfs',
+    is_flag=True,
+    help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'multicoil',
+    '-mc',
+    is_flag=True,
+    help='Whether you want to use multicoil data.'
+)
+@click.option(
+    'model',
+    '-m',
+    type=str,
+    default='pdnet',
+    help='The NC model to use.'
+)
+@click.option(
+    'acq_type',
+    '-t',
+    type=str,
+    default='radial',
+    help='The trajectory to use.'
+)
+def train_ncnet_click(
+        af,
+        n_epochs,
+        loss,
+        refine_smaps,
+        multicoil,
+        model,
+        acq_type,
+    ):
+    if model == 'pdnet':
+        train_function = train_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        train_function = train_unet_nc
+        add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
+    train_function(
+        af=af,
+        n_epochs=n_epochs,
+        loss=loss,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        **add_kwargs,
+    )
+
+if __name__ == '__main__':
+    train_ncnet_click()

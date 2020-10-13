@@ -23,7 +23,7 @@ from generic_dask import train_on_jz_dask
     'contrast',
     '-c',
     default=None,
-    type=click.Choice(['CORPDFS_FBK', 'CORPD_FBK'], case_sensitive=False),
+    type=str,
     help='The contrast chosen for this fine-tuning. Defaults to None.',
 )
 @click.option(
@@ -96,6 +96,12 @@ from generic_dask import train_on_jz_dask
     is_flag=True,
     help='Whether you want to refine sensitivity maps using a trained unet.',
 )
+@click.option(
+    'brain',
+    '-b',
+    is_flag=True,
+    help='Whether you want to use brain data for this full pipe.'
+)
 def train_updnet_sense_dask(
         original_run_id,
         af,
@@ -110,6 +116,7 @@ def train_updnet_sense_dask(
         channel_attention,
         loss,
         refine_smaps,
+        brain,
     ):
     job_name = f'train_updnet_sense_{af}'
     if contrast is not None:
@@ -131,6 +138,7 @@ def train_updnet_sense_dask(
         loss=loss,
         original_run_id=original_run_id,
         refine_smaps=refine_smaps,
+        brain=brain,
     )
 
 

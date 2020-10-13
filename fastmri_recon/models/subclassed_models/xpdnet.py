@@ -3,6 +3,40 @@ from .cross_domain import CrossDomainNet
 from ..utils.fourier import FFT, IFFT
 
 class XPDNet(CrossDomainNet):
+    r"""The XPDNet network, an extension of the Primal net.
+
+    This extension of the networks presented in [A2017] allows to use image
+    correction networks that are more complex than simply chained convolutions.
+    It however doesn't feature (yet) the possibilit to have kspace corrections.
+
+    It works with (potentially multicoil) masked cartesian Fourier transforms.
+
+    Specifications of the image correction model:
+        - input (tf.float32): nslices x h x w x 2*(n_primal + 1)
+        - output (tf.float32): nslices x h x w x 2*n_primal
+
+    Parameters:
+        model_fun (function): the function initializing the image correction
+            network. This allows to have different parameters for each block.
+        model_kwargs (dict): the set of arguments used to initialize the image
+            correction network.
+        res (bool): whether we should add a residual connection for the image
+            correction model. The residual connection will only take into account
+            the first `n_primal` channel elements of the input.
+            Defaults to False.
+        n_scales (int): the number of scales the image correction network
+            features. Defaults to 0, which means that no downsampling is
+            performed in the image correction network.
+        n_primal (int): the size of the buffer in the image space. Defaults to
+            5.
+        n_iter (int): the number of blocks for the unrolled reconstruction.
+            Defaults to 10.
+        multicoil (bool): whether the input data is multicoil. Defaults to False.
+        **kwargs: keyword arguments for the CrossDomainNet.
+
+    Attributes:
+        same as CrossDomainNet.
+    """
     def __init__(
             self,
             model_fun,
@@ -37,7 +71,8 @@ class XPDNet(CrossDomainNet):
         self.op = FFT(masked=True, multicoil=self.multicoil)
         self.adj_op = IFFT(masked=True, multicoil=self.multicoil)
         self.image_net = [MultiscaleComplex(
-            model=self.model_fun(**self.model_kwargs),
+            model_fun=self.model_fun,
+            model_kwargs=self.model_kwargs,
             res=self.res,
             n_output_channels=self.n_primal,
             n_scales=self.n_scales,
