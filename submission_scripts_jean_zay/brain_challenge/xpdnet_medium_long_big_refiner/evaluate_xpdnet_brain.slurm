@@ -13,7 +13,7 @@
 #SBATCH --output=xpdnet_brain_eval%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_eval%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-9
-#SBATCH --dependency=afterok:384652
+#SBATCH --dependency=afterok:
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
@@ -44,6 +44,6 @@ opt[7]="-a 8 -r ${RUN_ID_AF8_AXT1PRE} -c AXT1PRE"
 opt[8]="-a 8 -r ${RUN_ID_AF8_AXT1} -c AXT1"
 opt[9]="-a 8 -r ${RUN_ID_AF8_AXT2} -c AXT2"
 
-srun python ./fastmri_recon/evaluate/scripts/xpdnet_eval.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 25 -b -eqf -n 30 -rfsb -m MWCNN -s medium -e 10&
+srun python ./fastmri_recon/evaluate/scripts/xpdnet_eval.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 25 -b -eqf -n 30 -rfsb -m MWCNN -s medium -e 5&
 
 wait  # wait for all ccc_mprun(s) to complete.

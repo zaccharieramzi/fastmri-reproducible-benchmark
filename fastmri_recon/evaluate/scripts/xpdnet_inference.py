@@ -135,6 +135,13 @@ def xpdnet_inference(
     help='The acceleration factor.'
 )
 @click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of iterations of the unrolled model. Default to 10.',
+)
+@click.option(
     'brain',
     '-b',
     is_flag=True,
@@ -190,6 +197,7 @@ def xpdnet_inference_click(
         model_name,
         model_size,
         af,
+        n_iter,
         brain,
         challenge,
         refine_smaps,
@@ -211,6 +219,7 @@ def xpdnet_inference_click(
         model_fun=model_fun,
         model_kwargs=kwargs,
         af=af,
+        n_iter=n_iter,
         brain=brain,
         challenge=challenge,
         refine_smaps=refine_smaps or refine_big,
