@@ -38,11 +38,13 @@ def train_xpdnet(
         n_primal=5,
         use_mixed_precision=False,
         refine_smaps=False,
+        refine_big=False,
         loss='mae',
         original_run_id=None,
         fixed_masks=False,
         n_epochs_original=250,
         equidistant_fake=False,
+        multi_gpu=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -106,6 +108,8 @@ def train_xpdnet(
             250.
         equidistant_fake (bool): whether to use fake equidistant masks from
             fastMRI. Defaults to False.
+        multi_gpu (bool): whether to use multiple GPUs for the XPDNet training.
+            Defaults to False.
 
     Returns:
         - str: the run id of the trained network.
@@ -184,6 +188,8 @@ def train_xpdnet(
         'refine_smaps': refine_smaps,
         'res': res,
         'output_shape_spec': brain,
+        'multi_gpu': multi_gpu,
+        'refine_big': refine_big,
     }
 
     if multicoil:
@@ -203,6 +209,8 @@ def train_xpdnet(
         additional_info += f'_{loss}'
     if refine_smaps:
         additional_info += '_rf_sm'
+        if refine_big:
+            additional_info += 'b'
     if fixed_masks:
         additional_info += '_fixed_masks'
 
@@ -324,6 +332,12 @@ def train_xpdnet(
     help='Whether you want to use an smaps refiner.'
 )
 @click.option(
+    'refine_big',
+    '-rfsb',
+    is_flag=True,
+    help='Whether you want to use a big smaps refiner.'
+)
+@click.option(
     'n_epochs',
     '-e',
     type=int,
@@ -370,6 +384,19 @@ def train_xpdnet(
     is_flag=True,
     help='Whether you want to use fake equidistant masks for brain data.'
 )
+@click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of unrolled steps. Default to 10.',
+)
+@click.option(
+    'multi_gpu',
+    '-mg',
+    is_flag=True,
+    help='Whether you want to use multiple GPUs for training.'
+)
 def train_xpdnet_click(
         model_name,
         model_size,
@@ -377,6 +404,7 @@ def train_xpdnet_click(
         brain,
         loss,
         refine_smaps,
+        refine_big,
         n_epochs,
         checkpoint_epoch,
         n_epochs_original,
@@ -384,6 +412,8 @@ def train_xpdnet_click(
         original_run_id,
         contrast,
         equidistant_fake,
+        n_iter,
+        multi_gpu,
     ):
     n_primal = 5
     model_fun, kwargs, n_scales, res = [
@@ -401,7 +431,9 @@ def train_xpdnet_click(
         brain=brain,
         res=res,
         loss=loss,
-        refine_smaps=refine_smaps,
+        n_iter=n_iter,
+        refine_smaps=refine_smaps or refine_big,
+        refine_big=refine_big,
         n_scales=n_scales,
         n_primal=n_primal,
         n_epochs=n_epochs,
@@ -411,6 +443,7 @@ def train_xpdnet_click(
         original_run_id=original_run_id,
         contrast=contrast,
         equidistant_fake=equidistant_fake,
+        multi_gpu=multi_gpu,
     )
 
 

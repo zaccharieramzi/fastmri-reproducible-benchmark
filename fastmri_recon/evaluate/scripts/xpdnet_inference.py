@@ -17,6 +17,7 @@ def xpdnet_inference(
         run_id,
         exp_id='xpdnet',
         brain=False,
+        challenge=False,
         n_epochs=200,
         contrast=None,
         af=4,
@@ -25,11 +26,15 @@ def xpdnet_inference(
         n_scales=0,
         n_primal=5,
         refine_smaps=False,
+        refine_big=False,
         n_samples=None,
         cuda_visible_devices='0123',
     ):
     if brain:
-        test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
+        if challenge:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_challenge/'
+        else:
+            test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
     else:
         test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
 
@@ -42,6 +47,7 @@ def xpdnet_inference(
         'n_scales': n_scales,
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
+        'refine_big': refine_big,
         'res': res,
         'output_shape_spec': brain,
     }
@@ -102,6 +108,7 @@ def xpdnet_inference(
             filename.numpy().decode('utf-8'),
             scale_factor=1e6,
             brain=brain,
+            challenge=challenge,
         )
 
 
@@ -128,16 +135,35 @@ def xpdnet_inference(
     help='The acceleration factor.'
 )
 @click.option(
+    'n_iter',
+    '-i',
+    default=10,
+    type=int,
+    help='The number of iterations of the unrolled model. Default to 10.',
+)
+@click.option(
     'brain',
     '-b',
     is_flag=True,
     help='Whether you want to consider brain data.'
 )
 @click.option(
+    'challenge',
+    '-ch',
+    is_flag=True,
+    help='Whether you want to consider challenge data (only for brain).'
+)
+@click.option(
     'refine_smaps',
     '-rfs',
     is_flag=True,
     help='Whether you want to use an smaps refiner.'
+)
+@click.option(
+    'refine_big',
+    '-rfsb',
+    is_flag=True,
+    help='Whether you want to use a big smaps refiner.'
 )
 @click.option(
     'n_epochs',
@@ -171,8 +197,11 @@ def xpdnet_inference_click(
         model_name,
         model_size,
         af,
+        n_iter,
         brain,
+        challenge,
         refine_smaps,
+        refine_big,
         n_epochs,
         run_id,
         exp_id,
@@ -190,8 +219,11 @@ def xpdnet_inference_click(
         model_fun=model_fun,
         model_kwargs=kwargs,
         af=af,
+        n_iter=n_iter,
         brain=brain,
-        refine_smaps=refine_smaps,
+        challenge=challenge,
+        refine_smaps=refine_smaps or refine_big,
+        refine_big=refine_big,
         n_epochs=n_epochs,
         run_id=run_id,
         exp_id=exp_id,
