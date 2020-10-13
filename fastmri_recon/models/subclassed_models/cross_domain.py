@@ -116,6 +116,7 @@ class CrossDomainNet(Model):
             k_buffer_size=1,
             multicoil=False,
             refine_smaps=False,
+            refine_big=False,
             normalize_image=False,
             multi_gpu=False,
             output_shape_spec=False,
@@ -131,6 +132,13 @@ class CrossDomainNet(Model):
         self.k_buffer_size = k_buffer_size
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
+        self.refine_big = refine_big
+        if self.refine_big:
+            n_layers_unet_sens = 4
+            n_base_filters_unet_sens = 8
+        else:
+            n_layers_unet_sens = 3
+            n_base_filters_unet_sens = 4
         self.normalize_image = normalize_image
         self.multi_gpu = multi_gpu
         self.output_shape_spec = output_shape_spec
@@ -143,8 +151,8 @@ class CrossDomainNet(Model):
                 self.multi_gpu = False
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
-                n_layers=3,
-                layers_n_channels=[4 * 2**i for i in range(3)],
+                n_layers=n_layers_unet_sens,
+                layers_n_channels=[n_base_filters_unet_sens * 2**i for i in range(n_layers_unet_sens)],
                 layers_n_non_lins=2,
                 n_input_channels=1,
                 n_output_channels=1,
@@ -328,6 +336,7 @@ class CrossDomainNet(Model):
             'k_buffer_size': self.k_buffer_size,
             'multicoil': self.multicoil,
             'refine_smaps': self.refine_smaps,
+            'refine_big': self.refine_big,
             'normalize_image': self.normalize_image,
             'multi_gpu': self.multi_gpu,
             'output_shape_spec': self.output_shape_spec,

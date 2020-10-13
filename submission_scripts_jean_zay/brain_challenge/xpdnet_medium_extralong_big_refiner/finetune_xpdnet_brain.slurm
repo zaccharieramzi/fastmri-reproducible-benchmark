@@ -13,15 +13,15 @@
 #SBATCH --output=xpdnet_brain_finetune%A_%a.out # nom du fichier de sortie
 #SBATCH --error=xpdnet_brain_finetune%A_%a.out  # nom du fichier d'erreur (ici commun avec la sortie)
 #SBATCH --array=0-9
-#SBATCH --dependency=afterok:399210
+#SBATCH --dependency=afterok:386937
 
 set -x
 cd $WORK/fastmri-reproducible-benchmark
 
 . ./submission_scripts_jean_zay/env_config.sh
 
-export RUN_ID_AF4="xpdnet_sense_brain__af4_compound_mssim_rf_smb_MWCNNbig_1601993816"
-export RUN_ID_AF8="xpdnet_sense_brain__af8_compound_mssim_rf_smb_MWCNNbig_1601993816"
+export RUN_ID_AF4="xpdnet_sense_brain__af4_i25_compound_mssim_rf_smb_MWCNNmedium_1601987069"
+export RUN_ID_AF8="xpdnet_sense_brain__af8_i25_compound_mssim_rf_smb_MWCNNmedium_1601987069"
 
 # AF4 finetuning
 opt[0]="-a 4 --orig-id ${RUN_ID_AF4} -c AXFLAIR"
@@ -37,6 +37,6 @@ opt[8]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT1"
 opt[9]="-a 8 --orig-id ${RUN_ID_AF8} -c AXT2"
 
 
-srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -b -l compound_mssim -rfsb -m MWCNN -s big -eqf --n-epochs-orig 100 -e 10&
+srun python ./fastmri_recon/training_scripts/xpdnet_train.py ${opt[$SLURM_ARRAY_TASK_ID]} -i 40 -b -l compound_mssim -rfsb -m MWCNN -s medium -eqf --n-epochs-orig 100 -e 10&
 
 wait  # wait for all ccc_mprun(s) to complete.
