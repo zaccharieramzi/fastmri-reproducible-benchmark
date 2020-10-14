@@ -75,6 +75,7 @@ def train_ncnet(
         add_kwargs = {
             'contrast': contrast,
             'rand': True,
+            'inner_slices': None,
         }
     else:
         add_kwargs = {}
@@ -84,7 +85,6 @@ def train_ncnet(
         image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        inner_slices=None,
         scale_factor=1e6,
         n_samples=n_samples,
         **add_kwargs
@@ -94,7 +94,6 @@ def train_ncnet(
         image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        inner_slices=None,
         scale_factor=1e6,
         **add_kwargs
     )
@@ -244,7 +243,6 @@ def train_unet_nc(
     )
 
 def train_vnet_nc(
-        three_d=False,
         dcomp=False,
         n_layers=4,
         base_n_filters=16,
@@ -260,7 +258,6 @@ def train_vnet_nc(
         'im_size': VOLUME_SIZE,
         'dcomp': dcomp,
         'dealiasing_nc': True,
-        'three_d': three_d,
     }
 
     vnet_type = 'vnet_3d_'
@@ -274,7 +271,7 @@ def train_vnet_nc(
     train_ncnet(
         model,
         run_id=run_id,
-        three_d=three_d,
+        three_d=True,
         dcomp=dcomp,
         **train_kwargs,
     )
