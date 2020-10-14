@@ -1,5 +1,6 @@
 import os
 import os.path as op
+from pathlib import Path
 import time
 
 import click
@@ -9,9 +10,11 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.data.datasets.oasis_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as three_d_dataset
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
+from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
 
 
@@ -19,11 +22,13 @@ n_volumes_train = 973
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
+VOLUME_SIZE = (256, 256, 256)
 
 def train_ncnet(
         model,
         run_id=None,
         multicoil=False,
+        three_d=False,
         acq_type='radial',
         dcomp=False,
         contrast=None,
@@ -39,6 +44,9 @@ def train_ncnet(
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+    elif three_d:
+        train_path = str(Path(OASIS_DATA_DIR) / 'train')
+        val_path = str(Path(OASIS_DATA_DIR) / 'val')
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -56,30 +64,39 @@ def train_ncnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
+        image_size = IM_SIZE
+    elif three_d:
+        dataset = three_d_dataset
+        image_size = VOLUME_SIZE
     else:
         dataset = singlecoil_dataset
+        image_size = IM_SIZE
+    if not three_d:
+        add_kwargs = {
+            'contrast': contrast,
+            'rand': True,
+        }
+    else:
+        add_kwargs = {}
+    add_kwargs.update(**acq_kwargs)
     train_set = dataset(
         train_path,
-        IM_SIZE,
+        image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        contrast=contrast,
         inner_slices=None,
-        rand=True,
         scale_factor=1e6,
         n_samples=n_samples,
-        **acq_kwargs
+        **add_kwargs
     )
     val_set = dataset(
         val_path,
-        IM_SIZE,
+        image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        contrast=contrast,
         inner_slices=None,
-        rand=True,
         scale_factor=1e6,
-        **acq_kwargs
+        **add_kwargs
     )
 
     additional_info = f'{acq_type}'
@@ -133,6 +150,7 @@ def train_ncnet(
 
 def train_ncpdnet(
         multicoil=False,
+        three_d=False,
         dcomp=False,
         normalize_image=False,
         n_iter=10,
@@ -142,13 +160,18 @@ def train_ncpdnet(
         refine_smaps=True,
         **train_kwargs,
     ):
+    if three_d:
+        image_size = VOLUME_SIZE
+    else:
+        image_size = IM_SIZE
     run_params = {
         'n_primal': n_primal,
         'multicoil': multicoil,
+        'three_d': three_d,
         'activation': non_linearity,
         'n_iter': n_iter,
         'n_filters': n_filters,
-        'im_size': IM_SIZE,
+        'im_size': image_size,
         'dcomp': dcomp,
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
@@ -156,6 +179,8 @@ def train_ncpdnet(
 
     if multicoil:
         ncpdnet_type = 'ncpdnet_sense_'
+    elif three_d:
+        ncpdnet_type = 'ncpdnet_3d_'
     else:
         ncpdnet_type = 'ncpdnet_singlecoil_'
     additional_info = ''
@@ -163,7 +188,7 @@ def train_ncpdnet(
         additional_info += f'_i{n_iter}'
     if non_linearity != 'relu':
         additional_info += f'_{non_linearity}'
-    if refine_smaps:
+    if multicoil and refine_smaps:
         additional_info += '_rfs'
 
 
@@ -175,6 +200,7 @@ def train_ncpdnet(
         run_id=run_id,
         multicoil=multicoil,
         dcomp=dcomp,
+        three_d=three_d,
         **train_kwargs,
     )
 
@@ -213,6 +239,42 @@ def train_unet_nc(
         model,
         run_id=run_id,
         multicoil=multicoil,
+        dcomp=dcomp,
+        **train_kwargs,
+    )
+
+def train_vnet_nc(
+        three_d=False,
+        dcomp=False,
+        n_layers=4,
+        base_n_filters=16,
+        non_linearity='relu',
+        **train_kwargs,
+    ):
+    run_params = {
+        'non_linearity': non_linearity,
+        'n_layers': n_layers,
+        'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
+        'layers_n_non_lins': 2,
+        'res': True,
+        'im_size': VOLUME_SIZE,
+        'dcomp': dcomp,
+        'dealiasing_nc': True,
+        'three_d': three_d,
+    }
+
+    vnet_type = 'vnet_3d_'
+    additional_info = ''
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+
+    run_id = f'{vnet_type}_{additional_info}'
+
+    model = VnetComplex(**run_params)
+    train_ncnet(
+        model,
+        run_id=run_id,
+        three_d=three_d,
         dcomp=dcomp,
         **train_kwargs,
     )
@@ -266,6 +328,18 @@ def train_unet_nc(
     default='radial',
     help='The trajectory to use.'
 )
+@click.option(
+    'three_d',
+    '-3d',
+    is_flag=True,
+    help='Whether you want to use 3d data.'
+)
+@click.option(
+    'dcomp',
+    '-dc',
+    is_flag=True,
+    help='Whether you want to use density compensation.'
+)
 def train_ncnet_click(
         af,
         n_epochs,
@@ -274,21 +348,29 @@ def train_ncnet_click(
         multicoil,
         model,
         acq_type,
+        three_d,
+        dcomp,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
         add_kwargs = {'refine_smaps': refine_smaps}
     elif model == 'unet':
-        train_function = train_unet_nc
+        if three_d:
+            train_function = train_vnet_nc
+        else:
+            train_function = train_unet_nc
         add_kwargs = {}
     if multicoil:
         add_kwargs.update(dcomp=True)
+    else:
+        add_kwargs.update(dcomp=dcomp)
     train_function(
         af=af,
         n_epochs=n_epochs,
         loss=loss,
         multicoil=multicoil,
         acq_type=acq_type,
+        three_d=three_d,
         **add_kwargs,
     )
 
