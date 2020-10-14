@@ -67,6 +67,7 @@ class UpConv(Layer):
     def call(self, inputs):
         outputs = self.up(inputs)
         outputs = self.conv(outputs)
+        return outputs
 
 
 class Vnet(Model):
@@ -111,7 +112,7 @@ class Vnet(Model):
         ]
         self.ups = [
             UpConv(
-                filters=n_channels,
+                n_filters=n_channels,
                 kernel_size=self.kernel_size,
             ) for n_channels in self.layers_n_channels[:-1]
         ]
@@ -132,7 +133,7 @@ class Vnet(Model):
         outputs = self.bottom_conv(outputs)
         for scale, conv, up in zip(scales, self.up_convs[::-1], self.ups[::-1]):
             outputs = up(outputs)
-            outputs = tf.concat([outputs, scale])
+            outputs = tf.concat([outputs, scale], axis=-1)
             outputs = conv(outputs)
         outputs = self.final_conv(outputs)
         return outputs
