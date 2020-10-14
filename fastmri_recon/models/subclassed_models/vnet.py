@@ -74,7 +74,7 @@ class Vnet(Model):
             self,
             n_output_channels=1,
             kernel_size=3,
-            layers_n_channels=1,
+            layers_n_channels=[4],
             layers_n_non_lins=1,
             non_linearity='relu',
             **kwargs,
@@ -144,8 +144,7 @@ class VnetComplex(Model):
             n_input_channels=1,
             n_output_channels=1,
             kernel_size=3,
-            n_layers=1,
-            layers_n_channels=1,
+            layers_n_channels=[4],
             layers_n_non_lins=1,
             res=False,
             non_linearity='relu',
@@ -158,7 +157,6 @@ class VnetComplex(Model):
         self.n_input_channels = n_input_channels
         self.n_output_channels = n_output_channels
         self.kernel_size = kernel_size
-        self.n_layers = n_layers
         self.layers_n_channels = layers_n_channels
         self.layers_n_non_lins = layers_n_non_lins
         self.res = res
@@ -173,7 +171,6 @@ class VnetComplex(Model):
         self.vnet = Vnet(
             n_output_channels=2 * self.n_output_channels,
             kernel_size=self.kernel_size,
-            n_layers=self.n_layers,
             layers_n_channels=self.layers_n_channels,
             layers_n_non_lins=self.layers_n_non_lins,
             non_linearity=self.non_linearity,
