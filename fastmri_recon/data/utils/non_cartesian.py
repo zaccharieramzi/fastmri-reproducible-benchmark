@@ -39,6 +39,13 @@ def get_radial_trajectory(image_shape, af=None, us=None):
     return traj
 
 
+def _rotation(ps, nstacks, nspokes):
+    angle = np.pi / (nstacks * nspokes)
+    n_rot = np.array((-np.pi - ps[-1]) * nstacks).astype(np.int)
+    p0 = np.cos(angle * n_rot) * ps[0] - np.sin(angle * n_rot) * ps[1]
+    p1 = np.sin(angle * n_rot) * ps[0] + np.cos(angle * n_rot) * ps[1]
+    return np.vstack([p0, p1, ps[-1]])
+
 def get_stacks_of_radial_trajectory(volume_shape, af=4):
     spokelength = volume_shape[-2]
     nspokes = volume_shape[-1] // af
@@ -58,9 +65,10 @@ def get_stacks_of_radial_trajectory(volume_shape, af=4):
         ktraj = np.stack((ky.flatten(), kx.flatten()), axis=0)
 
         ktraj = np.tile(ktraj, [1, nstacks])
-        z_locations = np.linspace(-0.5, 0.5, nstacks)
+        z_locations = np.linspace(-0.5, 0.5, nstacks) * np.pi
         z_locations = np.repeat(z_locations, spokelength * nspokes)
         ktraj = np.concatenate([ktraj, z_locations[None, :]], axis=0)
+        ktraj = _rotation(ktraj, nstacks, nspokes)
 
         traj = tf.convert_to_tensor(ktraj, dtype=tf.float32)[None, ...]
         return traj
