@@ -132,12 +132,17 @@ def evaluate_ncpdnet(
         **eval_kwargs,
     )
 
-def evaluate_dcomp(multicoil=False, **eval_kwargs):
-    model = NCDcompReconstructor(multicoil=multicoil, im_size=IM_SIZE)
+def evaluate_dcomp(multicoil=False, three_d=False, **eval_kwargs):
+    if three_d:
+        image_size = VOLUME_SIZE
+    else:
+        image_size = IM_SIZE
+    model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size)
     return evaluate_nc(
         model,
         multicoil=multicoil,
         dcomp=True,
+        three_d=three_d,
         **eval_kwargs,
     )
 
