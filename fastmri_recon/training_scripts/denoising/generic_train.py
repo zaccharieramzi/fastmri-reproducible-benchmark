@@ -2,9 +2,9 @@ import os.path as op
 
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 from tensorflow_addons.callbacks import TQDMProgressBar
+from tf_fastmri_data.datasets.noisy import NoisyFastMRIDatasetBuilder
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 from fastmri_recon.models.training.compile import default_model_compile
 
@@ -20,25 +20,23 @@ def train_denoiser(
         lr=1e-4,
         n_steps_per_epoch=973,  # number of volumes in the fastMRI dataset
     ):
-    train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
-    val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-    train_set = train_noisy_dataset_from_indexable(
-        train_path,
+    ds_kwargs = dict(
         noise_std=noise_std,
         contrast=contrast,
-        inner_slices=None,
-        rand=True,
+        slice_random=True,
         scale_factor=1e6,
+        noise_input=False,
+        noise_power_spec=noise_std,
+    )
+    train_set = NoisyFastMRIDatasetBuilder(
+        dataset='train',
         n_samples=n_samples,
-    )
-    val_set = train_noisy_dataset_from_indexable(
-        val_path,
-        noise_std=noise_std,
-        contrast=contrast,
-        inner_slices=None,
-        rand=True,
-        scale_factor=1e6,
-    )
+        **ds_kwargs,
+    ).preprocessed_ds
+    val_set = NoisyFastMRIDatasetBuilder(
+        dataset='val',
+        **ds_kwargs,
+    ).preprocessed_ds
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
     chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
