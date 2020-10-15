@@ -194,9 +194,9 @@ def evaluate_vnet(
     }
 
     model = VnetComplex(**run_params)
+    eval_kwargs.update(three_d=True)
     return evaluate_nc(
         model,
-        three_d=True,
         dcomp=dcomp,
         **eval_kwargs,
     )

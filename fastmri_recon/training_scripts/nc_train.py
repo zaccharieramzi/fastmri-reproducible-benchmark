@@ -267,10 +267,10 @@ def train_vnet_nc(
     run_id = f'{vnet_type}_{additional_info}'
 
     model = VnetComplex(**run_params)
+    train_kwargs.update(three_d=True)
     train_ncnet(
         model,
         run_id=run_id,
-        three_d=True,
         dcomp=dcomp,
         **train_kwargs,
     )
