@@ -244,14 +244,12 @@ def train_unet_nc(
 
 def train_vnet_nc(
         dcomp=False,
-        n_layers=4,
         base_n_filters=16,
         non_linearity='relu',
         **train_kwargs,
     ):
     run_params = {
         'non_linearity': non_linearity,
-        'n_layers': n_layers,
         'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
         'layers_n_non_lins': 2,
         'res': True,

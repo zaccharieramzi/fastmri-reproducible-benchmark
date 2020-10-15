@@ -177,7 +177,6 @@ def evaluate_unet(
     )
 
 def evaluate_vnet(
-        n_layers=4,
         dcomp=False,
         base_n_filters=16,
         non_linearity='relu',
@@ -185,7 +184,6 @@ def evaluate_vnet(
     ):
     run_params = {
         'non_linearity': non_linearity,
-        'n_layers': n_layers,
         'layers_n_channels': [base_n_filters * 2**i for i in range(n_layers)],
         'layers_n_non_lins': 2,
         'res': True,
