@@ -286,16 +286,28 @@ def train_ncnet_multinet(
         acq_type='radial',
         three_d=False,
         dcomp=False,
+        n_filters=None,
+        n_iter=10,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
-        add_kwargs = {'refine_smaps': refine_smaps}
+        if n_filters is None:
+            n_filters = 32
+        add_kwargs = {
+            'refine_smaps': refine_smaps,
+            'n_filters': n_filters,
+            'n_iter': n_iter,
+        }
     elif model == 'unet':
+        if n_filters is None:
+            base_n_filters = 16
+        else:
+            base_n_filters = n_filters
         if three_d:
             train_function = train_vnet_nc
         else:
             train_function = train_unet_nc
-        add_kwargs = {}
+        add_kwargs = {'base_n_filters': base_n_filters}
     if multicoil:
         add_kwargs.update(dcomp=True)
     else:

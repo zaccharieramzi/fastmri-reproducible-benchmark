@@ -214,16 +214,28 @@ def evaluate_nc_multinet(
         n_samples=50,
         three_d=False,
         dcomp=False,
+        n_filters=None,
+        n_iter=10,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
-        add_kwargs = {'refine_smaps': refine_smaps}
+        if n_filters is None:
+            n_filters = 32
+        add_kwargs = {
+            'refine_smaps': refine_smaps,
+            'n_filters': n_filters,
+            'n_iter': n_iter,
+        }
     elif model == 'unet':
+        if n_filters is None:
+            base_n_filters = 16
+        else:
+            base_n_filters = n_filters
         if three_d:
             evaluate_function = evaluate_vnet
         else:
             evaluate_function = evaluate_unet
-        add_kwargs = {}
+        add_kwargs = {'base_n_filters': base_n_filters}
     if multicoil:
         add_kwargs.update(dcomp=True)
     else:
