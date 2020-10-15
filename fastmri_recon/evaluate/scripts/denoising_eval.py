@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tf_fastmri_data.datasets.noisy import NoisyFastMRIDatasetBuilder
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
@@ -21,14 +22,13 @@ def evaluate_xpdnet_denoising(
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
-    val_set = train_noisy_dataset_from_indexable(
-        val_path,
-        noise_std=noise_std,
+    val_set = NoisyFastMRIDatasetBuilder(
+        dataset='val',
+        noise_power_spec=(noise_std, noise_std),
         contrast=contrast,
-        inner_slices=None,
-        rand=True,
+        slice_random=True,
         scale_factor=1e6,
-    )
+    ).preprocessed_ds
     if n_samples is not None:
         val_set = val_set.take(n_samples)
 
