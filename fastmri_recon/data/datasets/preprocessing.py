@@ -2,7 +2,7 @@ import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
-from ..utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant
+from ..utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
 
@@ -12,7 +12,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_ma
         if mask_type == 'random':
             mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         else:
-            mask = gen_mask_equidistant(kspaces, accel_factor=AF)
+            mask = gen_mask_equidistant_tf(kspaces, accel_factor=AF)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor
