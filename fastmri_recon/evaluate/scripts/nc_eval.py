@@ -177,6 +177,7 @@ def evaluate_unet(
     )
 
 def evaluate_vnet(
+        n_layers=4,
         dcomp=False,
         base_n_filters=16,
         non_linearity='relu',

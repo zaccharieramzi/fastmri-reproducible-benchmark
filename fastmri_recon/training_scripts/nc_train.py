@@ -243,6 +243,7 @@ def train_unet_nc(
     )
 
 def train_vnet_nc(
+        n_layers=4,
         dcomp=False,
         base_n_filters=16,
         non_linearity='relu',
