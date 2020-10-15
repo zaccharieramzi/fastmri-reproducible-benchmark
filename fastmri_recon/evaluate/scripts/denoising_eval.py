@@ -17,9 +17,6 @@ def evaluate_xpdnet_denoising(
         n_samples=None,
         cuda_visible_devices='0123',
     ):
-
-    val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
 
     val_set = NoisyFastMRIDatasetBuilder(
