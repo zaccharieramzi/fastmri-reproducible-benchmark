@@ -21,7 +21,6 @@ def train_denoiser(
         n_steps_per_epoch=973,  # number of volumes in the fastMRI dataset
     ):
     ds_kwargs = dict(
-        noise_std=noise_std,
         contrast=contrast,
         slice_random=True,
         scale_factor=1e6,
