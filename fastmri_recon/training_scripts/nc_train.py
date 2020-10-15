@@ -276,6 +276,40 @@ def train_vnet_nc(
         **train_kwargs,
     )
 
+def train_ncnet_multinet(
+        af=4,
+        n_epochs=200,
+        loss='mae',
+        refine_smaps=False,
+        multicoil=False,
+        model='pdnet',
+        acq_type='radial',
+        three_d=False,
+        dcomp=False,
+    ):
+    if model == 'pdnet':
+        train_function = train_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        if three_d:
+            train_function = train_vnet_nc
+        else:
+            train_function = train_unet_nc
+        add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
+    else:
+        add_kwargs.update(dcomp=dcomp)
+    train_function(
+        af=af,
+        n_epochs=n_epochs,
+        loss=loss,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        three_d=three_d,
+        **add_kwargs,
+    )
+
 
 @click.command()
 @click.option(
@@ -348,27 +382,16 @@ def train_ncnet_click(
         three_d,
         dcomp,
     ):
-    if model == 'pdnet':
-        train_function = train_ncpdnet
-        add_kwargs = {'refine_smaps': refine_smaps}
-    elif model == 'unet':
-        if three_d:
-            train_function = train_vnet_nc
-        else:
-            train_function = train_unet_nc
-        add_kwargs = {}
-    if multicoil:
-        add_kwargs.update(dcomp=True)
-    else:
-        add_kwargs.update(dcomp=dcomp)
-    train_function(
+    train_ncnet_multinet(
         af=af,
         n_epochs=n_epochs,
         loss=loss,
+        refine_smaps=refine_smaps,
         multicoil=multicoil,
+        model=model,
         acq_type=acq_type,
         three_d=three_d,
-        **add_kwargs,
+        dcomp=dcomp,
     )
 
 if __name__ == '__main__':

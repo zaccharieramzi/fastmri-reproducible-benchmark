@@ -203,6 +203,43 @@ def evaluate_vnet(
     )
 
 
+def evaluate_nc_multinet(
+        run_id=None,
+        af=4,
+        refine_smaps=False,
+        multicoil=False,
+        model='pdnet',
+        acq_type='radial',
+        n_epochs=200,
+        n_samples=50,
+        three_d=False,
+        dcomp=False,
+    ):
+    if model == 'pdnet':
+        evaluate_function = evaluate_ncpdnet
+        add_kwargs = {'refine_smaps': refine_smaps}
+    elif model == 'unet':
+        if three_d:
+            evaluate_function = evaluate_vnet
+        else:
+            evaluate_function = evaluate_unet
+        add_kwargs = {}
+    if multicoil:
+        add_kwargs.update(dcomp=True)
+    else:
+        add_kwargs.update(dcomp=dcomp)
+    metric_names, metrics = evaluate_function(
+        af=af,
+        run_id=run_id,
+        multicoil=multicoil,
+        acq_type=acq_type,
+        n_epochs=n_epochs,
+        n_samples=n_samples,
+        three_d=three_d,
+        **add_kwargs,
+    )
+    return metric_names, metrics
+
 @click.command()
 @click.option(
     'af',
@@ -280,33 +317,20 @@ def evaluate_nc_click(
         n_epochs,
         n_samples,
         three_d,
-        dcomp
+        dcomp,
     ):
-    if model == 'pdnet':
-        evaluate_function = evaluate_ncpdnet
-        add_kwargs = {'refine_smaps': refine_smaps}
-    elif model == 'unet':
-        if three_d:
-            evaluate_function = evaluate_vnet
-        else:
-            evaluate_function = evaluate_unet
-        add_kwargs = {}
-    if multicoil:
-        add_kwargs.update(dcomp=True)
-    else:
-        add_kwargs.update(dcomp=dcomp)
-    metric_names, metrics = evaluate_function(
+    evaluate_nc_multinet(
         af=af,
         run_id=run_id,
+        refine_smaps=refine_smaps,
         multicoil=multicoil,
+        model=model,
         acq_type=acq_type,
         n_epochs=n_epochs,
         n_samples=n_samples,
         three_d=three_d,
-        **add_kwargs,
+        dcomp=dcomp,
     )
-    print(metric_names)
-    print(metrics)
 
 
 if __name__ == '__main__':
