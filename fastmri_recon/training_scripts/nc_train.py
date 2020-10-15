@@ -288,6 +288,7 @@ def train_ncnet_multinet(
         dcomp=False,
         n_filters=None,
         n_iter=10,
+        normalize_image=False,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
@@ -297,6 +298,7 @@ def train_ncnet_multinet(
             'refine_smaps': refine_smaps,
             'n_filters': n_filters,
             'n_iter': n_iter,
+            'normalize_image': normalize_image,
         }
     elif model == 'unet':
         if n_filters is None:
