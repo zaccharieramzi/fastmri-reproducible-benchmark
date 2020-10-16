@@ -22,6 +22,7 @@ def evaluate_xpdnet_denoising(
     val_set = NoisyFastMRIDatasetBuilder(
         dataset='val',
         noise_power_spec=(noise_std, noise_std),
+        noise_input=False,
         contrast=contrast,
         slice_random=True,
         scale_factor=1e6,
