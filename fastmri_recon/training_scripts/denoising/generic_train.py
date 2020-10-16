@@ -26,6 +26,7 @@ def train_denoiser(
         scale_factor=1e6,
         noise_input=False,
         noise_power_spec=noise_std,
+        noise_mode='gaussian',
     )
     train_set = NoisyFastMRIDatasetBuilder(
         dataset='train',
