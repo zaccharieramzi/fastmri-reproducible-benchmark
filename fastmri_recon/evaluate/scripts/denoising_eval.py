@@ -2,6 +2,7 @@ import os
 
 import tensorflow as tf
 from tf_fastmri_data.datasets.noisy import NoisyFastMRIDatasetBuilder
+from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
