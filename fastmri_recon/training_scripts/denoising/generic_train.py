@@ -23,7 +23,7 @@ def train_denoiser(
     ds_kwargs = dict(
         contrast=contrast,
         slice_random=True,
-        scale_factor=1e6,
+        scale_factor=1e4,
         noise_input=False,
         noise_power_spec=noise_std,
         noise_mode='gaussian',
