@@ -5,6 +5,7 @@ from tf_fastmri_data.datasets.noisy import NoisyFastMRIDatasetBuilder
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
+from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 
 
@@ -51,5 +52,8 @@ def evaluate_xpdnet_denoising(
         model = build_model_from_specs(*model)
     model.compile(loss=tf_psnr, metrics=[tf_ssim])
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    eval_res = model.evaluate(val_set, verbose=1, steps=199 if n_samples is None else None)
-    return model.metrics_names, eval_res
+    eval_res = Metrics(METRIC_FUNCS)
+    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
+        y_pred = model.predict(x)
+        eval_res.push(y_true[..., 0], y_pred[..., 0])
+    return METRIC_FUNCS, zip(list(eval_res.means().values()), list(eval_res.stddevs().values()))
