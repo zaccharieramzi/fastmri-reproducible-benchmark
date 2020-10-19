@@ -43,7 +43,7 @@ def evaluate_nc(
     if multicoil:
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     elif three_d:
-        val_path = str(Path(OASIS_DATA_DIR) / 'val')
+        val_path = f'{OASIS_DATA_DIR}/val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
