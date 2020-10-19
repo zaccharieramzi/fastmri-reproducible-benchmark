@@ -27,7 +27,7 @@ def evaluate_xpdnet_denoising(
         noise_input=False,
         contrast=contrast,
         slice_random=True,
-        scale_factor=1e6,
+        scale_factor=1e4,
     ).preprocessed_ds
     if n_samples is not None:
         val_set = val_set.take(n_samples)
