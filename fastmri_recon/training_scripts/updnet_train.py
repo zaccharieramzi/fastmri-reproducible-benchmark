@@ -75,8 +75,6 @@ def train_updnet(
                     mask_type = 'equidistant'
             else:
                 mask_type = 'random'
-        else:
-            mask_type = 'random'
         kwargs = {
             'parallel': False,
             'output_shape_spec': brain,
