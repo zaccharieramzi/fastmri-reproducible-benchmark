@@ -45,8 +45,8 @@ def train_ncnet(
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     elif three_d:
-        train_path = str(Path(OASIS_DATA_DIR) / 'train')
-        val_path = str(Path(OASIS_DATA_DIR) / 'val')
+        train_path = f'{OASIS_DATA_DIR}/train/'
+        val_path = f'{OASIS_DATA_DIR}/val/'
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
