@@ -250,17 +250,22 @@ class NFFTBase(Layer):
                 kspace, ktraj, shape, dcomp = inputs
             else:
                 kspace, ktraj, shape = inputs
-        shape = tf.reshape(shape[0], [])
         if self.density_compensation:
             kspace = tf.cast(dcomp, kspace.dtype) * kspace[..., 0]
         else:
             kspace = kspace[..., 0]
         image = self.backward_op(kspace, ktraj)
+        ## image resizing
+        if len(shape[0]) == 1:
+            shape = tf.reshape(shape[0], [])
+            reshaping_condition = tf.math.less(shape, self.im_size[-1])
+        else:
+            shape = shape[0]
+            reshaping_condition = tf.reduce_any(tf.math.less(shape, self.im_size))
         image_reshaped = tf.cond(
-            tf.math.greater_equal(shape, self.im_size[-1]),
-            lambda: image,
-            lambda: self.crop_for_pad(image, shape),
-            lambda: image,
+            pred=reshaping_condition,
+            true_fn=lambda: self.crop_for_pad(image, shape),
+            false_fn=lambda: image,
         )
         if self.multicoil:
             image = tf.reduce_sum(image_reshaped * tf.math.conj(smaps), axis=1)
