@@ -256,7 +256,8 @@ class NFFTBase(Layer):
             kspace = kspace[..., 0]
         image = self.backward_op(kspace, ktraj)
         ## image resizing
-        if len(shape[0]) == 1:
+        if len(self.im_size) < 3:
+            # NOTE: for now very ugly way to deal with this condition
             shape = tf.reshape(shape[0], [])
             reshaping_condition = tf.math.less(shape, self.im_size[-1])
         else:
