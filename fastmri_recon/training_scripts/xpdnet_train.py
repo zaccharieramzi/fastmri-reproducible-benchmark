@@ -45,6 +45,7 @@ def train_xpdnet(
         n_epochs_original=250,
         equidistant_fake=False,
         multi_gpu=False,
+        mask_type=None,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -144,13 +145,14 @@ def train_xpdnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        if brain:
-            if equidistant_fake:
-                mask_type = 'equidistant_fake'
+        if mask_type is None:
+            if brain:
+                if equidistant_fake:
+                    mask_type = 'equidistant_fake'
+                else:
+                    mask_type = 'equidistant'
             else:
-                mask_type = 'equidistant'
-        else:
-            mask_type = 'random'
+                mask_type = 'random'
         kwargs = {
             'parallel': False,
             'output_shape_spec': brain,
