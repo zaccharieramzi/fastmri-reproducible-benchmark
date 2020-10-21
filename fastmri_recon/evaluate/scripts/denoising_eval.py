@@ -17,7 +17,7 @@ def evaluate_xpdnet_denoising(
         n_epochs=200,
         contrast='CORPD_FBK',
         noise_std=30,
-        n_samples=None,
+        n_samples=100,
         cuda_visible_devices='0123',
     ):
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
@@ -30,14 +30,13 @@ def evaluate_xpdnet_denoising(
         slice_random=True,
         scale_factor=1e4,
     ).preprocessed_ds
-    if n_samples is not None:
-        val_set = val_set.take(n_samples)
+    val_set = val_set.take(n_samples)
 
     if isinstance(model, tuple):
         model = build_model_from_specs(*model)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = Metrics(METRIC_FUNCS)
-    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
+    for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_samples):
         y_pred = model.predict(x)
         eval_res.push(y_true[..., 0], y_pred[..., 0])
     return METRIC_FUNCS, (list(eval_res.means().values()), list(eval_res.stddevs().values()))
