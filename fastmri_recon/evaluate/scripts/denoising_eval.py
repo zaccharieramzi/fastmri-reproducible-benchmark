@@ -5,10 +5,11 @@ from tf_fastmri_data.datasets.noisy import NoisyFastMRIDatasetBuilder
 from tqdm import tqdm
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.fastmri_pyfunc_denoising import train_noisy_dataset_from_indexable
 from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import build_model_from_specs
 
+
+tf.random.set_seed(0)
 
 def evaluate_xpdnet_denoising(
         model,
