@@ -135,7 +135,7 @@ def get_stacks_of_spiral_trajectory(volume_shape, af=4, num_revolutions=3):
         [],
         tf.float32,
     )
-    traj.set_shape((1, 3, nspokes*spokelength*nstacks))
+    traj.set_shape((1, 3, nspokes*(spokelength-1)*nstacks))
     return traj
 
 def get_debugging_cartesian_trajectory():
