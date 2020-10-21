@@ -10,7 +10,7 @@ def _rotation(ps, nstacks, nspokes):
     p1 = np.sin(angle * n_rot) * ps[0] + np.cos(angle * n_rot) * ps[1]
     return np.vstack([p0, p1, ps[-1]])
 
-def _generate_stacks_for_traj(ktraj, nstacks, nspokes, spokelength):
+def _generate_stacks_for_traj(ktraj, nstacks, nspokes):
     n_measurements = ktraj.shape[-1]
     ktraj = np.tile(ktraj, [1, nstacks])
     z_locations = np.linspace(-0.5, 0.5, nstacks) * np.pi
@@ -63,7 +63,7 @@ def get_stacks_of_radial_trajectory(volume_shape, af=4):
     nstacks = volume_shape[0]
     def _get_stacks_of_radial_trajectory_numpy():
         ktraj = get_radial_trajectory_numpy(nspokes, spokelength)
-        ktraj = _generate_stacks_for_traj(ktraj, nstacks, nspokes, spokelength)
+        ktraj = _generate_stacks_for_traj(ktraj, nstacks, nspokes)
 
         traj = tf.convert_to_tensor(ktraj, dtype=tf.float32)[None, ...]
         return traj
@@ -127,7 +127,7 @@ def get_stacks_of_spiral_trajectory(volume_shape, af=4, num_revolutions=3):
     nstacks = volume_shape[0]
     def _get_stacks_of_spiral_trajectory_numpy():
         ktraj = get_spiral_trajectory_numpy(nspokes, spokelength, num_revolutions=num_revolutions)
-        ktraj = _generate_stacks_for_traj(ktraj, nstacks, nspokes, spokelength)
+        ktraj = _generate_stacks_for_traj(ktraj, nstacks, nspokes)
         traj = tf.convert_to_tensor(ktraj, dtype=tf.float32)[None, ...]
         return traj
     traj = tf.py_function(
