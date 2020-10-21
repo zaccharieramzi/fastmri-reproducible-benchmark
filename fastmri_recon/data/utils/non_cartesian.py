@@ -11,9 +11,10 @@ def _rotation(ps, nstacks, nspokes):
     return np.vstack([p0, p1, ps[-1]])
 
 def _generate_stacks_for_traj(ktraj, nstacks, nspokes, spokelength):
+    n_measurements = ktraj.shape[-1]
     ktraj = np.tile(ktraj, [1, nstacks])
     z_locations = np.linspace(-0.5, 0.5, nstacks) * np.pi
-    z_locations = np.repeat(z_locations, spokelength * nspokes)
+    z_locations = np.repeat(z_locations, n_measurements)
     ktraj = np.concatenate([ktraj, z_locations[None, :]], axis=0)
     ktraj = _rotation(ktraj, nstacks, nspokes)
     return ktraj
