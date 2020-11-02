@@ -29,6 +29,7 @@ def evaluate_xpdnet_denoising(
         contrast=contrast,
         slice_random=True,
         scale_factor=1e4,
+        force_determinism=True,
     ).preprocessed_ds
     val_set = val_set.take(n_samples)
 
