@@ -131,7 +131,7 @@ class Vnet(Model):
             scales.append(outputs)
             outputs = self.down(outputs)
         outputs = self.bottom_conv(outputs)
-        for scale, conv, up in zip(scales, self.up_convs[::-1], self.ups[::-1]):
+        for scale, conv, up in zip(scales[::-1], self.up_convs[::-1], self.ups[::-1]):
             outputs = up(outputs)
             outputs = tf.concat([outputs, scale], axis=-1)
             outputs = conv(outputs)
