@@ -34,6 +34,7 @@ def train_updnet(
         fixed_masks=False,
         n_epochs_original=250,
         equidistant_fake=False,
+        mask_type=None,
     ):
     if brain:
         n_volumes = brain_n_volumes_train
@@ -66,13 +67,14 @@ def train_updnet(
     # generators
     if multicoil:
         dataset = multicoil_dataset
-        if brain:
-            if equidistant_fake:
-                mask_type = 'equidistant_fake'
+        if mask_type is None:
+            if brain:
+                if equidistant_fake:
+                    mask_type = 'equidistant_fake'
+                else:
+                    mask_type = 'equidistant'
             else:
-                mask_type = 'equidistant'
-        else:
-            mask_type = 'random'
+                mask_type = 'random'
         kwargs = {
             'parallel': False,
             'output_shape_spec': brain,
