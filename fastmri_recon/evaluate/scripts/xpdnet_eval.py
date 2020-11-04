@@ -30,6 +30,7 @@ def evaluate_xpdnet(
         n_samples=None,
         cuda_visible_devices='0123',
         equidistant_fake=False,
+        mask_type=None,
     ):
     if multicoil:
         if brain:
@@ -55,13 +56,14 @@ def evaluate_xpdnet(
 
     if multicoil:
         dataset = multicoil_dataset
-        if brain:
-            if equidistant_fake:
-                mask_type = 'equidistant_fake'
+        if mask_type is None:
+            if brain:
+                if equidistant_fake:
+                    mask_type = 'equidistant_fake'
+                else:
+                    mask_type = 'equidistant'
             else:
-                mask_type = 'equidistant'
-        else:
-            mask_type = 'random'
+                mask_type = 'random'
         kwargs = {
             'parallel': False,
             'output_shape_spec': brain,

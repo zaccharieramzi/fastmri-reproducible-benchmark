@@ -28,6 +28,7 @@ def evaluate_updnet(
         cuda_visible_devices='0123',
         verbose=False,
         equidistant_fake=False,
+        mask_type=None,
     ):
     if verbose:
         print(f'Evaluating {run_id}')
@@ -58,13 +59,14 @@ def evaluate_updnet(
 
     if multicoil:
         dataset = multicoil_dataset
-        if brain:
-            if equidistant_fake:
-                mask_type = 'equidistant_fake'
+        if mask_type is None:
+            if brain:
+                if equidistant_fake:
+                    mask_type = 'equidistant_fake'
+                else:
+                    mask_type = 'equidistant'
             else:
-                mask_type = 'equidistant'
-        else:
-            mask_type = 'random'
+                mask_type = 'random'
         kwargs = {
             'parallel': False,
             'output_shape_spec': brain,
