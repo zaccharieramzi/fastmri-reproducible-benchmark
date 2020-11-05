@@ -46,6 +46,7 @@ def test_ncpdnet_init_and_call_3d(dcomp):
         im_size=volume_shape,
         three_d=True,
         dcomp=dcomp,
+        fastmri=False,
     )
     af = 16
     traj = get_stacks_of_radial_trajectory(volume_shape, af=af)
