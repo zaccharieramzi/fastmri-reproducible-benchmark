@@ -6,8 +6,8 @@ runstats
 nibabel
 Pillow
 tensorflow == 2.2
-tensorflow-io >= 0.12, < 0.15
 tensorflow-addons >= 0.9.1
 click
 tfkbnufft >= 0.1.2
 pygrappa
+tf-fastmri-data >= 0.0.2
