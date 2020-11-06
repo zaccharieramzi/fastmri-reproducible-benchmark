@@ -66,5 +66,5 @@ class Metrics:
         stddevs = self.stddevs()
         metric_names = sorted(list(means))
         return ' '.join(
-            f'{name} = {means[name]:.4g} +/- {2 * stddevs[name]:.4g}' for name in metric_names
+            f'{name} = {means[name]:.4g} +/- {stddevs[name]:.4g}' for name in metric_names
         )
