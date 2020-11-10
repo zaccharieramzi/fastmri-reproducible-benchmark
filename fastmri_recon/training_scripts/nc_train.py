@@ -18,7 +18,8 @@ from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
 
 
-n_volumes_train = 973
+n_volumes_train_fastmri = 973
+n_volumes_train_oasis = 3273
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
@@ -41,12 +42,14 @@ def train_ncnet(
         **acq_kwargs,
     ):
     # paths
+    n_volumes_train = n_volumes_train_fastmri
     if multicoil:
         train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     elif three_d:
         train_path = f'{OASIS_DATA_DIR}/train/'
         val_path = f'{OASIS_DATA_DIR}/val/'
+        n_volumes_train = n_volumes_train_oasis
     else:
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
