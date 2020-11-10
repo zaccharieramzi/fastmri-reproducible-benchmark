@@ -35,9 +35,12 @@ def test_ncpdnet_init_and_call_multicoil(ktraj):
         (tf.constant([image_shape[-1]]),),
     ])
 
-@pytest.mark.parametrize('dcomp', [True, False])
-def test_ncpdnet_init_and_call_3d(dcomp):
-    volume_shape = (176, 32, 32)
+@pytest.mark.parametrize('dcomp, volume_shape', [
+    (True, (176, 32, 32)),
+    (True, (32, 32, 32)),
+    (False, (176, 32, 32)),
+])
+def test_ncpdnet_init_and_call_3d(dcomp, volume_shape):
     model = NCPDNet(
         n_iter=1,
         n_primal=2,
