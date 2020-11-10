@@ -177,7 +177,7 @@ def train_ncpdnet(
         'dcomp': dcomp,
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
-        'fastmri': False,
+        'fastmri': not three_d,
     }
 
     if multicoil:
