@@ -28,7 +28,7 @@ def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_ty
         # need to add batch and coil dimension to the volume
         nc_kspace = nufft(nfft_ob, volume[None, None, ...], traj, volume_size)
         nc_kspace_scaled = nc_kspace * scale_factor
-        volume_scaled = volume * scale_factor
+        volume_scaled = tf.abs(volume * scale_factor)
         volume_channeled = volume_scaled[None, ..., None]
         nc_kspaces_channeled = nc_kspace_scaled[..., None]
         orig_shape = tf.shape(volume)[None, ...]
