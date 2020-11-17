@@ -58,3 +58,16 @@ def decode_example(raw_record, compute_dcomp=False):
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
     return model_inputs, model_outputs
+
+def get_extension_for_acq(
+        volume_size=(256, 256, 256),
+        scale_factor=1,
+        acq_type='radial_stacks',
+        **acq_kwargs,
+    ):
+    if volume_size != (256, 256, 256):
+        raise ValueError(f'Volume size should be (256, 256, 256) and is {volume_size}')
+    if scale_factor != 1e-2:
+        raise ValueError(f'Scale factor should be 1e-2 and is {scale_factor}')
+    af = acq_kwargs['af']
+    return f'_{acq_type}_af{af}'
