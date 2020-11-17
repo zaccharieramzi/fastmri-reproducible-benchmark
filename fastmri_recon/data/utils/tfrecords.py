@@ -46,7 +46,7 @@ def decode_example(raw_record, compute_dcomp=False):
         'volume': feature_decode(),
     }
     if compute_dcomp:
-        features['dcomp'] = feature()
+        features['dcomp'] = feature_decode()
     example = tf.io.parse_example(raw_record, features=features)
     example_parsed = {
         k: tf.io.parse_tensor(tensor, TENSOR_DTYPES[k])
