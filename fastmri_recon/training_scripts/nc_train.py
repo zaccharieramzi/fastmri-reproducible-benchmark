@@ -288,6 +288,7 @@ def train_ncnet_multinet(
         multicoil=False,
         model='pdnet',
         acq_type='radial',
+        scale_factor=1e6,
         three_d=False,
         dcomp=False,
         n_filters=None,
@@ -324,6 +325,7 @@ def train_ncnet_multinet(
         loss=loss,
         multicoil=multicoil,
         acq_type=acq_type,
+        scale_factor=scale_factor,
         three_d=three_d,
         **add_kwargs,
     )
