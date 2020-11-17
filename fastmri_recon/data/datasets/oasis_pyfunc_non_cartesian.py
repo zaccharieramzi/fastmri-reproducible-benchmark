@@ -27,16 +27,18 @@ def train_nc_kspace_dataset_from_indexable(
         n_samples=None,
         acq_type='radial_stacks',
         compute_dcomp=False,
+        shuffle=True,
         **acq_kwargs,
     ):
     files_ds = tf.data.Dataset.list_files(f'{path}*.nii.gz', shuffle=False)
     # this makes sure the file selection is happening once when using less than
     # all samples
-    files_ds = files_ds.shuffle(
-        buffer_size=1000,
-        seed=0,
-        reshuffle_each_iteration=False,
-    )
+    if shuffle:
+        files_ds = files_ds.shuffle(
+            buffer_size=1000,
+            seed=0,
+            reshuffle_each_iteration=False,
+        )
     volume_ds = files_ds.map(
         _tf_filename_to_volume,
         num_parallel_calls=3,
