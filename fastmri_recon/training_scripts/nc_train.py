@@ -31,6 +31,7 @@ def train_ncnet(
         multicoil=False,
         three_d=False,
         acq_type='radial',
+        scale_factor=1e6,
         dcomp=False,
         contrast=None,
         cuda_visible_devices='0123',
@@ -88,7 +89,7 @@ def train_ncnet(
         image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        scale_factor=1e6,
+        scale_factor=scale_factor,
         n_samples=n_samples,
         **add_kwargs
     )
@@ -97,7 +98,7 @@ def train_ncnet(
         image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        scale_factor=1e6,
+        scale_factor=scale_factor,
         **add_kwargs
     )
 
@@ -377,6 +378,13 @@ def train_ncnet_multinet(
     help='The trajectory to use.'
 )
 @click.option(
+    'scale_factor',
+    '-sf',
+    type=float,
+    default=1e6,
+    help='The scale factor to use.'
+)
+@click.option(
     'three_d',
     '-3d',
     is_flag=True,
@@ -407,6 +415,7 @@ def train_ncnet_click(
         multicoil=multicoil,
         model=model,
         acq_type=acq_type,
+        scale_factor=scale_factor,
         three_d=three_d,
         dcomp=dcomp,
     )
