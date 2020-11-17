@@ -35,15 +35,15 @@ def encode_example(model_inputs, model_outputs, compute_dcomp=False):
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
 
-def feature():
+def feature_decode():
     return tf.io.FixedLenFeature(shape=(), dtype=tf.string)
 
 def decode_example(raw_record, compute_dcomp=False):
     features = {
-        'kspace': feature(),
-        'ktraj': feature(),
-        'output_shape': feature(),
-        'volume': feature(),
+        'kspace': feature_decode(),
+        'ktraj': feature_decode(),
+        'output_shape': feature_decode(),
+        'volume': feature_decode(),
     }
     if compute_dcomp:
         features['dcomp'] = feature()
