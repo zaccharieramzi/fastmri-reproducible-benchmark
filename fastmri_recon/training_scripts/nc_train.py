@@ -406,6 +406,7 @@ def train_ncnet_click(
         multicoil,
         model,
         acq_type,
+        scale_factor,
         three_d,
         dcomp,
     ):
