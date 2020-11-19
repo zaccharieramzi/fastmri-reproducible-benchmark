@@ -12,6 +12,7 @@ def train_nc_kspace_dataset_from_tfrecords(
         scale_factor=1,
         acq_type='radial_stacks',
         compute_dcomp=False,
+        n_samples=None,
         **acq_kwargs,
     ):
     pattern = get_extension_for_acq(
@@ -25,6 +26,8 @@ def train_nc_kspace_dataset_from_tfrecords(
         filenames,
         num_parallel_reads=tf.data.experimental.AUTOTUNE,
     )
+    if n_samples is not None:
+        raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
         partial(decode_example, compute_dcomp=compute_dcomp),
         num_parallel_reads=3,
