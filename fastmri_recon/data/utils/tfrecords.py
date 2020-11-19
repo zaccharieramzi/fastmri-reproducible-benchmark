@@ -6,7 +6,7 @@ TENSOR_DTYPES = {
     'ktraj': tf.float32,
     'output_shape': tf.int32,
     'volume': tf.float32,
-    'dcomp': tf.complex64,
+    'dcomp': tf.float32,
 }
 
 ## From
