@@ -54,7 +54,7 @@ def decode_example(raw_record, compute_dcomp=False):
     }
     extra_args = (example_parsed['output_shape'],)
     if compute_dcomp:
-        extra_args += (example_parsed['dcomp'])
+        extra_args += (example_parsed['dcomp'],)
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
     return model_inputs, model_outputs
