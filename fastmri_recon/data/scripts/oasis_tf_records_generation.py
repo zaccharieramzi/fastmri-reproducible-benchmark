@@ -13,14 +13,14 @@ def generate_oasis_tf_records(acq_type='radial_stacks', af=4, mode='train'):
     volume_size = (256, 256, 256)
     with tf.device('/gpu:0'):
         preprocessed_dataset = three_d_dataset(
-            str(path),
+            str(path) + '/',
             volume_size,
             acq_type=acq_type,
             compute_dcomp=True,
             scale_factor=scale_factor,
             af=af,
         )
-    files_ds = tf.data.Dataset.list_files(f'{str(path)}*.nii.gz', shuffle=False)
+    files_ds = tf.data.Dataset.list_files(f'{str(path)}/*.nii.gz', shuffle=False)
     extension = get_extension_for_acq(
         volume_size,
         acq_type=acq_type,
