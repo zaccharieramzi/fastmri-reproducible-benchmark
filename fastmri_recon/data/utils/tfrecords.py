@@ -4,7 +4,7 @@ import tensorflow as tf
 TENSOR_DTYPES = {
     'kspace': tf.complex64,
     'ktraj': tf.float32,
-    'output_shape': tf.uint8,
+    'output_shape': tf.int32,
     'volume': tf.float32,
     'dcomp': tf.complex64,
 }
