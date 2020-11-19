@@ -19,8 +19,10 @@ def generate_oasis_tf_records(acq_type='radial_stacks', af=4, mode='train'):
             compute_dcomp=True,
             scale_factor=scale_factor,
             af=af,
+            shuffle=False,
         )
     files_ds = tf.data.Dataset.list_files(f'{str(path)}/*.nii.gz', shuffle=False)
+    n_files = len(list(path.glob('*.nii.gz')))
     extension = get_extension_for_acq(
         volume_size,
         acq_type=acq_type,
@@ -29,10 +31,10 @@ def generate_oasis_tf_records(acq_type='radial_stacks', af=4, mode='train'):
         af=af,
     )
     extension = extension + '.tfrecords'
-    for (model_inputs, model_outputs), filename in zip(preprocessed_dataset, files_ds):
-        filename = Path(filename.numpy())
+    for (model_inputs, model_outputs), filename in zip(preprocessed_dataset.take(n_files), files_ds):
+        filename = Path(filename.numpy().decode('utf-8'))
         directory = filename.parent
-        filename_tfrecord = directory / filename.stem + extension
-        with tf.io.TFRecordWriter(filename_tfrecord) as writer:
+        filename_tfrecord = directory / (filename.stem + extension)
+        with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_example(model_inputs, model_outputs, compute_dcomp=True)
             writer.write(example)
