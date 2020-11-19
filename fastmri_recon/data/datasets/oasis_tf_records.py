@@ -30,6 +30,6 @@ def train_nc_kspace_dataset_from_tfrecords(
         raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
         partial(decode_example, compute_dcomp=compute_dcomp),
-        num_parallel_reads=3,
-    ).repeat().prefetch(buffer_size=3)
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     return volume_ds
