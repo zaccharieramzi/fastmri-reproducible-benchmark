@@ -57,6 +57,7 @@ def decode_example(raw_record, compute_dcomp=False):
         extra_args += (example_parsed['dcomp'],)
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
+    model_outputs = model_outputs[None]
     return model_inputs, model_outputs
 
 def get_extension_for_acq(
