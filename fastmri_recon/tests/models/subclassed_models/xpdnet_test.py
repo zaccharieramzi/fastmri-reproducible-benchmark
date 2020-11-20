@@ -5,11 +5,11 @@ from fastmri_recon.models.subclassed_models.denoisers.mwcnn import MWCNN
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 
 
-@pytest.mar.parametrize('primal_only, n_dual', [
+@pytest.mark.parametrize('primal_only, n_dual', [
     (False, 1),
     (True, 2),
 ])
-def test_xpdnet():
+def test_xpdnet(primal_only, n_dual):
     n_primal = 2
     n_scales = 3
     submodel_kwargs = dict(
@@ -30,6 +30,8 @@ def test_xpdnet():
         n_iter=2,
         multicoil=True,
         n_scales=n_scales,
+        primal_only=primal_only,
+        n_dual=n_dual,
     )
     model([
         tf.zeros([1, 5, 640, 320, 1], dtype=tf.complex64),  # kspace
