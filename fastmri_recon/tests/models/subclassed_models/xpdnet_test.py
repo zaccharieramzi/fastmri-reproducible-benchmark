@@ -1,9 +1,14 @@
+import pytest
 import tensorflow as tf
 
 from fastmri_recon.models.subclassed_models.denoisers.mwcnn import MWCNN
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 
 
+@pytest.mar.parametrize('primal_only, n_dual', [
+    (False, 1),
+    (True, 2),
+])
 def test_xpdnet():
     n_primal = 2
     n_scales = 3
