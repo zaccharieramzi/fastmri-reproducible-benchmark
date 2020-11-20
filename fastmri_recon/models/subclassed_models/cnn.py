@@ -13,6 +13,7 @@ class CNNComplex(Model):
             n_output_channels=1,
             activation='relu',
             res=True,
+            multicoil=False,
             **kwargs,
         ):
         super(CNNComplex, self).__init__(**kwargs)
@@ -21,6 +22,7 @@ class CNNComplex(Model):
         self.n_output_channels = n_output_channels
         self.activation = activation
         self.res = res
+        self.multicoil = multicoil
         # TODO: maybe have a way to specify non linearity
         self.convs = [
             Conv2D(
@@ -42,10 +44,23 @@ class CNNComplex(Model):
 
     def call(self, inputs):
         outputs = inputs
+        if self.multicoil:
+            kspace_shape = tf.shape(outputs)
+            batch_size = kspace_shape[0]
+            n_coils = kspace_shape[1]
+            outputs = tf.reshape(
+                outputs,
+                [batch_size * n_coils, kspace_shape[2], kspace_shape[3], -1],
+            )
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         for conv in self.convs:
             outputs = conv(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
+        if self.multicoil:
+            outputs = tf.reshape(
+                outputs,
+                [batch_size, n_coils,  kspace_shape[2], kspace_shape[3], -1],
+            )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         return outputs
