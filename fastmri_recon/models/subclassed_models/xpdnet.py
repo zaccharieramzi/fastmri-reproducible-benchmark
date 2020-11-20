@@ -1,4 +1,5 @@
 from .multiscale_complex import  MultiscaleComplex
+from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
 from ..utils.fourier import FFT, IFFT
 
@@ -44,7 +45,10 @@ class XPDNet(CrossDomainNet):
             res=False,
             n_scales=0,
             n_primal=5,
+            n_dual=1,
+            n_dual_filters=16,
             n_iter=10,
+            primal_only=True,
             multicoil=False,
             refine_smaps=False,
             **kwargs,
@@ -54,16 +58,19 @@ class XPDNet(CrossDomainNet):
         self.res = res
         self.n_scales = n_scales
         self.n_primal = n_primal
+        self.n_dual = n_dual
+        self.n_dual_filters = n_dual_filters
         self.n_iter = n_iter
+        self.primal_only = primal_only
         self.multicoil = multicoil
         self.refine_smaps = refine_smaps
         super(XPDNet, self).__init__(
             domain_sequence='KI'*self.n_iter,
             data_consistency_mode='measurements_residual',
             i_buffer_mode=True,
-            k_buffer_mode=False,
+            k_buffer_mode=not self.primal_only,
             i_buffer_size=self.n_primal,
-            k_buffer_size=1,
+            k_buffer_size=self.n_dual,
             multicoil=self.multicoil,
             refine_smaps=self.refine_smaps,
             **kwargs,
@@ -78,7 +85,21 @@ class XPDNet(CrossDomainNet):
             n_scales=self.n_scales,
             name=f'image_net_{i}',
         ) for i in range(self.n_iter)]
-        self.kspace_net = [measurements_residual for i in range(self.n_iter)]
+        if not self.primal_only:
+            # TODO: make sure in multicoil this can handle the coils
+            self.kspace_net = [CNNComplex(
+                n_convs=3,
+                n_filters=self.n_dual_filters,
+                n_output_channels=self.n_dual,
+                activation='relu',
+                res=True,
+                multicoil=self.multicoil,
+                name=f'kspace_net_{i}',
+            ) for i in range(self.n_iter)]
+        else:
+            # TODO: check n dual
+            # TODO: code small diff function
+            self.kspace_net = [measurements_residual for i in range(self.n_iter)]
 
 
 def measurements_residual(concatenated_kspace):
