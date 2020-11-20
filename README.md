@@ -15,7 +15,19 @@ The reconstruction algorithms implemented or adapted to the fastMRI dataset incl
 - [XPDNet](https://arxiv.org/abs/2010.07290), a modular unrolled reconstruction algorithm, in which you can plug your best denoiser.
 
 All the neural networks are implemented in TensorFlow with the Keras API.
+The older ones (don't judge this was the beginning of my thesis) are coded using the functional API.
+The more recent ones are coded in the subclassed API and are more modular.
 For the LORAKS reconstruction, you will not be able to reconstruct the proper fastMRI data because of the A/D oversampling.
+
+## Reconstruction settings
+
+The main reconstruction settings are cartesian single-coil and multi-coil 2D reconstruction with random and "periodic sampling".
+These settings are covered by almost all the networks in this repo, mainly because they are the settings of the fastMRI challenge.
+
+### Other reconstruction settings
+
+*Non-cartesian*: you can reconstruct non-cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
+It relies on the TensorFlow implementation of the NUFFT, [`tfkbnufft`](https://github.com/zaccharieramzi/tfkbnufft).
 
 
 ## How to train the neural networks
@@ -64,3 +76,4 @@ If you use this package or parts of it, please cite one of the following work:
 - [Benchmarking Deep Nets MRI Reconstruction Models on the FastMRI Publicly Available Dataset](https://hal.inria.fr/hal-02436223)
 - [Benchmarking MRI Reconstruction Neural Networks on Large Public Datasets](https://www.mdpi.com/2076-3417/10/5/1816)
 - [XPDNet for MRI Reconstruction: an Application to the fastMRI 2020 Brain Challenge](https://arxiv.org/abs/2010.07290)
+- Density Compensated Unrolled Networks for Non-Cartesian MRI Reconstruction, submitted to ISBI 2021
