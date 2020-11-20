@@ -46,6 +46,9 @@ def train_xpdnet(
         equidistant_fake=False,
         multi_gpu=False,
         mask_type=None,
+        primal_only=True,
+        n_dual=1,
+        n_dual_filters=16,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -192,6 +195,9 @@ def train_xpdnet(
         'output_shape_spec': brain,
         'multi_gpu': multi_gpu,
         'refine_big': refine_big,
+        'primal_only': primal_only,
+        'n_dual': n_dual,
+        'n_dual_filters': n_dual_filters,
     }
 
     if multicoil:

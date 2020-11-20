@@ -31,6 +31,9 @@ def evaluate_xpdnet(
         cuda_visible_devices='0123',
         equidistant_fake=False,
         mask_type=None,
+        primal_only=True,
+        n_dual=1,
+        n_dual_filters=16,
     ):
     if multicoil:
         if brain:
@@ -52,6 +55,9 @@ def evaluate_xpdnet(
         'res': res,
         'output_shape_spec': brain,
         'refine_big': refine_big,
+        'primal_only': primal_only,
+        'n_dual': n_dual,
+        'n_dual_filters': n_dual_filters,
     }
 
     if multicoil:

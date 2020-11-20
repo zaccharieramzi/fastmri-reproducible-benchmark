@@ -29,6 +29,9 @@ def xpdnet_inference(
         refine_big=False,
         n_samples=None,
         cuda_visible_devices='0123',
+        primal_only=True,
+        n_dual=1,
+        n_dual_filters=16,
     ):
     if brain:
         if challenge:
@@ -50,6 +53,9 @@ def xpdnet_inference(
         'refine_big': refine_big,
         'res': res,
         'output_shape_spec': brain,
+        'primal_only': primal_only,
+        'n_dual': n_dual,
+        'n_dual_filters': n_dual_filters,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(
