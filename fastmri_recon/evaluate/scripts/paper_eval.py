@@ -2,7 +2,6 @@ from pathlib import Path
 import time
 
 import click
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -20,10 +19,6 @@ from fastmri_recon.models.functional_models.old_unet import unet
 from fastmri_recon.models.utils.non_linearities import lrelu
 
 np.random.seed(0)
-
-
-plt.rcParams['figure.figsize'] = (9, 5)
-plt.rcParams['image.cmap'] = 'gray'
 
 def evaluate_paper(contrast=None, n_samples=None):
     AF = 4
