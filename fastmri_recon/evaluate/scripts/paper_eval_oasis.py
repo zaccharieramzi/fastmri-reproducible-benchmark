@@ -28,7 +28,7 @@ np.random.seed(0)
 def evaluate_paper_oasis(n_samples=200):
     AF = 4
     # paths
-    train_path = Path(OASIS_DATA_DIR) / 'OASIS_data'
+    train_path = str(Path(OASIS_DATA_DIR) / 'OASIS_data')
     train_gen = Masked2DSequence(
         train_path,
         af=AF,
