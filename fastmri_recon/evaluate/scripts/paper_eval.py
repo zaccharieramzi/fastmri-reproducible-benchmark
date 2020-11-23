@@ -5,7 +5,7 @@ import click
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from tqdm import tqdm_notebook
+from tqdm import tqdm
 
 from fastmri_recon.config import FASTMRI_DATA_DIR
 from fastmri_recon.data.sequences.fastmri_sequences import ZeroFilled2DSequence, Masked2DSequence
@@ -124,9 +124,9 @@ def evaluate_paper(contrast=None, n_samples=None):
         metrics = Metrics(METRIC_FUNCS)
         pred_and_gt = [
             reco_function(*val_gen[i], model)
-            for i in tqdm_notebook(range(len(val_gen)), desc=f'Val files for {name}')
+            for i in tqdm(range(len(val_gen)), desc=f'Val files for {name}')
         ]
-        for im_recos, images in tqdm_notebook(pred_and_gt, desc=f'Stats for {name}'):
+        for im_recos, images in tqdm(pred_and_gt, desc=f'Stats for {name}'):
             metrics.push(images, im_recos)
         return metrics
 
@@ -134,9 +134,9 @@ def evaluate_paper(contrast=None, n_samples=None):
         metrics = Metrics(METRIC_FUNCS)
         pred_and_gt = [
             reco_and_gt_zfilled_from_val_file(*val_gen_scaled[i])
-            for i in tqdm_notebook(range(len(val_gen_scaled)), desc='Val files for z-filled')
+            for i in tqdm(range(len(val_gen_scaled)), desc='Val files for z-filled')
         ]
-        for im_recos, images in tqdm_notebook(pred_and_gt, desc='Stats for z-filled'):
+        for im_recos, images in tqdm(pred_and_gt, desc='Stats for z-filled'):
             metrics.push(images, im_recos)
         return metrics
 
@@ -185,7 +185,7 @@ def evaluate_paper(contrast=None, n_samples=None):
         return end - start
 
     runtimes = {}
-    for net_params in tqdm_notebook(all_net_params):
+    for net_params in tqdm(all_net_params):
         runtimes[net_params['name']] = runtime_for_params(**net_params)
 
     runtimes['zfilled'] = runtime_zfilled()
