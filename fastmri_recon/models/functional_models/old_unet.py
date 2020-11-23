@@ -1,6 +1,6 @@
 """Largely inspired by https://github.com/zhixuhao/unet/blob/master/model.py"""
-from keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
-from keras.models import Model
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, concatenate, Dropout, UpSampling2D, Input, AveragePooling2D, BatchNormalization, Lambda
+from tensorflow.keras.models import Model
 
 from ..training.compile import default_model_compile
 from ..utils.fastmri_format import tf_fastmri_format
