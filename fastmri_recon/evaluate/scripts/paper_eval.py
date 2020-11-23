@@ -1,6 +1,7 @@
 from pathlib import Path
 import time
 
+import click
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -50,6 +51,7 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
         val_gen_zero.filenames = val_gen_zero.filenames[:n_samples]
         val_gen_scaled.filenames = val_gen_scaled.filenames[:n_samples]
 
+    # TODO: get the correct run ids in function of the AF
     all_net_params = [
         {
             'name': 'unet',
@@ -115,6 +117,7 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
             **dummy_kwargs,
         ):
         model = init_function(**run_params)
+        # TODO: better checkpoints getting
         chkpt_path = f'../checkpoints/{run_id}-{epoch}.hdf5'
         model.load_weights(chkpt_path)
         return model
@@ -213,3 +216,5 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
 
     print(metrics_table)
     return metrics_table
+
+# TODO: code click CLI
