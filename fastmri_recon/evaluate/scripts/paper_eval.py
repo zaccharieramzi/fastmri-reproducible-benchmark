@@ -25,9 +25,8 @@ np.random.seed(0)
 plt.rcParams['figure.figsize'] = (9, 5)
 plt.rcParams['image.cmap'] = 'gray'
 
-def evaluate_paper(AF=4, contrast=None, n_samples=None):
-    if AF not in [4, 8]:
-        raise ValueError(f'AF {AF} not correct.')
+def evaluate_paper(contrast=None, n_samples=None):
+    AF = 4
     if contrast not in [None, 'CORPD_FBK', 'CORPDFS_FBK']:
         raise ValueError(f'Contrast {contrast} is not correct.')
 
@@ -51,7 +50,6 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
         val_gen_zero.filenames = val_gen_zero.filenames[:n_samples]
         val_gen_scaled.filenames = val_gen_scaled.filenames[:n_samples]
 
-    # TODO: get the correct run ids in function of the AF
     all_net_params = [
         {
             'name': 'unet',
@@ -108,7 +106,7 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
             'epoch': 50,
         },
     ]
-
+    checkpoints_path = Path(__file__).parents[2] / 'checkpoints'
     def unpack_model(
             init_function=None,
             run_params=None,
@@ -117,9 +115,8 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
             **dummy_kwargs,
         ):
         model = init_function(**run_params)
-        # TODO: better checkpoints getting
-        chkpt_path = f'../checkpoints/{run_id}-{epoch}.hdf5'
-        model.load_weights(chkpt_path)
+        chkpt_path = checkpoints_path / f'{run_id}-{epoch}.hdf5'
+        model.load_weights(str(chkpt_path))
         return model
 
     def metrics_for_params(reco_function=None, val_gen=None, name=None, **net_params):
@@ -217,4 +214,24 @@ def evaluate_paper(AF=4, contrast=None, n_samples=None):
     print(metrics_table)
     return metrics_table
 
-# TODO: code click CLI
+@click.command()
+@click.option(
+    '-c',
+    '--contrast',
+    default=None,
+    type=str,
+    help='The contrast to consider for the evaluation',
+)
+@click.option(
+    '-n',
+    '--n-samples',
+    default=None,
+    type=int,
+    help='The number of samples to use for the evaluation',
+)
+def evaluate_paper_click(contrast, n_samples):
+    evaluate_paper(contrast, n_samples)
+
+
+if __name__ == '__main__':
+    evaluate_paper_click()
