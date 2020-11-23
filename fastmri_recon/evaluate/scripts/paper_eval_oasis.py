@@ -109,7 +109,7 @@ def evaluate_paper_oasis(n_samples=200):
         },
     ]
 
-    checkpoints_path = Path(__file__).parents[2] / 'checkpoints'
+    checkpoints_path = Path(__file__).parents[3] / 'checkpoints'
     def unpack_model(init_function=None, run_params=None, run_id=None, epoch=300, **dummy_kwargs):
         try:
             model = init_function(input_size=(None, None, 1), fastmri=False, **run_params)

@@ -101,7 +101,7 @@ def evaluate_paper(contrast=None, n_samples=None):
             'epoch': 50,
         },
     ]
-    checkpoints_path = Path(__file__).parents[2] / 'checkpoints'
+    checkpoints_path = Path(__file__).parents[3] / 'checkpoints'
     def unpack_model(
             init_function=None,
             run_params=None,
