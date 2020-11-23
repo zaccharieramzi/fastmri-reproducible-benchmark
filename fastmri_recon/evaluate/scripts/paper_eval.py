@@ -16,7 +16,7 @@ from fastmri_recon.evaluate.reconstruction.unet_reconstruction import reco_and_g
 from fastmri_recon.models.functional_models.cascading import cascade_net
 from fastmri_recon.models.functional_models.kiki_sep import full_kiki_net
 from fastmri_recon.models.functional_models.pdnet import pdnet
-from fastmri_recon.models.functional_models.unet import unet
+from fastmri_recon.models.functional_models.old_unet import unet
 from fastmri_recon.models.utils.non_linearities import lrelu
 
 np.random.seed(0)
