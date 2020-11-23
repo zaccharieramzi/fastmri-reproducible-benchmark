@@ -26,7 +26,7 @@ def evaluate_paper(contrast=None, n_samples=None):
         raise ValueError(f'Contrast {contrast} is not correct.')
 
 
-    val_path = str(Path(FASTMRI_DATA_DIR)/ 'singlecoil_val')
+    val_path = str(Path(FASTMRI_DATA_DIR)/ 'singlecoil_val') + '/'
     val_gen_zero = ZeroFilled2DSequence(
         val_path,
         af=AF,
