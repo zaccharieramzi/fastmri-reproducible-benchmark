@@ -1,6 +1,7 @@
 # fastMRI reproducible benchmark
 
-[![Build status](https://travis-ci.com/zaccharieramzi/fastmri-reproducible-benchmark.svg?branch=master)](https://travis-ci.org/zaccharieramzi/fastmri-reproducible-benchmark)
+[![Travis Build Status](https://travis-ci.com/zaccharieramzi/fastmri-reproducible-benchmark.svg?branch=master)](https://travis-ci.org/zaccharieramzi/fastmri-reproducible-benchmark)
+[![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)]
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master)
 
 The idea of this repository is to have a way to rapidly benchmark new solutions against existing reconstruction algorithms on the fastMRI dataset single-coil track.
@@ -13,6 +14,7 @@ The reconstruction algorithms implemented or adapted to the fastMRI dataset incl
 - [KIKI net](https://www.ncbi.nlm.nih.gov/pubmed/29624729)
 - [Learned Primal Dual](https://arxiv.org/abs/1707.06474), adapted to MRI reconstruction
 - [XPDNet](https://arxiv.org/abs/2010.07290), a modular unrolled reconstruction algorithm, in which you can plug your best denoiser.
+- NCPDNet, an unrolled reconstruction algorithm for non-cartesian acquisitions, with density-compensation.
 
 All the neural networks are implemented in TensorFlow with the Keras API.
 The older ones (don't judge this was the beginning of my thesis) are coded using the functional API.
@@ -26,7 +28,7 @@ These settings are covered by almost all the networks in this repo, mainly becau
 
 ### Other reconstruction settings
 
-*Non-cartesian*: you can reconstruct non-cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
+__Non-cartesian__: you can reconstruct non-cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
 It relies on the TensorFlow implementation of the NUFFT, [`tfkbnufft`](https://github.com/zaccharieramzi/tfkbnufft).
 
 
@@ -43,15 +45,18 @@ pip install -r requirements.txt
 The simplest and most versatile way to write a neural network for reconstruction is to subclass the [`CrossDomainNet` class](fastmri_recon/models/subclassed_models/cross_domain.py).
 An example is the [`PDnet`](fastmri_recon/models/subclassed_models/pdnet.py)
 
-## Note on reproducibility
-Because of changes to the U-net design, the checkpoints for the U-net are not valid for the latest version of the source code (see this [issue](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/issues/104)).
-To reproduce the results you can checkout to the `bcd3fdd` commit (`git checkout bcd3fdd`).
-I am working on a way to make sure this is not needed in the future, by providing an old implementation.
+## Reproducing the results of the paper
+To reproduce the results of the paper for the fastMRI dataset, run the following script (here for the PD contrast):
+```
+python fastmri_recon/evaluate/scripts/paper_eval.py --contrast CORPD_FBK
+```
 
-To reproduce the results of the Benchmarking papers, you will need to use the [`validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/validation_for_net.ipynb) notebook.
-I am also working on a script to make this more seamless.
+To reproduce the results of the paper for the OASIS dataset, run the following script (here for less samples):
+```
+python fastmri_recon/evaluate/scripts/paper_eval_oasis.py --n-samples 100
+```
 
-Finally to reproduce the figures of the Benchmarking papers, you will need to use the [`qualitative_validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/qualitative_validation_for_net.ipynb) notebook.
+Finally to reproduce the figures of the paper, you will need to use the [`qualitative_validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/qualitative_validation_for_net.ipynb) notebook.
 
 # Data requirements
 
