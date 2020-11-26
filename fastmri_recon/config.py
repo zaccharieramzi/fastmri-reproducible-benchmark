@@ -10,8 +10,8 @@ CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', './')
 n_volumes_train = 973
 n_volumes_val = 199
 n_volumes_test = {
-    4: 60,
-    8: 60,
+    4: 50,
+    8: 58,
 }
 
 brain_volumes_per_contrast = {
