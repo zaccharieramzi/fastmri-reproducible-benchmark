@@ -65,7 +65,7 @@ def test_train_xpdnet(create_full_fastmri_test_tmp_dataset, model_fun, model_kwa
         n_iter=1,
     )
 
-def test_train_xpdnet(create_full_fastmri_test_tmp_dataset):
+def test_train_xpdnet_dual(create_full_fastmri_test_tmp_dataset):
     xpdnet_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     xpdnet_train.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']
     xpdnet_train.CHECKPOINTS_DIR = create_full_fastmri_test_tmp_dataset['checkpoints_tmp_dir']
