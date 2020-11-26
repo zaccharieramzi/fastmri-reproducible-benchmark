@@ -50,7 +50,7 @@ class CNNComplex(Model):
             n_coils = kspace_shape[1]
             outputs = tf.reshape(
                 outputs,
-                [batch_size * n_coils, kspace_shape[2], kspace_shape[3], -1],
+                [batch_size * n_coils, kspace_shape[2], kspace_shape[3], inputs.shape[-1]],
             )
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         for conv in self.convs:
@@ -59,7 +59,7 @@ class CNNComplex(Model):
         if self.multicoil:
             outputs = tf.reshape(
                 outputs,
-                [batch_size, n_coils,  kspace_shape[2], kspace_shape[3], -1],
+                [batch_size, n_coils,  kspace_shape[2], kspace_shape[3], self.n_output_channels],
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
