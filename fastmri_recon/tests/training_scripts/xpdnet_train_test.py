@@ -86,7 +86,7 @@ def test_train_xpdnet_dual(create_full_fastmri_test_tmp_dataset):
         n_scales=4,
         n_primal=n_primal,
         res=True,
-        multicoil=False,
+        multicoil=True,
         af=1,
         n_samples=2,
         n_epochs=1,
