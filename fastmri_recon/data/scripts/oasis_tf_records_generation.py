@@ -15,12 +15,13 @@ def generate_oasis_tf_records(
         mode='train',
         shard=0,
         shard_size=3300,
+        slice_size=176,
     ):
     path = Path(OASIS_DATA_DIR) / mode
     filenames = sorted(list(path.glob('*.nii.gz')))
     filenames = filenames[shard*shard_size:(shard+1)*shard_size]
     scale_factor = 1e-2
-    volume_size = (256, 256, 256)
+    volume_size = (slice_size, 256, 256)
     extension = get_extension_for_acq(
         volume_size,
         acq_type=acq_type,
