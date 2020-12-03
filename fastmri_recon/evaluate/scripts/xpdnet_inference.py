@@ -100,17 +100,11 @@ def xpdnet_inference(
         tqdm_total = n_samples
     tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
-    # TODO: change when the following issue has been dealt with
-    # https://github.com/tensorflow/tensorflow/issues/38561
-    @tf.function(experimental_relax_shapes=True)
-    def predict(t):
-        return model(t)
-
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total, desc=tqdm_desc):
-        res = predict(data_example)
+        res = model.predict(data_example, batch_size=16)
         write_result(
             exp_id,
-            res.numpy(),
+            res,
             filename.numpy().decode('utf-8'),
             scale_factor=1e6,
             brain=brain,
