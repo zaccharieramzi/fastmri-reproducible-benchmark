@@ -115,10 +115,14 @@ class IWT(Layer):
             w_range = tf.reshape(w_range, (-1,))
             combo_indices = tf.stack([w_range, h_range], axis=-1)
             combo_reshaped = tf.transpose(x_comb, perm=scatter_nd_perm)
-            outputs_reshaped = tf.tensor_scatter_nd_add(
-                outputs_reshaped,
-                indices=combo_indices,
-                updates=tf.reshape(combo_reshaped, (-1, n_channels, batch_size)),
+            outputs_reshaped =  tf.cond(
+                batch_size > 0,
+                lambda: tf.tensor_scatter_nd_add(
+                    outputs_reshaped,
+                    indices=combo_indices,
+                    updates=tf.reshape(combo_reshaped, (-1, n_channels, batch_size)),
+                ),
+                lambda: outputs_reshaped,
             )
 
         inverse_scatter_nd_perm = [3, 1, 0, 2]
