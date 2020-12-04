@@ -294,6 +294,7 @@ def train_ncnet_multinet(
         n_filters=None,
         n_iter=10,
         normalize_image=False,
+        n_primal=5,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
@@ -304,6 +305,7 @@ def train_ncnet_multinet(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+            'n_primal': n_primal,
         }
     elif model == 'unet':
         if n_filters is None:
