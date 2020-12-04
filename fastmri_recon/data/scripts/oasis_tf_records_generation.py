@@ -2,6 +2,7 @@ from pathlib import Path
 
 import tensorflow as tf
 from tfkbnufft.kbnufft import KbNufftModule
+from tqdm import tqdm
 
 from fastmri_recon.config import OASIS_DATA_DIR
 from fastmri_recon.data.datasets.oasis_preprocessing import non_cartesian_from_volume_to_nc_kspace_and_traj
@@ -43,7 +44,7 @@ def generate_oasis_tf_records(
         compute_dcomp=True,
         af=af,
     )
-    for filename in filenames:
+    for filename in tqdm(filenames):
         volume = from_file_to_volume(filename)
         if volume.shape[0] % 2 != 0:
             continue
