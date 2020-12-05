@@ -29,6 +29,7 @@ def train_xpdnet(
         contrast=None,
         cuda_visible_devices='0123',
         n_samples=None,
+        batch_size=None,
         n_epochs=200,
         checkpoint_epoch=0,
         save_state=False,
@@ -173,6 +174,7 @@ def train_xpdnet(
         scale_factor=1e6,
         n_samples=n_samples,
         fixed_masks=fixed_masks,
+        batch_size=batch_size,
         **kwargs
     )
     val_set = dataset(
@@ -244,21 +246,23 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    if checkpoint_epoch == 0:
-        model = XPDNet(model_fun, model_kwargs, **run_params)
-        if original_run_id is not None:
-            lr = 1e-7
-            n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+    mirrored_strategy = tf.distribute.MirroredStrategy()
+    with mirrored_strategy.scope():
+        if checkpoint_epoch == 0:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            if original_run_id is not None:
+                lr = 1e-7
+                n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+            else:
+                lr = 1e-4
+                n_steps = n_volumes
+            default_model_compile(model, lr=lr, loss=loss, distributed=True)
         else:
-            lr = 1e-4
+            model = load_model(
+                f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+                custom_objects=CUSTOM_TF_OBJECTS,
+            )
             n_steps = n_volumes
-        default_model_compile(model, lr=lr, loss=loss)
-    else:
-        model = load_model(
-            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
-            custom_objects=CUSTOM_TF_OBJECTS,
-        )
-        n_steps = n_volumes
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,

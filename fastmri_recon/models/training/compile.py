@@ -8,10 +8,10 @@ import tensorflow_addons as tfa
 from ...evaluate.metrics.tf_metrics import keras_psnr, keras_ssim
 
 
-def default_model_compile(model, lr, loss='mean_absolute_error'):
+def default_model_compile(model, lr, loss='mean_absolute_error', distributed=False):
     opt_kwargs = {}
     precision_policy = mixed_precision.global_policy()
-    if precision_policy.loss_scale is None:
+    if precision_policy.loss_scale is None and not distributed:
         opt_kwargs['clipnorm'] = 1.
     if loss == 'compound_mssim':
         loss = compound_l1_mssim_loss
