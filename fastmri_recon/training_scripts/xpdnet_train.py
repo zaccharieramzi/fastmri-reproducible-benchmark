@@ -256,7 +256,7 @@ def train_xpdnet(
                 n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
             else:
                 n_steps = n_volumes
-            default_model_compile(model, lr=lr, loss=loss, distributed=True)
+            default_model_compile(model, lr=lr, loss=loss)
         else:
             model = load_model(
                 f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
