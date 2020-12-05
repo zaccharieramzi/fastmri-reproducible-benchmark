@@ -29,6 +29,7 @@ def train_masked_kspace_dataset_from_indexable(
         contrast=None,
         n_samples=None,
         fixed_masks=False,
+        batch_size=None,
     ):
     r"""Dataset for the training/validation set of single coil fastMRI.
 
@@ -125,9 +126,13 @@ def train_masked_kspace_dataset_from_indexable(
             AF=AF,
             scale_factor=scale_factor,
             fixed_masks=fixed_masks,
+            batch_size=batch_size,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    )
+    if batch_size is not None:
+        masked_kspace_ds = masked_kspace_ds.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
+    masked_kspace_ds = masked_kspace_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return masked_kspace_ds
 

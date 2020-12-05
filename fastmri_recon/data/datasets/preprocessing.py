@@ -7,7 +7,7 @@ from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian
 from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
 
 
-def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False):
+def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False, batch_size=None):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
@@ -15,7 +15,10 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_ma
         images_scaled = images * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
-        return (kspaces_channeled, mask), images_channeled
+        if batch_size is not None:
+            return (kspaces_channeled[0], mask[0]), images_channeled[0]
+        else:
+            return (kspaces_channeled, mask), images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_type='radial', scale_factor=1, compute_dcomp=False, **acq_kwargs):
