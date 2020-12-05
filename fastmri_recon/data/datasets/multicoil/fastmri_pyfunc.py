@@ -47,6 +47,7 @@ def train_masked_kspace_dataset_from_indexable(
         fixed_masks=False,
         output_shape_spec=False,
         mask_type='random',
+        batch_size=None,
     ):
     r"""Dataset for the training/validation set of multi-coil fastMRI.
 
@@ -168,9 +169,13 @@ def train_masked_kspace_dataset_from_indexable(
             fixed_masks=fixed_masks,
             output_shape_spec=output_shape_spec,
             mask_type=mask_type,
+            batch_size=batch_size,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
-    ).repeat()
+    )
+    if batch_size is not None:
+        masked_kspace_ds = masked_kspace_ds.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
+    masked_kspace_ds = masked_kspace_ds.repeat()
     if rand or parallel:
         masked_kspace_ds = masked_kspace_ds.prefetch(tf.data.experimental.AUTOTUNE)
 

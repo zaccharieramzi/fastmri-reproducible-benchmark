@@ -15,6 +15,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         fixed_masks=False,
         output_shape_spec=False,
         mask_type='random',
+        batch_size=None,
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         if mask_type == 'random':
@@ -56,6 +57,9 @@ def generic_from_kspace_to_masked_kspace_and_mask(
             output_shape = tf.shape(images)[1:][None, :]
             output_shape = tf.tile(output_shape, [tf.shape(images)[0], 1])
             model_inputs += (output_shape,)
+        if batch_size is not None:
+            images_channeled = images_channeled[0]
+            model_inputs = tuple(mi[0] for mi in model_inputs)
         return model_inputs, images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
