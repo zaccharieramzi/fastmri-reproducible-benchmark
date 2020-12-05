@@ -41,6 +41,7 @@ def train_xpdnet(
         refine_smaps=False,
         refine_big=False,
         loss='mae',
+        lr=1e-4,
         original_run_id=None,
         fixed_masks=False,
         n_epochs_original=250,
@@ -254,7 +255,6 @@ def train_xpdnet(
                 lr = 1e-7
                 n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
             else:
-                lr = 1e-4
                 n_steps = n_volumes
             default_model_compile(model, lr=lr, loss=loss, distributed=True)
         else:
