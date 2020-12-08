@@ -19,6 +19,12 @@ from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
 from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
 
+# this number means that 99.56% of all images will not be affected by
+# cropping
+# TODO: verify this number for brain
+IM_SIZE = (640, 400)
+
+
 def train_xpdnet(
         model_fun,
         model_kwargs,
@@ -176,6 +182,7 @@ def train_xpdnet(
         n_samples=n_samples,
         fixed_masks=fixed_masks,
         batch_size=batch_size,
+        target_image_size=IM_SIZE,
         **kwargs
     )
     val_set = dataset(
