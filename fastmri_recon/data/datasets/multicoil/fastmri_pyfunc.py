@@ -174,7 +174,7 @@ def train_masked_kspace_dataset_from_indexable(
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     )
     if batch_size is not None:
-        masked_kspace_ds = masked_kspace_ds.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
+        masked_kspace_ds = masked_kspace_ds.batch(batch_size)
     masked_kspace_ds = masked_kspace_ds.repeat()
     if rand or parallel:
         masked_kspace_ds = masked_kspace_ds.prefetch(tf.data.experimental.AUTOTUNE)

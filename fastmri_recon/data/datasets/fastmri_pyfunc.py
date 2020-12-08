@@ -131,7 +131,7 @@ def train_masked_kspace_dataset_from_indexable(
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
     if batch_size is not None:
-        masked_kspace_ds = masked_kspace_ds.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
+        masked_kspace_ds = masked_kspace_ds.batch(batch_size)
     masked_kspace_ds = masked_kspace_ds.repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     return masked_kspace_ds
