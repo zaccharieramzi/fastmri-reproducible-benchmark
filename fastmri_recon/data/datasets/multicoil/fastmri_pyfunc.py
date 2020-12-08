@@ -48,6 +48,7 @@ def train_masked_kspace_dataset_from_indexable(
         output_shape_spec=False,
         mask_type='random',
         batch_size=None,
+        target_image_size=(640, 400),
     ):
     r"""Dataset for the training/validation set of multi-coil fastMRI.
 
@@ -170,6 +171,7 @@ def train_masked_kspace_dataset_from_indexable(
             output_shape_spec=output_shape_spec,
             mask_type=mask_type,
             batch_size=batch_size,
+            target_image_size=target_image_size,
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
     )

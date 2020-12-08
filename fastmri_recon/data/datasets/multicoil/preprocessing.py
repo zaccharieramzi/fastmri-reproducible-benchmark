@@ -1,7 +1,9 @@
 import tensorflow as tf
+from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
+from fastmri_recon.data.utils.crop import adjust_image_size
 from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
@@ -16,8 +18,17 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         output_shape_spec=False,
         mask_type='random',
         batch_size=None,
+        target_image_size=(640, 400),
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
+        if batch_size is not None:
+            complex_images = ifft2d(kspaces)
+            complex_images_padded = adjust_image_size(
+                complex_images,
+                target_image_size,
+                multicoil=True,
+            )
+            kspaces = fft2d(complex_images_padded)
         if mask_type == 'random':
             mask = gen_mask_tf(
                 kspaces,
