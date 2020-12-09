@@ -18,13 +18,13 @@ def generic_from_kspace_to_masked_kspace_and_mask(
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         if batch_size is not None:
             fft = FFTBase(False)
-            complex_images = fft.adj_op(kspaces)
+            complex_images = fft.adj_op(kspaces[..., None])[..., 0]
             complex_images_padded = adjust_image_size(
                 complex_images,
                 target_image_size,
                 multicoil=True,
             )
-            kspaces = fft.op(complex_images_padded)
+            kspaces = fft.op(complex_images_padded[..., None])[..., 0]
         mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
