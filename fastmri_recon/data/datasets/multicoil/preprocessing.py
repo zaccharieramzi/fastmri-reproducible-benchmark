@@ -21,7 +21,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         if batch_size is not None:
-            fft = FFTBase(multicoil=True)
+            fft = FFTBase(False, multicoil=True)
             complex_images = fft.adj_op(kspaces)
             complex_images_padded = adjust_image_size(
                 complex_images,
