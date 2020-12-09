@@ -24,8 +24,8 @@ def adjust_image_size(image, target_image_size, multicoil=False):
         target_width,
     )
     if multicoil:
-        final_shape = [n_slices, target_height, target_width]
-    else:
         final_shape = [n_slices, -1, target_height, target_width]
+    else:
+        final_shape = [n_slices, target_height, target_width]
     reshaped_padded_image = tf.reshape(padded_image, final_shape)
     return reshaped_padded_image
