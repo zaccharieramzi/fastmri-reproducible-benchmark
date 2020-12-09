@@ -1,12 +1,11 @@
 import tensorflow as tf
-from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
 from fastmri_recon.data.utils.crop import adjust_image_size
 from ..utils.masking.gen_mask_tf import gen_mask_tf
 from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
-from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
+from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft, FFTBase
 
 
 def generic_from_kspace_to_masked_kspace_and_mask(
@@ -18,13 +17,14 @@ def generic_from_kspace_to_masked_kspace_and_mask(
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
         if batch_size is not None:
-            complex_images = ifft2d(kspaces)
+            fft = FFTBase()
+            complex_images = fft.adj_op(kspaces)
             complex_images_padded = adjust_image_size(
                 complex_images,
                 target_image_size,
                 multicoil=True,
             )
-            kspaces = fft2d(complex_images_padded)
+            kspaces = fft.op(complex_images_padded)
         mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         kspaces_masked = tf.cast(mask, kspaces.dtype) * kspaces
         kspaces_scaled = kspaces_masked * scale_factor
