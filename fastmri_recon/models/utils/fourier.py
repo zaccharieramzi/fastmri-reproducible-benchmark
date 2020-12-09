@@ -36,10 +36,11 @@ def _compute_scaling_norm(x):
     return scaling_norm
 
 class FFTBase(Layer):
-    def __init__(self, masked, multicoil=False, **kwargs):
+    def __init__(self, masked, multicoil=False, use_smaps=True, **kwargs):
         super(FFTBase, self).__init__(**kwargs)
         self.masked = masked
         self.multicoil = multicoil
+        self.use_smaps = use_smaps
         if self.multicoil:
             self.shift_axes = [2, 3]
         else:
@@ -49,6 +50,7 @@ class FFTBase(Layer):
         config = super(FFTBase, self).get_config()
         config.update({'masked': self.masked})
         config.update({'multicoil': self.multicoil})
+        config.update({'use_smaps': self.use_smaps})
         return config
 
     def op(self, inputs):
@@ -64,7 +66,7 @@ class FFTBase(Layer):
                 image = inputs
         image = image[..., 0]
         scaling_norm = _compute_scaling_norm(image)
-        if self.multicoil:
+        if self.multicoil and self.use_smaps:
             image = tf.expand_dims(image, axis=1)
             image = image * smaps
         shifted_image = fftshift(image, axes=self.shift_axes)
@@ -93,7 +95,7 @@ class FFTBase(Layer):
         image_shifted = ifft2d(shifted_kspace)
         image_unnormed = fftshift(image_shifted, axes=self.shift_axes)
         image = image_unnormed * scaling_norm
-        if self.multicoil:
+        if self.multicoil and self.use_smaps:
             image = tf.reduce_sum(image * tf.math.conj(smaps), axis=1)
         image = image[..., None]
         return image
