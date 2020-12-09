@@ -14,7 +14,8 @@ def adjust_image_size(image, target_image_size, multicoil=False):
     height = tf.shape(image)[-2]
     width = tf.shape(image)[-1]
     n_slices = tf.shape(image)[0]
-    reshaped_image = tf.reshape(image, [-1, height, width])
+    reshaped_image = tf.reshape(image, [height, width, -1])  # 3D tensors accepted
+    # with channels dimension last
     target_height = target_image_size[0]
     target_width = target_image_size[1]
     padded_image = tf.image.resize_with_crop_or_pad(
