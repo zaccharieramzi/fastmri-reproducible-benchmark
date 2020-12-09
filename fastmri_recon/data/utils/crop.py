@@ -15,14 +15,16 @@ def adjust_image_size(image, target_image_size, multicoil=False):
     width = tf.shape(image)[-1]
     n_slices = tf.shape(image)[0]
     reshaped_image = tf.reshape(image, [height, width, -1])
+    target_height = target_image_size[0]
+    target_width = target_image_size[1]
     padded_image = tf.image.resize_with_crop_or_pad(
         reshaped_image,
-        target_image_size[0],
-        target_image_size[1],
+        target_height,
+        target_width,
     )
     if multicoil:
-        final_shape = [n_slices, height, width]
+        final_shape = [n_slices, target_height, target_width]
     else:
-        final_shape = [n_slices, -1, height, width]
+        final_shape = [n_slices, -1, target_height, target_width]
     reshaped_padded_image = tf.reshape(padded_image, final_shape)
     return reshaped_padded_image
