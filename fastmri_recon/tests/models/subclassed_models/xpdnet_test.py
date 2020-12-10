@@ -1,5 +1,6 @@
 import pytest
 import tensorflow as tf
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
 from fastmri_recon.models.subclassed_models.denoisers.mwcnn import MWCNN
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
