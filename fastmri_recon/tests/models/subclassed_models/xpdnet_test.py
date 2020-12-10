@@ -9,7 +9,14 @@ from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
     (False, 1),
     (True, 2),
 ])
-def test_xpdnet(primal_only, n_dual):
+@pytest.mark.parametrize('use_mixed_precision', [True, False])
+def test_xpdnet(primal_only, n_dual, use_mixed_precision):
+    if use_mixed_precision:
+        policy_type = 'mixed_float16'
+    else:
+        policy_type = 'float32'
+    policy = mixed_precision.Policy(policy_type)
+    mixed_precision.set_policy(policy)
     n_primal = 2
     n_scales = 3
     submodel_kwargs = dict(
