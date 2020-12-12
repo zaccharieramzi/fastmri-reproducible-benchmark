@@ -96,6 +96,7 @@ class XPDNet(CrossDomainNet):
                 multicoil=self.multicoil,
                 name=f'kspace_net_{i}',
             ) for i in range(self.n_iter)]
+            # TODO: add possibility to use multiscale
         else:
             # TODO: check n dual
             # TODO: code small diff function
