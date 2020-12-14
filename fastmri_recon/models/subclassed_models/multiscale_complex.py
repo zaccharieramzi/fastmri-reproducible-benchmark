@@ -41,6 +41,7 @@ class MultiscaleComplex(Model):
             n_scales=0,
             n_output_channels=1,
             fastmri_format=False,
+            multicoil=False,
             **kwargs,
         ):
         super(MultiscaleComplex, self).__init__(**kwargs)
@@ -52,6 +53,7 @@ class MultiscaleComplex(Model):
         self.fastmri_format = fastmri_format
         if self.fastmri_format:
             self.adj_op = IFFT(masked=False, multicoil=False)
+        self.multicoil = multicoil
         self.model = self.model_fun(**self.model_kwargs)
 
     def call(self, inputs):
@@ -65,7 +67,20 @@ class MultiscaleComplex(Model):
         if self.n_scales > 0:
             outputs, padding = pad_for_pool(inputs, self.n_scales)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
+        if self.multicoil:
+            shape = tf.shape(outputs)
+            batch_size = shape[0]
+            n_coils = shape[1]
+            outputs = tf.reshape(
+                outputs,
+                [batch_size * n_coils, shape[2], shape[3], outputs.shape[-1]],
+            )
         outputs = self.model(outputs)
+        if self.multicoil:
+            outputs = tf.reshape(
+                outputs,
+                [batch_size, n_coils,  shape[2], shape[3], 2*self.n_output_channels],
+            )
         outputs = to_complex(outputs, self.n_output_channels)
         if self.n_scales > 0:
             outputs = tf.cond(
