@@ -105,5 +105,6 @@ class MultiscaleComplex(Model):
             'n_scales': self.n_scales,
             'n_output_channels': self.n_output_channels,
             'fastmri_format': self.fastmri_format,
+            'multicoil': self.multicoil,
         })
         return config
