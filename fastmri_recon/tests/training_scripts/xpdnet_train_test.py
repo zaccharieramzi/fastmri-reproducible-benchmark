@@ -65,7 +65,8 @@ def test_train_xpdnet(create_full_fastmri_test_tmp_dataset, model_fun, model_kwa
         n_iter=1,
     )
 
-def test_train_xpdnet_dual(create_full_fastmri_test_tmp_dataset):
+@pytest.mark.parametrize('multiscale_kspace_learning', [True, False])
+def test_train_xpdnet_dual(create_full_fastmri_test_tmp_dataset, multiscale_kspace_learning):
     xpdnet_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     xpdnet_train.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']
     xpdnet_train.CHECKPOINTS_DIR = create_full_fastmri_test_tmp_dataset['checkpoints_tmp_dir']
@@ -94,4 +95,5 @@ def test_train_xpdnet_dual(create_full_fastmri_test_tmp_dataset):
         primal_only=False,
         n_dual=2,
         n_dual_filters=4,
+        multiscale_kspace_learning=multiscale_kspace_learning,
     )

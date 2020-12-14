@@ -1,3 +1,4 @@
+from fastmri_recon.models.denoisers.didn import DIDN
 from .multiscale_complex import  MultiscaleComplex
 from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
@@ -50,6 +51,7 @@ class XPDNet(CrossDomainNet):
             n_iter=10,
             primal_only=True,
             multicoil=False,
+            multiscale_kspace_learning=False,
             refine_smaps=False,
             **kwargs,
         ):
@@ -63,6 +65,7 @@ class XPDNet(CrossDomainNet):
         self.n_iter = n_iter
         self.primal_only = primal_only
         self.multicoil = multicoil
+        self.multiscale_kspace_learning = multiscale_kspace_learning
         self.refine_smaps = refine_smaps
         super(XPDNet, self).__init__(
             domain_sequence='KI'*self.n_iter,
@@ -86,17 +89,32 @@ class XPDNet(CrossDomainNet):
             name=f'image_net_{i}',
         ) for i in range(self.n_iter)]
         if not self.primal_only:
-            # TODO: make sure in multicoil this can handle the coils
-            self.kspace_net = [CNNComplex(
-                n_convs=3,
-                n_filters=self.n_dual_filters,
-                n_output_channels=self.n_dual,
-                activation='relu',
-                res=True,
-                multicoil=self.multicoil,
-                name=f'kspace_net_{i}',
-            ) for i in range(self.n_iter)]
-            # TODO: add possibility to use multiscale
+            if self.multiscale_kspace_learning:
+                self.kspace_net = [MultiscaleComplex(
+                    model_fun=DIDN,
+                    model_kwargs=dict(
+                        # rather small didn
+                        n_filters=32,
+                        n_dubs=2,
+                        n_convs_recon=3,
+                        n_scales=3,
+                        n_outputs=2*self.n_dual,
+                    ),
+                    res=True,
+                    n_output_channels=self.n_dual,
+                    n_scales=3,
+                    name=f'kspace_net_{i}',
+                ) for i in range(self.n_iter)]
+            else:
+                self.kspace_net = [CNNComplex(
+                    n_convs=3,
+                    n_filters=self.n_dual_filters,
+                    n_output_channels=self.n_dual,
+                    activation='relu',
+                    res=True,
+                    multicoil=self.multicoil,
+                    name=f'kspace_net_{i}',
+                ) for i in range(self.n_iter)]
         else:
             # TODO: check n dual
             # TODO: code small diff function
