@@ -8,7 +8,7 @@ class PostProcessVnet(Model):
         super().__init__(**kwargs)
         self.recon_model = recon_model
         self.recon_model.trainable = False
-        self.postproc_model = Vnet(**vnet_kwargs)
+        self.postproc_model = Vnet(post_processing=True, **vnet_kwargs)
 
     def call(self, inputs):
         outputs = self.recon_model(inputs)
