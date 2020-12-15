@@ -135,7 +135,6 @@ def train_vnet_postproc(
     }
     recon_model = XPDNet(orig_model_fun, orig_model_kwargs, **orig_run_params)
     n_steps = n_volumes
-    default_model_compile(recon_model, lr=lr, loss=loss)
     if os.environ.get('FASTMRI_DEBUG'):
         n_epochs_original = 1
     if multicoil:
@@ -159,6 +158,7 @@ def train_vnet_postproc(
         non_linearity='prelu',
     )
     model = PostProcessVnet(recon_model, run_params)
+    default_model_compile(model, lr=lr, loss=loss)
 
     vnet_type = 'vnet_postproc_'
     if brain:
