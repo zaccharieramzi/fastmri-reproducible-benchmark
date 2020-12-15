@@ -33,7 +33,6 @@ def train_xpdnet(
         brain=False,
         af=4,
         contrast=None,
-        cuda_visible_devices='0123',
         n_samples=None,
         batch_size=None,
         n_epochs=200,
@@ -79,8 +78,6 @@ def train_xpdnet(
             of the data. Defaults to 4.
         contrast (str or None): the contrast used for this specific training.
             If None, all contrasts are considered. Defaults to None
-        cuda_visible_devices (str): the GPUs to consider visible. Defaults to
-            '0123'.
         n_samples (int or None): the number of samples to consider for this
             training. If None, all samples are considered. Defaults to None.
         n_epochs (int): the number of epochs (i.e. one pass though all the
@@ -143,8 +140,6 @@ def train_xpdnet(
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
-
-    os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
 
     # trying mixed precision
