@@ -41,7 +41,7 @@ def feature_decode():
 def set_shapes(data_dict):
     for k, v in data_dict.items():
         if k in 'kspace dcomp'.split():
-            data_dict[k] = tf.reshape(v, [1, 1, -1])
+            data_dict[k] = tf.reshape(v, [1, 1, -1, 1])
         elif k == 'ktraj':
             v.set_shape([1, 3, None])
         elif k == 'volume':
