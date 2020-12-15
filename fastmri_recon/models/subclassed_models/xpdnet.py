@@ -103,6 +103,7 @@ class XPDNet(CrossDomainNet):
                     res=True,
                     n_output_channels=self.n_dual,
                     n_scales=3,
+                    multicoil=True,
                     name=f'kspace_net_{i}',
                 ) for i in range(self.n_iter)]
             else:

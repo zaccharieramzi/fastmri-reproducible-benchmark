@@ -64,23 +64,22 @@ class MultiscaleComplex(Model):
             outputs = self.adj_op(outputs)
             # this is to be consistent for residual connexion
             inputs = outputs
-        if self.n_scales > 0:
-            outputs, padding = pad_for_pool(inputs, self.n_scales)
-        outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         if self.multicoil:
-            shape = tf.shape(outputs)
+            shape = tf.shape(inputs)
             batch_size = shape[0]
             n_coils = shape[1]
+            height = shape[2]
+            width = shape[3]
             outputs = tf.reshape(
-                outputs,
-                [batch_size * n_coils, shape[2], shape[3], outputs.shape[-1]],
+                inputs,
+                [batch_size * n_coils, height, width, inputs.shape[-1]],
             )
+        else:
+            outputs = inputs
+        if self.n_scales > 0:
+            outputs, padding = pad_for_pool(outputs, self.n_scales)
+        outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.model(outputs)
-        if self.multicoil:
-            outputs = tf.reshape(
-                outputs,
-                [batch_size, n_coils,  shape[2], shape[3], 2*self.n_output_channels],
-            )
         outputs = to_complex(outputs, self.n_output_channels)
         if self.n_scales > 0:
             outputs = tf.cond(
@@ -89,6 +88,11 @@ class MultiscaleComplex(Model):
                 tf.reduce_sum(padding) == 0,
                 lambda: outputs,
                 lambda: outputs[:, :, padding[0]:-padding[1]],
+            )
+        if self.multicoil:
+            outputs = tf.reshape(
+                outputs,
+                [batch_size, n_coils, height, width, self.n_output_channels],
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
