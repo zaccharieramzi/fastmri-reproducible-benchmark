@@ -1,4 +1,4 @@
-from fastmri_recon.models.denoisers.didn import DIDN
+from fastmri_recon.models.subclassed_models.denoisers.didn import DIDN
 from .multiscale_complex import  MultiscaleComplex
 from .cnn import  CNNComplex
 from .cross_domain import CrossDomainNet
