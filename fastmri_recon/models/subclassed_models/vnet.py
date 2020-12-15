@@ -78,6 +78,7 @@ class Vnet(Model):
             layers_n_channels=[4],
             layers_n_non_lins=1,
             non_linearity='relu',
+            post_processing=False,
             **kwargs,
         ):
         super().__init__(**kwargs)
@@ -87,6 +88,7 @@ class Vnet(Model):
         self.n_layers = len(self.layers_n_channels)
         self.layers_n_non_lins = layers_n_non_lins
         self.non_linearity = non_linearity
+        self.post_processing = post_processing
         self.down_convs = [
             ConvBlock(
                 n_filters=n_channels,
@@ -125,6 +127,8 @@ class Vnet(Model):
 
     def call(self, inputs):
         scales = []
+        if self.post_processing:
+            inputs = inputs[None]
         outputs = inputs
         for conv in self.down_convs:
             outputs = conv(outputs)
@@ -136,6 +140,8 @@ class Vnet(Model):
             outputs = tf.concat([outputs, scale], axis=-1)
             outputs = conv(outputs)
         outputs = self.final_conv(outputs)
+        if self.post_processing:
+            outputs = outputs[0]
         return outputs
 
 
