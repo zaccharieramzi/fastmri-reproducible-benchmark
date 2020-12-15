@@ -34,6 +34,7 @@ def evaluate_xpdnet(
         primal_only=True,
         n_dual=1,
         n_dual_filters=16,
+        multiscale_kspace_learning=False,
     ):
     if multicoil:
         if brain:
@@ -58,6 +59,7 @@ def evaluate_xpdnet(
         'primal_only': primal_only,
         'n_dual': n_dual,
         'n_dual_filters': n_dual_filters,
+        'multiscale_kspace_learning': multiscale_kspace_learning,
     }
 
     if multicoil:
