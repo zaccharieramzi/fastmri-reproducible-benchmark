@@ -10,6 +10,7 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
 from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.models.subclassed_models.post_processing_3d import PostProcessVnet
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
@@ -49,7 +50,6 @@ def train_vnet_postproc(
         n_dual=1,
         n_dual_filters=16,
         multiscale_kspace_learning=False,
-
     ):
     if brain:
         n_volumes = brain_n_volumes_train
