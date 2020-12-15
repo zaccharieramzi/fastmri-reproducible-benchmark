@@ -16,3 +16,10 @@ class PostProcessVnet(Model):
         outputs = self.postproc_model(outputs)
         outputs = outputs[0]
         return outputs
+
+    def predict_batched(self, inputs, batch_size=1):
+        outputs = self.recon_model.predict(inputs, batch_size=batch_size)
+        outputs = outputs[None]
+        outputs = self.postproc_model.predict_on_batch(outputs)
+        outputs = outputs[0]
+        return outputs
