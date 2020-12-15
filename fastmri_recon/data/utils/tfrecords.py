@@ -47,7 +47,7 @@ def set_shapes(data_dict):
         elif k == 'ktraj':
             v.set_shape([1, 3, None])
         elif k == 'volume':
-            v.set_shape([1, None, None, None, 1])
+            v.set_shape([None, None, None, 1])
     return data_dict
 
 def decode_example(raw_record, compute_dcomp=False):
@@ -70,6 +70,7 @@ def decode_example(raw_record, compute_dcomp=False):
         extra_args += (example_parsed['dcomp'],)
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
+    model_outputs = model_outputs[None]
     return model_inputs, model_outputs
 
 
