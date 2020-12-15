@@ -295,6 +295,7 @@ def train_ncnet_multinet(
         n_iter=10,
         normalize_image=False,
         n_primal=5,
+        use_mixed_precision=False,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
@@ -329,6 +330,7 @@ def train_ncnet_multinet(
         acq_type=acq_type,
         scale_factor=scale_factor,
         three_d=three_d,
+        use_mixed_precision=use_mixed_precision,
         **add_kwargs,
     )
 
