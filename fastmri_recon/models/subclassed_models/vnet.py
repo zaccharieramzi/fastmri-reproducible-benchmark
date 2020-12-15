@@ -52,17 +52,18 @@ class ConvBlock(Layer):
         return outputs
 
 class UpConv(Layer):
-    def __init__(self, n_filters, kernel_size=3, **kwargs):
+    def __init__(self, n_filters, kernel_size=3, post_processing=False, **kwargs):
         super().__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
+        self.post_processing = post_processing
         self.conv = Conv3D(
             filters=self.n_filters,
             kernel_size=self.kernel_size,
             padding='same',
             activation=None,
         )
-        self.up = UpSampling3D(size=(2, 2, 2))
+        self.up = UpSampling3D(size=(1 if self.post_processing else 2, 2, 2))
 
     def call(self, inputs):
         outputs = self.up(inputs)
@@ -78,6 +79,7 @@ class Vnet(Model):
             layers_n_channels=[4],
             layers_n_non_lins=1,
             non_linearity='relu',
+            post_processing=False,
             **kwargs,
         ):
         super().__init__(**kwargs)
@@ -87,6 +89,7 @@ class Vnet(Model):
         self.n_layers = len(self.layers_n_channels)
         self.layers_n_non_lins = layers_n_non_lins
         self.non_linearity = non_linearity
+        self.post_processing = post_processing
         self.down_convs = [
             ConvBlock(
                 n_filters=n_channels,
@@ -95,7 +98,10 @@ class Vnet(Model):
                 n_non_lins=self.layers_n_non_lins,
             ) for n_channels in self.layers_n_channels[:-1]
         ]
-        self.down = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
+        self.down = MaxPooling3D(
+            pool_size=(1 if self.post_processing else 2, 2, 2),
+            padding='same',
+        )
         self.bottom_conv = ConvBlock(
             n_filters=self.layers_n_channels[-1],
             kernel_size=self.kernel_size,
@@ -114,6 +120,7 @@ class Vnet(Model):
             UpConv(
                 n_filters=n_channels,
                 kernel_size=self.kernel_size,
+                post_processing=self.post_processing,
             ) for n_channels in self.layers_n_channels[:-1]
         ]
         self.final_conv = Conv3D(
