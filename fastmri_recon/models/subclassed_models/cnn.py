@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Conv2D, Conv3D
 
 from ..utils.complex import to_complex
 
@@ -14,6 +14,7 @@ class CNNComplex(Model):
             activation='relu',
             res=True,
             multicoil=False,
+            three_d=False,
             **kwargs,
         ):
         super(CNNComplex, self).__init__(**kwargs)
@@ -24,8 +25,13 @@ class CNNComplex(Model):
         self.res = res
         self.multicoil = multicoil
         # TODO: maybe have a way to specify non linearity
+        self.three_d = three_d
+        if self.three_d:
+            conv_class = Conv3D
+        else:
+            conv_class = Conv2D
         self.convs = [
-            Conv2D(
+            conv_class(
                 self.n_filters,
                 3,
                 padding='same',
@@ -34,7 +40,7 @@ class CNNComplex(Model):
             )
             for i in range(self.n_convs-1)
         ]
-        self.convs.append(Conv2D(
+        self.convs.append(conv_class(
             2 * self.n_output_channels,
             3,
             padding='same',
@@ -59,7 +65,7 @@ class CNNComplex(Model):
         if self.multicoil:
             outputs = tf.reshape(
                 outputs,
-                [batch_size, n_coils,  kspace_shape[2], kspace_shape[3], self.n_output_channels],
+                [batch_size, n_coils, kspace_shape[2], kspace_shape[3], self.n_output_channels],
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs

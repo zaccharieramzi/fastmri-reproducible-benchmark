@@ -1,6 +1,11 @@
 # fastmri data
 fastmri_recon/tests/fastmri_data/
 
+# Job queues and container stuff
+*.sif
+dask-worker-space/
+submission_scripts_jean_zay/**/*.out
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

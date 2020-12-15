@@ -1,0 +1,12 @@
+#!/bin/sh
+#PBS -N grappa_fastmri_eval
+#PBS -l select=1:ncpus=16:mem=5gb
+#PBS -l walltime=032:0:00
+#PBS -j oe
+#PBS -q Nspin_long
+
+cd /neurospin/optimed/zramzi/
+
+export grappa_script=/scratch/fastmri-reproducible-benchmark/fastmri_recon/evaluate/scripts/grappa_eval.py
+
+singularity run --cleanenv -B /neurospin/optimed/zramzi/:/scratch fastmri_recon.sif $grappa_script -n 1
