@@ -119,6 +119,7 @@ class CrossDomainNet(Model):
             refine_big=False,
             normalize_image=False,
             multi_gpu=False,
+            fastmri=True,
             output_shape_spec=False,
             **kwargs,
         ):
@@ -149,6 +150,7 @@ class CrossDomainNet(Model):
                 self.n_iter = len(self.domain_sequence) // 2
             else:
                 self.multi_gpu = False
+        self.fastmri = fastmri
         if self.multicoil and self.refine_smaps:
             self.smaps_refiner = UnetComplex(
                 n_layers=n_layers_unet_sens,
@@ -290,9 +292,12 @@ class CrossDomainNet(Model):
                         smaps,
                         *op_args,
                     )
-        # if self.normalize_image:
-        #     image_buffer = image_buffer * normalization_factor
-        image = general_fastmri_format(image_buffer[..., 0:1], output_shape)
+        if self.normalize_image:
+            image_buffer = image_buffer * normalization_factor
+        if self.fastmri:
+            image = general_fastmri_format(image_buffer[..., 0:1], output_shape)
+        else:
+            image = tf.abs(image_buffer[..., 0:1])
         return image
 
     def apply_data_consistency(self, kspace, original_kspace, mask):
@@ -339,6 +344,7 @@ class CrossDomainNet(Model):
             'refine_big': self.refine_big,
             'normalize_image': self.normalize_image,
             'multi_gpu': self.multi_gpu,
+            'fastmri': self.fastmri,
             'output_shape_spec': self.output_shape_spec,
         })
         return config

@@ -9,6 +9,6 @@ module load mkl/19.0.5.281
 pip install --target=$CCCWORKDIR/installed-packages/ --upgrade ./
 
 export FASTMRI_DATA_DIR=$CCCSCRATCHDIR/
-export OASIS_DATA_DIR=$CCCSCRATCHDIR/
+export OASIS_DATA_DIR=$CCCSCRATCHDIR/OASIS_data
 export LOGS_DIR=$CCCSCRATCHDIR/
 export CHECKPOINTS_DIR=$CCCSCRATCHDIR/
