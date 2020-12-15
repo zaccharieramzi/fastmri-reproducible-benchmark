@@ -157,7 +157,6 @@ def train_vnet_postproc(
         layers_n_channels=[16, 32, 64, 128],
         layers_n_non_lins=2,
         non_linearity='prelu',
-        post_processing=True,
     )
     model = PostProcessVnet(recon_model, run_params)
 
