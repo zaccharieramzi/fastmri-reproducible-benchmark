@@ -42,5 +42,6 @@ def test_train_vnet_postproc(create_full_fastmri_test_tmp_dataset):
         af=1,
         n_samples=2,
         n_epochs=1,
+        n_epochs_original=1,
         n_iter=1,
     )
