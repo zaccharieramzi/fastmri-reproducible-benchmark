@@ -298,6 +298,7 @@ class CrossDomainNet(Model):
             image = general_fastmri_format(image_buffer[..., 0:1], output_shape)
         else:
             image = tf.abs(image_buffer[..., 0:1])
+        image = tf.cast(image, tf.float32)
         return image
 
     def apply_data_consistency(self, kspace, original_kspace, mask):
