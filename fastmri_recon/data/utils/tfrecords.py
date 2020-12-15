@@ -38,6 +38,15 @@ def encode_example(model_inputs, model_outputs, compute_dcomp=False):
 def feature_decode():
     return tf.io.FixedLenFeature(shape=(), dtype=tf.string)
 
+def set_shapes(model_inputs, model_outputs):
+    for k, v in model_inputs.items():
+        if k in 'kspace dcomp'.split():
+            model_inputs[k] = tf.reshape(v, [1, 1, -1])
+        elif k == 'ktraj':
+            v.set_shape([1, 3, None])
+    model_outputs.set_shape([1, None, None, None, 1])
+    return model_inputs, model_outputs
+
 def decode_example(raw_record, compute_dcomp=False):
     features = {
         'kspace': feature_decode(),
@@ -58,6 +67,7 @@ def decode_example(raw_record, compute_dcomp=False):
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
     model_outputs = model_outputs[None]
+    model_inputs, model_outputs = set_shapes(model_inputs, model_outputs)
     return model_inputs, model_outputs
 
 
