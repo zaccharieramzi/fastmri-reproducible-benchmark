@@ -38,14 +38,15 @@ def encode_example(model_inputs, model_outputs, compute_dcomp=False):
 def feature_decode():
     return tf.io.FixedLenFeature(shape=(), dtype=tf.string)
 
-def set_shapes(model_inputs, model_outputs):
-    for k, v in model_inputs.items():
+def set_shapes(data_dict):
+    for k, v in data_dict.items():
         if k in 'kspace dcomp'.split():
-            model_inputs[k] = tf.reshape(v, [1, 1, -1])
+            data_dict[k] = tf.reshape(v, [1, 1, -1])
         elif k == 'ktraj':
             v.set_shape([1, 3, None])
-    model_outputs.set_shape([1, None, None, None, 1])
-    return model_inputs, model_outputs
+        elif k == 'volume':
+            v.set_shape([1, None, None, None, 1])
+    return data_dict
 
 def decode_example(raw_record, compute_dcomp=False):
     features = {
@@ -61,13 +62,13 @@ def decode_example(raw_record, compute_dcomp=False):
         k: tf.io.parse_tensor(tensor, TENSOR_DTYPES[k])
         for k, tensor in example.items()
     }
+    example_parsed = set_shapes(example_parsed)
     extra_args = (example_parsed['output_shape'],)
     if compute_dcomp:
         extra_args += (example_parsed['dcomp'],)
     model_inputs = (example_parsed['kspace'], example_parsed['ktraj'], extra_args)
     model_outputs = example_parsed['volume']
     model_outputs = model_outputs[None]
-    model_inputs, model_outputs = set_shapes(model_inputs, model_outputs)
     return model_inputs, model_outputs
 
 
