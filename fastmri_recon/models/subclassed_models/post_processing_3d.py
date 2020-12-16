@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from fastmri_recon.models.subclassed_models.vnet import Vnet
