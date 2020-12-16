@@ -25,8 +25,8 @@ def pad_for_pool_whole_plane(inputs, n_pools):
     paddings_short = [(padding_left[i], padding_right[i]) for i in range(2)]
     paddings = [
         (0, 0),
-        paddings[0],
-        paddings[1],
+        paddings_short[0],
+        paddings_short[1],
         (0, 0),
     ]
     inputs_padded = tf.pad(inputs, paddings)
