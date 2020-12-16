@@ -14,28 +14,28 @@ class PostProcessVnet(Model):
 
     def call(self, inputs):
         outputs = self.recon_model(inputs)
-        outputs, paddings = pad_for_pool_whole_plane(outputs, self.postproc_model.n_layers)
+        orig_shape = tf.shape(outputs)
+        outputs, _ = pad_for_pool_whole_plane(outputs, self.postproc_model.n_layers)
         outputs = outputs[None]
         outputs = self.postproc_model(outputs)
         outputs = outputs[0]
-        outputs = outputs[
-            :,
-            paddings[0][0]:tf.shape(outputs)[1] - paddings[0][1],
-            paddings[1][0]:tf.shape(outputs)[1] - paddings[1][1],
-            :,
-        ]
+        outputs = tf.image.resize_with_crop_or_pad(
+            outputs,
+            orig_shape[1],
+            orig_shape[2],
+        )
         return outputs
 
     def predict_batched(self, inputs, batch_size=1):
         outputs = self.recon_model.predict(inputs, batch_size=batch_size)
-        outputs, paddings = pad_for_pool_whole_plane(tf.constant(outputs), self.postproc_model.n_layers)
+        orig_shape = tf.shape(outputs)
+        outputs, _ = pad_for_pool_whole_plane(tf.constant(outputs), self.postproc_model.n_layers)
         outputs = outputs[None]
         outputs = self.postproc_model.predict_on_batch(outputs)
         outputs = outputs[0]
-        outputs = outputs[
-            :,
-            paddings[0][0]:tf.shape(outputs)[1] - paddings[0][1],
-            paddings[1][0]:tf.shape(outputs)[1] - paddings[1][1],
-            :,
-        ]
-        return outputs
+        outputs = tf.image.resize_with_crop_or_pad(
+            outputs,
+            orig_shape[1],
+            orig_shape[2],
+        )
+        return outputs.numpy()
