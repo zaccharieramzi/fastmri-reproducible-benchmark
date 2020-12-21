@@ -149,7 +149,7 @@ def train_masked_kspace_dataset_from_indexable(
     )
     image_and_kspace_and_contrast_ds = files_ds.map(
         _tf_filename_to_image_and_kspace_and_contrast,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
     # contrast filtering
     if contrast:
@@ -158,7 +158,7 @@ def train_masked_kspace_dataset_from_indexable(
         )
     image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
         lambda image, kspace, tf_contrast: (image, kspace),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
     if n_samples is not None:
         image_and_kspace_ds = image_and_kspace_ds.take(n_samples)
@@ -173,14 +173,15 @@ def train_masked_kspace_dataset_from_indexable(
             batch_size=batch_size,
             target_image_size=target_image_size,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
     if batch_size is not None:
         masked_kspace_ds = masked_kspace_ds.batch(batch_size)
     masked_kspace_ds = masked_kspace_ds.repeat()
     if rand or parallel:
         masked_kspace_ds = masked_kspace_ds.prefetch(tf.data.experimental.AUTOTUNE)
-
+    else:
+        masked_kspace_ds = masked_kspace_ds.prefetch(2)
     return masked_kspace_ds
 
 def test_masked_kspace_dataset_from_indexable(
