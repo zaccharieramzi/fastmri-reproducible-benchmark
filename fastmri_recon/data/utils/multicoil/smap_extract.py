@@ -1,7 +1,8 @@
 from math import pi
 
 import tensorflow as tf
-from tensorflow.python.ops.signal.fft_ops import ifft2d, ifftshift, fftshift
+
+from fastmri_recon.data.utils.fourier import tf_ortho_ifft2d
 
 
 def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
