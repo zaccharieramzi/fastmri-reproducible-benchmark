@@ -57,9 +57,7 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     low_freq_mask = tf.transpose(low_freq_mask, perm=scatter_nd_perm)
     ###
     low_freq_kspace = kspace * tf.cast(low_freq_mask, kspace.dtype)
-    shifted_kspace = ifftshift(low_freq_kspace, axes=[2, 3])
-    coil_image_low_freq_shifted = ifft2d(shifted_kspace)
-    coil_image_low_freq = fftshift(coil_image_low_freq_shifted, axes=[2, 3])
+    coil_image_low_freq = tf_ortho_ifft2d(low_freq_kspace)
     # no need to norm this since they all have the same norm
     low_freq_rss = tf.norm(coil_image_low_freq, axis=1)
     coil_smap = coil_image_low_freq / low_freq_rss[:, None]
