@@ -48,7 +48,6 @@ def generate_postproc_tf_records(
         def call(self, inputs):
             image, kspace = inputs
             return kspace_transform(image, kspace)
-    preproc_model = PreProcModel()
     selection = [
         {'inner_slices': None, 'rand': False},  # slice selection
         {'rand': False, 'keep_dim': False},  # coil selection
@@ -72,6 +71,7 @@ def generate_postproc_tf_records(
     }
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
+        preproc_model = PreProcModel()
         model = XPDNet(model_fun, model_kwargs, **run_params)
         fake_inputs = [
             tf.zeros([1, 15, 640, 372, 1], dtype=tf.complex64),
