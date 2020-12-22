@@ -9,6 +9,7 @@ from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nuf
 from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 
 
+@tf.function
 def generic_from_kspace_to_masked_kspace_and_mask(
         AF=4,
         scale_factor=1,
