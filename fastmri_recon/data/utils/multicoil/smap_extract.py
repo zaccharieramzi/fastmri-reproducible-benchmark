@@ -68,7 +68,7 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     low_freq_rss = tf.cond(
         n_slices > 0,
         lambda: tf.norm(coil_image_low_freq, axis=1),
-        lambda: tf.ones([n_slices, tf.shape(kspace)[2], tf.shape(kspace)[3]]),
+        lambda: tf.ones([n_slices, tf.shape(kspace)[2], tf.shape(kspace)[3]], dtype=coil_image_low_freq.dtype),
     )
 
     coil_smap = coil_image_low_freq / low_freq_rss[:, None]
