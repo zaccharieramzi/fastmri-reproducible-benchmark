@@ -1,17 +1,13 @@
-import os
 import os.path as op
 import time
 
-import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as multicoil_dataset
-from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_dataset_from_indexable as singlecoil_dataset
+from fastmri_recon.data.datasets.multicoil.fastmri_postproc_tf_records import train_postproc_dataset_from_tfrecords
 from fastmri_recon.models.subclassed_models.post_processing_3d import PostProcessVnet
-from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.models.training.compile import default_model_compile
 from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
@@ -23,52 +19,26 @@ IM_SIZE = (640, 400)
 
 
 def train_vnet_postproc(
-        orig_model_fun,
-        orig_model_kwargs,
         original_run_id,
-        multicoil=True,
-        brain=False,
         af=4,
-        contrast=None,
+        brain=False,
         n_samples=None,
         n_epochs=200,
-        n_iter=10,
-        res=True,
-        n_scales=0,
-        n_primal=5,
         use_mixed_precision=False,
-        refine_smaps=False,
-        refine_big=False,
         loss='mae',
         lr=1e-4,
-        fixed_masks=False,
-        n_epochs_original=250,
-        equidistant_fake=False,
-        multi_gpu=False,
-        mask_type=None,
-        primal_only=True,
-        n_dual=1,
-        n_dual_filters=16,
-        multiscale_kspace_learning=False,
     ):
     if brain:
         n_volumes = brain_n_volumes_train
     else:
         n_volumes = n_volumes_train
     # paths
-    if multicoil:
-        if brain:
-            train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
-            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
-        else:
-            train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
-            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+    if brain:
+        train_path = f'{FASTMRI_DATA_DIR}brain_multicoil_train/'
+        val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
     else:
-        train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
-        val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-
-
-    af = int(af)
+        train_path = f'{FASTMRI_DATA_DIR}multicoil_train/'
+        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
 
     # trying mixed precision
     if use_mixed_precision:
@@ -78,95 +48,29 @@ def train_vnet_postproc(
     policy = mixed_precision.Policy(policy_type)
     mixed_precision.set_policy(policy)
     # generators
-    if multicoil:
-        dataset = multicoil_dataset
-        if mask_type is None:
-            if brain:
-                if equidistant_fake:
-                    mask_type = 'equidistant_fake'
-                else:
-                    mask_type = 'equidistant'
-            else:
-                mask_type = 'random'
-        kwargs = {
-            'parallel': False,
-            'output_shape_spec': brain,
-            'mask_type': mask_type,
-        }
-    else:
-        dataset = singlecoil_dataset
-        kwargs = {}
-    train_set = dataset(
+    train_set = train_postproc_dataset_from_tfrecords(
         train_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=False,
-        scale_factor=1e6,
+        original_run_id,
         n_samples=n_samples,
-        fixed_masks=fixed_masks,
-        target_image_size=IM_SIZE,
-        **kwargs
     )
-    val_set = dataset(
+    val_set = train_postproc_dataset_from_tfrecords(
         val_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=False,
-        scale_factor=1e6,
-        **kwargs
+        original_run_id,
+        n_samples=n_samples,
     )
-
-    orig_run_params = {
-        'n_primal': n_primal,
-        'multicoil': multicoil,
-        'n_scales': n_scales,
-        'n_iter': n_iter,
-        'refine_smaps': refine_smaps,
-        'res': res,
-        'output_shape_spec': brain,
-        'multi_gpu': multi_gpu,
-        'refine_big': refine_big,
-        'primal_only': primal_only,
-        'n_dual': n_dual,
-        'n_dual_filters': n_dual_filters,
-        'multiscale_kspace_learning': multiscale_kspace_learning,
-    }
-    recon_model = XPDNet(orig_model_fun, orig_model_kwargs, **orig_run_params)
-    n_steps = n_volumes
-    if os.environ.get('FASTMRI_DEBUG'):
-        n_epochs_original = 1
-    if multicoil:
-        kspace_size = [1, 15, 640, 372]
-    else:
-        kspace_size = [1, 640, 372]
-    inputs = [
-        tf.zeros(kspace_size + [1], dtype=tf.complex64),
-        tf.zeros(kspace_size, dtype=tf.complex64),
-    ]
-    if multicoil:
-        inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
-    if brain:
-        inputs.append(tf.constant([[320, 320]]))
-    recon_model(inputs)
-    recon_model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
-
     run_params = dict(
         layers_n_channels=[16, 32, 64, 128],
         layers_n_non_lins=2,
         non_linearity='prelu',
         res=True,
     )
-    model = PostProcessVnet(recon_model, run_params)
+    model = PostProcessVnet(None, run_params)
     default_model_compile(model, lr=lr, loss=loss)
 
     vnet_type = 'vnet_postproc_'
     if brain:
         vnet_type += 'brain_'
     additional_info = f'af{af}'
-    if contrast is not None:
-        additional_info += f'_{contrast}'
     if n_samples is not None:
         additional_info += f'_{n_samples}'
     if loss != 'mae':
@@ -187,7 +91,7 @@ def train_vnet_postproc(
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
-        save_freq=n_epochs*n_steps,
+        save_freq=n_epochs*n_volumes,
         save_weights_only=True,
     )
     print(run_id)
@@ -195,7 +99,7 @@ def train_vnet_postproc(
 
     model.fit(
         train_set,
-        steps_per_epoch=n_steps,
+        steps_per_epoch=n_volumes,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=10,
