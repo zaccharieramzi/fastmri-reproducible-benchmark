@@ -9,7 +9,10 @@ class PostProcessVnet(Model):
     def __init__(self, recon_model, vnet_kwargs, from_kspace=False, **kwargs):
         super().__init__(**kwargs)
         self.recon_model = recon_model
-        self.recon_model.trainable = False
+        if self.recon_model is not None:
+            self.recon_model.trainable = False
+        else:
+            from_kspace = False
         self.postproc_model = Vnet(post_processing=True, **vnet_kwargs)
         self.from_kspace = from_kspace
 
