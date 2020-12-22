@@ -25,6 +25,7 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     Returns:
         tf.Tensor: extracted raw sensitivity maps.
     """
+    n_slices = tf.shape(kspace)[0]
     n_low_freq = tf.cast(tf.shape(kspace)[-2:] * low_freq_percentage / 100, tf.int32)
     center_dimension = tf.cast(tf.shape(kspace)[-2:] / 2, tf.int32)
     low_freq_lower_locations = center_dimension - tf.cast(n_low_freq / 2, tf.int32)
@@ -46,14 +47,18 @@ def extract_smaps(kspace, low_freq_percentage=8, background_thresh=4e-6):
     # we have to transpose because only the first dimension can be indexed in
     # scatter_nd
     scatter_nd_perm = [2, 3, 0, 1]
-    low_freq_mask = tf.scatter_nd(
-        indices=low_freq_mask_indices,
-        updates=tf.ones([
-            tf.size(X_range),
-            tf.shape(kspace)[0],
-            tf.shape(kspace)[1]],
+    low_freq_mask = tf.cond(
+        n_slices > 0,
+        lambda: tf.scatter_nd(
+            indices=low_freq_mask_indices,
+            updates=tf.ones([
+                tf.size(X_range),
+                tf.shape(kspace)[0],
+                tf.shape(kspace)[1],
+            ]),
+            shape=[tf.shape(kspace)[i] for i in scatter_nd_perm],
         ),
-        shape=[tf.shape(kspace)[i] for i in scatter_nd_perm],
+        lambda: tf.zeros([tf.shape(kspace)[i] for i in scatter_nd_perm]),
     )
     low_freq_mask = tf.transpose(low_freq_mask, perm=scatter_nd_perm)
     ###
