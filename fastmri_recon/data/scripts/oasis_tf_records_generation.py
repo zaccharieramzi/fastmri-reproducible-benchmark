@@ -48,7 +48,7 @@ def generate_oasis_tf_records(
         volume = from_file_to_volume(filename)
         if volume.shape[0] % 2 != 0:
             continue
-        if volume.shape[0] == 36:
+        if volume.shape[0] == 36 or volume.shape[0] == 44:
             continue
         with tf.device('/gpu:0'):
             volume = tf.constant(volume, dtype=tf.complex64)
