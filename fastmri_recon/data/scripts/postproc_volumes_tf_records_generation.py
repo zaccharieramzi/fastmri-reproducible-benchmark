@@ -87,7 +87,7 @@ def generate_postproc_tf_records(
             filename,
             selection=selection,
         )
-        model_inputs, model_outputs = preproc_model.predict([image, kspace], batch_size=4)
+        model_inputs, model_outputs = preproc_model.predict([image, kspace])
         res = model.predict(model_inputs, batch_size=4)
         directory = filename.parent
         filename_tfrecord = directory / (filename.stem + extension)
