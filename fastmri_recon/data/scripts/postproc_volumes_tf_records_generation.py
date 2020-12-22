@@ -86,7 +86,7 @@ def generate_postproc_tf_records(
             image = tf.constant(image, dtype=tf.complex64)
             kspace = tf.constant(kspace, dtype=tf.complex64)
             model_inputs, model_outputs = kspace_transform(image, kspace)
-        res = model.predict(model_inputs, batch_size=16)
+        res = model.predict(model_inputs, batch_size=4)
         directory = filename.parent
         filename_tfrecord = directory / (filename.stem + extension)
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
