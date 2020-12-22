@@ -6,14 +6,18 @@ from fastmri_recon.models.utils.pad_for_pool import pad_for_pool_whole_plane
 
 
 class PostProcessVnet(Model):
-    def __init__(self, recon_model, vnet_kwargs, **kwargs):
+    def __init__(self, recon_model, vnet_kwargs, from_kspace=False, **kwargs):
         super().__init__(**kwargs)
         self.recon_model = recon_model
         self.recon_model.trainable = False
         self.postproc_model = Vnet(post_processing=True, **vnet_kwargs)
+        self.from_kspace = from_kspace
 
     def call(self, inputs):
-        outputs = self.recon_model(inputs)
+        if self.from_kspace:
+            outputs = self.recon_model(inputs)
+        else:
+            outputs = inputs
         orig_shape = tf.shape(outputs)
         outputs, _ = pad_for_pool_whole_plane(outputs, self.postproc_model.n_layers)
         outputs = outputs[None]
@@ -27,7 +31,10 @@ class PostProcessVnet(Model):
         return outputs
 
     def predict_batched(self, inputs, batch_size=1):
-        outputs = self.recon_model.predict(inputs, batch_size=batch_size)
+        if self.from_kspace:
+            outputs = self.recon_model.predict(inputs, batch_size=batch_size)
+        else:
+            outputs = inputs
         orig_shape = tf.shape(outputs)
         outputs, _ = pad_for_pool_whole_plane(tf.constant(outputs), self.postproc_model.n_layers)
         outputs = outputs[None]
