@@ -151,10 +151,13 @@ def train_masked_kspace_dataset_from_indexable(
         _tf_filename_to_image_and_kspace_and_contrast,
         num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
-    # contrast filtering
+    # contrast and size filtering
     if contrast:
         image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(
-            lambda image, kspace, tf_contrast: tf_contrast == contrast
+            lambda image, kspace, tf_contrast: tf.logical_and(
+                tf_contrast == contrast,
+                tf.reduce_all(tf.less_equal(tf.shape(kspace)[-2:], target_image_size))
+            )
         )
     image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
         lambda image, kspace, tf_contrast: (image, kspace),
