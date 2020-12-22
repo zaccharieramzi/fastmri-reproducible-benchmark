@@ -128,6 +128,9 @@ def from_test_file_to_mask_and_contrast(filename):
     mask = mask.astype('bool')
     return mask, contrast
 
+def from_recon_file_to_reconstruction(filename):
+    reconstruction = _from_file_to_stuff(filename, vals=['reconstruction'])
+    return reconstruction
 
 def from_file_to_kspace(filename, selection=None):
     """Get the kspaces from an h5 file with 'kspace' keys.
