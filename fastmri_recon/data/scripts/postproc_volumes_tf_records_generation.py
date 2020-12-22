@@ -44,6 +44,11 @@ def generate_postproc_tf_records(
         batch_size=None,
         target_image_size=(640, 400),
     )
+    class PreProcModel(tf.keras.models.Model):
+        def call(self, inputs):
+            image, kspace = inputs
+            return kspace_transform(image, kspace)
+    preproc_model = PreProcModel()
     selection = [
         {'inner_slices': None, 'rand': False},  # slice selection
         {'rand': False, 'keep_dim': False},  # coil selection
@@ -82,10 +87,7 @@ def generate_postproc_tf_records(
             filename,
             selection=selection,
         )
-        with tf.device('/gpu:0'):
-            image = tf.constant(image, dtype=tf.complex64)
-            kspace = tf.constant(kspace, dtype=tf.complex64)
-            model_inputs, model_outputs = kspace_transform(image, kspace)
+        model_inputs, model_outputs = preproc_model.predict([image, kspace], batch_size=4)
         res = model.predict(model_inputs, batch_size=4)
         directory = filename.parent
         filename_tfrecord = directory / (filename.stem + extension)
