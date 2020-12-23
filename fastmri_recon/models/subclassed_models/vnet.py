@@ -30,6 +30,15 @@ class Conv(Layer):
         outputs = self.act(outputs)
         return outputs
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'non_linearity': self.non_linearity,
+        })
+        return config
+
 class ConvBlock(Layer):
     def __init__(self, n_filters, kernel_size=3, non_linearity='relu', n_non_lins=2, **kwargs):
         super().__init__(**kwargs)
@@ -51,6 +60,16 @@ class ConvBlock(Layer):
             outputs = conv(outputs)
         return outputs
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_non_lins': self.n_non_lins,
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'non_linearity': self.non_linearity,
+        })
+        return config
+
 class UpConv(Layer):
     def __init__(self, n_filters, kernel_size=3, post_processing=False, **kwargs):
         super().__init__(**kwargs)
@@ -69,6 +88,15 @@ class UpConv(Layer):
         outputs = self.up(inputs)
         outputs = self.conv(outputs)
         return outputs
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'post_processing': self.post_processing,
+        })
+        return config
 
 
 class Vnet(Model):
