@@ -4,8 +4,9 @@ from pathlib import Path
 import time
 
 import click
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras.models import load_model
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
@@ -16,6 +17,8 @@ from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
+from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
+from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
 
 n_volumes_train_fastmri = 973
@@ -40,6 +43,9 @@ def train_ncnet(
         use_mixed_precision=False,
         loss='mae',
         original_run_id=None,
+        checkpoint_epoch=0,
+        save_state=False,
+        lr=1e-4,
         **acq_kwargs,
     ):
     # paths
@@ -111,10 +117,14 @@ def train_ncnet(
         additional_info += f'_{loss}'
     if dcomp:
         additional_info += '_dcomp'
-    run_id = f'{run_id}_{additional_info}_{int(time.time())}'
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
+    if checkpoint_epoch == 0:
+        run_id = f'{run_id}_{additional_info}_{int(time.time())}'
+    else:
+        run_id = original_run_id
+    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
+    if not save_state:
+        chkpt_path += '.hdf5'
 
-    chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
     tboard_cback = TensorBoard(
         profile_batch=0,
@@ -125,24 +135,26 @@ def train_ncnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    if original_run_id is not None:
-        lr = 1e-7
-        n_steps = n_volumes_train//2
+    n_steps = n_volumes_train
+
+    chkpt_cback = ModelCheckpointWorkAround(
+        chkpt_path,
+        save_freq=int(n_epochs*n_steps),
+        save_weights_only=not save_state,
+    )
+    if checkpoint_epoch == 0:
+        default_model_compile(model, lr=lr, loss=loss)
     else:
-        lr = 1e-4
-        n_steps = n_volumes_train
-    default_model_compile(model, lr=lr, loss=loss)
+        model = load_model(
+            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+            custom_objects=CUSTOM_TF_OBJECTS,
+        )
     print(run_id)
-    if original_run_id is not None:
-        if os.environ.get('FASTMRI_DEBUG'):
-            n_epochs_original = 1
-        else:
-            n_epochs_original = 250
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
     model.fit(
         train_set,
         steps_per_epoch=n_steps,
+        initial_epoch=checkpoint_epoch,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=2,
