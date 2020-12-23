@@ -308,6 +308,9 @@ def train_ncnet_multinet(
         normalize_image=False,
         n_primal=5,
         use_mixed_precision=False,
+        original_run_id=None,
+        checkpoint_epoch=0,
+        save_state=False,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
@@ -343,6 +346,9 @@ def train_ncnet_multinet(
         scale_factor=scale_factor,
         three_d=three_d,
         use_mixed_precision=use_mixed_precision,
+        original_run_id=original_run_id,
+        checkpoint_epoch=checkpoint_epoch,
+        save_state=save_state,
         **add_kwargs,
     )
 
