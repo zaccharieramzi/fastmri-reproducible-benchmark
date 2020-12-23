@@ -270,7 +270,7 @@ def train_xpdnet(
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
-        save_freq=n_epochs*n_steps,
+        save_freq=int(n_epochs*n_steps),
         save_weights_only=not save_state,
     )
     print(run_id)
