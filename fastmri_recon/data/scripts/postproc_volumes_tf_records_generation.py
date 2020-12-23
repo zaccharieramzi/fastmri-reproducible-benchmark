@@ -83,6 +83,9 @@ def generate_postproc_tf_records(
         model(fake_inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     for filename in tqdm(filenames):
+        filename_tfrecord = directory / (filename.stem + extension)
+        if filename_tfrecord.exists():
+            continue
         image, kspace, _ = from_multicoil_train_file_to_image_and_kspace_and_contrast(
             filename,
             selection=selection,
@@ -90,7 +93,6 @@ def generate_postproc_tf_records(
         model_inputs, model_outputs = preproc_model.predict([image, kspace])
         res = model.predict(model_inputs, batch_size=4)
         directory = filename.parent
-        filename_tfrecord = directory / (filename.stem + extension)
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_postproc_example(res, model_outputs)
             writer.write(example)
