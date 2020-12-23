@@ -70,3 +70,16 @@ class CNNComplex(Model):
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         return outputs
+
+    def get_config(self):
+        config = super(CNNComplex, self).get_config()
+        config.update({
+            'n_convs': self.n_convs,
+            'n_filters': self.n_filters,
+            'n_output_channels': self.n_output_channels,
+            'activation': self.activation,
+            'res': self.res,
+            'multicoil': self.multicoil,
+            'three_d': self.three_d,
+        })
+        return config
