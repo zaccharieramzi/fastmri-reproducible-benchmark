@@ -83,6 +83,7 @@ def generate_postproc_tf_records(
         model(fake_inputs)
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     for filename in tqdm(filenames):
+        directory = filename.parent
         filename_tfrecord = directory / (filename.stem + extension)
         if filename_tfrecord.exists():
             continue
@@ -92,7 +93,6 @@ def generate_postproc_tf_records(
         )
         model_inputs, model_outputs = preproc_model.predict([image, kspace])
         res = model.predict(model_inputs, batch_size=4)
-        directory = filename.parent
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_postproc_example(res, model_outputs)
             writer.write(example)
