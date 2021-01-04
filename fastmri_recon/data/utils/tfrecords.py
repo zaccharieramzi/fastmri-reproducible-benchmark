@@ -42,8 +42,8 @@ def encode_postproc_example(model_inputs, model_outputs):
     model_outputs = [serialize_tensor(mo) for mo in model_outputs]
 
     feature = {
-        'reconstructed_volume': model_inputs[0],
-        'volume': model_outputs[0],
+        'reconstructed_volume': model_inputs,
+        'volume': model_outputs,
     }
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
