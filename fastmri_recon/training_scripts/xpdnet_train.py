@@ -251,22 +251,23 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    mirrored_strategy = tf.distribute.MirroredStrategy()
-    with mirrored_strategy.scope():
-        if checkpoint_epoch == 0:
-            model = XPDNet(model_fun, model_kwargs, **run_params)
-            if original_run_id is not None:
-                lr = 1e-7
-                n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
-            else:
-                n_steps = n_volumes
-            default_model_compile(model, lr=lr, loss=loss)
+    # mirrored_strategy = tf.distribute.MirroredStrategy()
+    # with mirrored_strategy.scope():
+    # for now commenting out because of https://github.com/tensorflow/tensorflow/issues/46146
+    if checkpoint_epoch == 0:
+        model = XPDNet(model_fun, model_kwargs, **run_params)
+        if original_run_id is not None:
+            lr = 1e-7
+            n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
         else:
-            model = load_model(
-                f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
-                custom_objects=CUSTOM_TF_OBJECTS,
-            )
             n_steps = n_volumes
+        default_model_compile(model, lr=lr, loss=loss)
+    else:
+        model = load_model(
+            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+            custom_objects=CUSTOM_TF_OBJECTS,
+        )
+        n_steps = n_volumes
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
