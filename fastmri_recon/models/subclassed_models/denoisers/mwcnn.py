@@ -21,16 +21,16 @@ class MWCNNConvBlock(Layer):
         super(MWCNNConvBlock, self).__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
+        if bn:
+            self.bn = BatchNormalization()
+        else:
+            self.bn = None
         self.conv = Conv2D(
             self.n_filters,
             self.kernel_size,
             padding='same',
             use_bias=not self.bn,
         )
-        if bn:
-            self.bn = BatchNormalization()
-        else:
-            self.bn = None
         self.activation = Activation('relu')
 
     def call(self, inputs):
