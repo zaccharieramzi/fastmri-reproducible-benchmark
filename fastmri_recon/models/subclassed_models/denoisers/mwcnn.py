@@ -25,7 +25,7 @@ class MWCNNConvBlock(Layer):
             self.n_filters,
             self.kernel_size,
             padding='same',
-            use_bias=False,
+            use_bias=not self.bn,
         )
         if bn:
             self.bn = BatchNormalization()
