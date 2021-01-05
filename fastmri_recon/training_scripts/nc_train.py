@@ -150,6 +150,9 @@ def train_ncnet(
             custom_objects=CUSTOM_TF_OBJECTS,
         )
     print(run_id)
+    # first run of the model to avoid the saving error
+    # ValueError: as_list() is not defined on an unknown TensorShape.
+    model(next(iter(train_set))[0])
 
     model.fit(
         train_set,
