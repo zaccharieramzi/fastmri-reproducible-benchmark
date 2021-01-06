@@ -214,7 +214,7 @@ def train_ncpdnet(
     run_id = f'{ncpdnet_type}_{additional_info}'
     model = NCPDNet(**run_params)
 
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         multicoil=multicoil,
@@ -254,7 +254,7 @@ def train_unet_nc(
     run_id = f'{unet_type}_{additional_info}'
 
     model = UnetComplex(**run_params)
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         multicoil=multicoil,
@@ -288,7 +288,7 @@ def train_vnet_nc(
 
     model = VnetComplex(**run_params)
     train_kwargs.update(three_d=True)
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         dcomp=dcomp,
@@ -340,7 +340,7 @@ def train_ncnet_multinet(
         add_kwargs.update(dcomp=True)
     else:
         add_kwargs.update(dcomp=dcomp)
-    train_function(
+    return train_function(
         af=af,
         n_epochs=n_epochs,
         loss=loss,
