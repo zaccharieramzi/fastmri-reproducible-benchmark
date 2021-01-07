@@ -15,6 +15,9 @@ def evaluate_vnet_postproc(
         contrast=None,
         af=4,
         n_samples=None,
+        base_n_filters=16,
+        n_scales=4,
+        non_linearity='prelu',
     ):
     if brain:
         val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
@@ -23,9 +26,10 @@ def evaluate_vnet_postproc(
 
     af = int(af)
     run_params = dict(
-        layers_n_channels=[16, 32, 64, 128],
+        layers_n_channels=[base_n_filters*2**i for i in range(n_scales)],
         layers_n_non_lins=2,
-        non_linearity='prelu',
+        non_linearity=non_linearity,
+        res=True,
     )
     model = PostProcessVnet(None, run_params)
     model(tf.zeros([2, 320, 320, 1]))
