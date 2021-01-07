@@ -27,6 +27,9 @@ def train_vnet_postproc(
         use_mixed_precision=False,
         loss='mae',
         lr=1e-4,
+        base_n_filters=16,
+        n_scales=4,
+        non_linearity='prelu',
     ):
     if brain:
         n_volumes = brain_n_volumes_train
@@ -59,9 +62,9 @@ def train_vnet_postproc(
         n_samples=n_samples,
     )
     run_params = dict(
-        layers_n_channels=[16, 32, 64, 128],
+        layers_n_channels=[base_n_filters*2**i for i in range(n_scales)],
         layers_n_non_lins=2,
-        non_linearity='prelu',
+        non_linearity=non_linearity,
         res=True,
     )
     model = PostProcessVnet(None, run_params)
@@ -75,6 +78,12 @@ def train_vnet_postproc(
         additional_info += f'_{n_samples}'
     if loss != 'mae':
         additional_info += f'_{loss}'
+    if base_n_filters != 16:
+        additional_info += f'_bf{base_n_filters}'
+    if n_scales != 4:
+        additional_info += f'_sc{n_scales}'
+    if non_linearity != 'prelu':
+        additional_info += f'_{non_linearity}'
     run_id = f'{vnet_type}_{additional_info}_{int(time.time())}'
 
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
