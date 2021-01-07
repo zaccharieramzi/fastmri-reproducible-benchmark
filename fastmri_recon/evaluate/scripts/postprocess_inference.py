@@ -16,6 +16,9 @@ def postproc_inference(
         af=4,
         scale_factor=1e6,
         exp_id='postproc',
+        base_n_filters=16,
+        n_scales=4,
+        non_linearity='prelu',
     ):
     if brain:
         orig_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
@@ -23,9 +26,10 @@ def postproc_inference(
         orig_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
     ds_builder = PostprocH5DatasetBuilder(orig_path, recon_path, af=af, contrast=contrast)
     run_params = dict(
-        layers_n_channels=[16, 32, 64, 128],
+        layers_n_channels=[base_n_filters*2**i for i in range(n_scales)],
         layers_n_non_lins=2,
-        non_linearity='prelu',
+        non_linearity=non_linearity,
+        res=True,
     )
     model = PostProcessVnet(None, run_params)
     model(tf.zeros([2, 320, 320, 1]))
