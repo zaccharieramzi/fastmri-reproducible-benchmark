@@ -63,5 +63,5 @@ class PostprocH5DatasetBuilder:
             self.validate_af(mask) and self.validate_contrast(contrast)
             for mask, contrast in masks_and_contrasts
         ]
-        self.orig_filenames = [f for i, f in self.orig_filenames if flags[i]]
-        self.recon_filenames = [f for i, f in self.recon_filenames if flags[i]]
+        self.orig_filenames = [f for i, f in enumerate(self.orig_filenames) if flags[i]]
+        self.recon_filenames = [f for i, f in enumerate(self.recon_filenames) if flags[i]]
