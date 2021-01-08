@@ -34,8 +34,8 @@ def postproc_inference(
     model = PostProcessVnet(None, run_params)
     model(tf.zeros([2, 320, 320, 1]))
     model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
-    for recon, filename in tqdm(zip(ds_builder.raw_ds, ds_builder.files_ds)):
-        res = model.predict(recon * scale_factor)
+    for recon, filename in tqdm(zip(ds_builder.raw_ds.as_numpy_iterator(), ds_builder.files_ds)):
+        res = model.predict_batched(recon * scale_factor, batch_size=4)
         write_result(
             exp_id,
             res,
