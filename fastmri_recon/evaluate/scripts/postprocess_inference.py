@@ -24,6 +24,7 @@ def postproc_inference(
         orig_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
     else:
         orig_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
+    recon_path = orig_path + recon_path
     ds_builder = PostprocH5DatasetBuilder(orig_path, recon_path, af=af, contrast=contrast)
     run_params = dict(
         layers_n_channels=[base_n_filters*2**i for i in range(n_scales)],
