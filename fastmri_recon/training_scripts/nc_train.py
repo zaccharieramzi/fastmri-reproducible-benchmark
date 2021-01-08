@@ -4,6 +4,8 @@ from pathlib import Path
 import time
 
 import click
+import pickle
+import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.models import load_model
@@ -121,9 +123,7 @@ def train_ncnet(
         run_id = f'{run_id}_{additional_info}_{int(time.time())}'
     else:
         run_id = original_run_id
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
-    if not save_state:
-        chkpt_path += '.hdf5'
+    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
     tboard_cback = TensorBoard(
@@ -140,19 +140,21 @@ def train_ncnet(
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=int(n_epochs*n_steps),
-        save_weights_only=not save_state,
+        save_weights_only=True,
     )
-    if checkpoint_epoch == 0:
-        default_model_compile(model, lr=lr, loss=loss)
-    else:
-        model = load_model(
-            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
-            custom_objects=CUSTOM_TF_OBJECTS,
-        )
-    print(run_id)
+    default_model_compile(model, lr=lr, loss=loss)
     # first run of the model to avoid the saving error
     # ValueError: as_list() is not defined on an unknown TensorShape.
+    # it can also allow loading of weights
     model(next(iter(train_set))[0])
+    if not checkpoint_epoch == 0:
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
+        model._make_train_function()
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+            weight_values = pickle.load(f)
+        model.optimizer.set_weights(weight_values)
+    print(run_id)
+
 
     model.fit(
         train_set,
@@ -164,6 +166,11 @@ def train_ncnet(
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+    if save_state:
+        symbolic_weights = getattr(model.optimizer, 'weights')
+        weight_values = K.batch_get_value(symbolic_weights)
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-optimizer.pkl', 'wb') as f:
+            pickle.dump(weight_values, f)
     return run_id
 
 def train_ncpdnet(
