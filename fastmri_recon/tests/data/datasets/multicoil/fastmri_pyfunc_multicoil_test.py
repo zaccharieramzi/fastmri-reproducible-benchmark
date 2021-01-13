@@ -1,3 +1,9 @@
+try:
+    import ismrmrd
+except ImportError:
+    ismrmrd_not_avail = True
+else:
+    ismrmrd_not_avail = False
 import numpy as np
 import pytest
 import tensorflow as tf
@@ -42,6 +48,7 @@ def test_train_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp
     tf_tester.assertAllInSet(mask, [1])  # this because we set af to 1
     # TODO: implement adjoint fourier multicoil
 
+@pytest.mark.skipif(ismrmrd_not_avail, reason='ismrmrd not installed')
 @pytest.mark.parametrize('ds_kwargs, expected_kspace_shape', [
     ({}, kspace_shape),
     ({'contrast': file_contrast}, kspace_shape),
