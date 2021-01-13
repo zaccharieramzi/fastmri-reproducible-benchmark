@@ -26,8 +26,7 @@ jobs:
         python-version: 3.6
     - name: Install dependencies
       run: |
-        pip install pyxb==1.2.6
-        pip install pytest==5.0.0 ismrmrd
+        pip install pytest==5.0.0
         pip install .
         pip install -U --no-deps tensorflow-io==0.13.0
     - name: Test with pytest
