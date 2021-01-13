@@ -19,6 +19,12 @@ from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
 from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
 
+# this number means that 99.56% of all images will not be affected by
+# cropping
+# TODO: verify this number for brain
+IM_SIZE = (640, 400)
+
+
 def train_xpdnet(
         model_fun,
         model_kwargs,
@@ -27,8 +33,8 @@ def train_xpdnet(
         brain=False,
         af=4,
         contrast=None,
-        cuda_visible_devices='0123',
         n_samples=None,
+        batch_size=None,
         n_epochs=200,
         checkpoint_epoch=0,
         save_state=False,
@@ -40,12 +46,17 @@ def train_xpdnet(
         refine_smaps=False,
         refine_big=False,
         loss='mae',
+        lr=1e-4,
         original_run_id=None,
         fixed_masks=False,
         n_epochs_original=250,
         equidistant_fake=False,
         multi_gpu=False,
         mask_type=None,
+        primal_only=True,
+        n_dual=1,
+        n_dual_filters=16,
+        multiscale_kspace_learning=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -67,8 +78,6 @@ def train_xpdnet(
             of the data. Defaults to 4.
         contrast (str or None): the contrast used for this specific training.
             If None, all contrasts are considered. Defaults to None
-        cuda_visible_devices (str): the GPUs to consider visible. Defaults to
-            '0123'.
         n_samples (int or None): the number of samples to consider for this
             training. If None, all samples are considered. Defaults to None.
         n_epochs (int): the number of epochs (i.e. one pass though all the
@@ -131,8 +140,6 @@ def train_xpdnet(
         train_path = f'{FASTMRI_DATA_DIR}singlecoil_train/singlecoil_train/'
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
 
-
-    os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
 
     # trying mixed precision
@@ -170,6 +177,8 @@ def train_xpdnet(
         scale_factor=1e6,
         n_samples=n_samples,
         fixed_masks=fixed_masks,
+        batch_size=batch_size,
+        target_image_size=IM_SIZE,
         **kwargs
     )
     val_set = dataset(
@@ -192,6 +201,10 @@ def train_xpdnet(
         'output_shape_spec': brain,
         'multi_gpu': multi_gpu,
         'refine_big': refine_big,
+        'primal_only': primal_only,
+        'n_dual': n_dual,
+        'n_dual_filters': n_dual_filters,
+        'multiscale_kspace_learning': multiscale_kspace_learning,
     }
 
     if multicoil:
@@ -238,13 +251,15 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
+    # mirrored_strategy = tf.distribute.MirroredStrategy()
+    # with mirrored_strategy.scope():
+    # for now commenting out because of https://github.com/tensorflow/tensorflow/issues/46146
     if checkpoint_epoch == 0:
         model = XPDNet(model_fun, model_kwargs, **run_params)
         if original_run_id is not None:
             lr = 1e-7
             n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
         else:
-            lr = 1e-4
             n_steps = n_volumes
         default_model_compile(model, lr=lr, loss=loss)
     else:
@@ -256,7 +271,7 @@ def train_xpdnet(
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
-        save_freq=n_epochs*n_steps,
+        save_freq=int(n_epochs*n_steps),
         save_weights_only=not save_state,
     )
     print(run_id)

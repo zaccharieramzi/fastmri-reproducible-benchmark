@@ -21,16 +21,16 @@ class MWCNNConvBlock(Layer):
         super(MWCNNConvBlock, self).__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
-        self.conv = Conv2D(
-            self.n_filters,
-            self.kernel_size,
-            padding='same',
-            use_bias=False,
-        )
         if bn:
             self.bn = BatchNormalization()
         else:
             self.bn = None
+        self.conv = Conv2D(
+            self.n_filters,
+            self.kernel_size,
+            padding='same',
+            use_bias=not self.bn,
+        )
         self.activation = Activation('relu')
 
     def call(self, inputs):
@@ -79,7 +79,7 @@ class IWT(Layer):
         width = in_shape[2]
         # the number of channels can't be unknown for the convolutions
         n_channels = inputs.shape[3] // 4
-        outputs = tf.zeros([batch_size, 2 * height, 2 * width, n_channels])
+        outputs = tf.zeros([batch_size, 2 * height, 2 * width, n_channels], dtype=inputs.dtype)
         # for now we only consider greyscale
         x1 = inputs[..., 0:n_channels] / 2
         x2 = inputs[..., n_channels:2*n_channels] / 2
@@ -115,10 +115,14 @@ class IWT(Layer):
             w_range = tf.reshape(w_range, (-1,))
             combo_indices = tf.stack([w_range, h_range], axis=-1)
             combo_reshaped = tf.transpose(x_comb, perm=scatter_nd_perm)
-            outputs_reshaped = tf.tensor_scatter_nd_add(
-                outputs_reshaped,
-                indices=combo_indices,
-                updates=tf.reshape(combo_reshaped, (-1, n_channels, batch_size)),
+            outputs_reshaped =  tf.cond(
+                batch_size > 0,
+                lambda: tf.tensor_scatter_nd_add(
+                    outputs_reshaped,
+                    indices=combo_indices,
+                    updates=tf.reshape(combo_reshaped, (-1, n_channels, batch_size)),
+                ),
+                lambda: outputs_reshaped,
             )
 
         inverse_scatter_nd_perm = [3, 1, 0, 2]

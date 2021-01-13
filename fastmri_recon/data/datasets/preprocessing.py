@@ -2,13 +2,30 @@ import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
+from fastmri_recon.data.utils.crop import adjust_image_size
 from ..utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ..utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
-from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft
+from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, nufft, FFTBase
 
 
-def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_masks=False, mask_type='random'):
+def generic_from_kspace_to_masked_kspace_and_mask(
+        AF=4,
+        scale_factor=1,
+        fixed_masks=False,
+        mask_type='random',
+        batch_size=None,
+        target_image_size=(640, 400),
+    ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
+        if batch_size is not None:
+            fft = FFTBase(False)
+            complex_images = fft.adj_op(kspaces[..., None])[..., 0]
+            complex_images_padded = adjust_image_size(
+                complex_images,
+                target_image_size,
+                multicoil=True,
+            )
+            kspaces = fft.op(complex_images_padded[..., None])[..., 0]
         if mask_type == 'random':
             mask = gen_mask_tf(kspaces, accel_factor=AF, fixed_masks=fixed_masks)
         else:
@@ -18,7 +35,10 @@ def generic_from_kspace_to_masked_kspace_and_mask(AF=4, scale_factor=1, fixed_ma
         images_scaled = images * scale_factor
         kspaces_channeled = kspaces_scaled[..., None]
         images_channeled = images_scaled[..., None]
-        return (kspaces_channeled, mask), images_channeled
+        if batch_size is not None:
+            return (kspaces_channeled[0], mask[0]), images_channeled[0]
+        else:
+            return (kspaces_channeled, mask), images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
 def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_type='radial', scale_factor=1, compute_dcomp=False, **acq_kwargs):

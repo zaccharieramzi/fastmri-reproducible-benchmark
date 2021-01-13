@@ -30,6 +30,15 @@ class Conv(Layer):
         outputs = self.act(outputs)
         return outputs
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'non_linearity': self.non_linearity,
+        })
+        return config
+
 class ConvBlock(Layer):
     def __init__(self, n_filters, kernel_size=3, non_linearity='relu', n_non_lins=2, **kwargs):
         super().__init__(**kwargs)
@@ -51,23 +60,43 @@ class ConvBlock(Layer):
             outputs = conv(outputs)
         return outputs
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_non_lins': self.n_non_lins,
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'non_linearity': self.non_linearity,
+        })
+        return config
+
 class UpConv(Layer):
-    def __init__(self, n_filters, kernel_size=3, **kwargs):
+    def __init__(self, n_filters, kernel_size=3, post_processing=False, **kwargs):
         super().__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
+        self.post_processing = post_processing
         self.conv = Conv3D(
             filters=self.n_filters,
             kernel_size=self.kernel_size,
             padding='same',
             activation=None,
         )
-        self.up = UpSampling3D(size=(2, 2, 2))
+        self.up = UpSampling3D(size=(1 if self.post_processing else 2, 2, 2))
 
     def call(self, inputs):
         outputs = self.up(inputs)
         outputs = self.conv(outputs)
         return outputs
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'n_filters': self.n_filters,
+            'kernel_size': self.kernel_size,
+            'post_processing': self.post_processing,
+        })
+        return config
 
 
 class Vnet(Model):
@@ -78,6 +107,8 @@ class Vnet(Model):
             layers_n_channels=[4],
             layers_n_non_lins=1,
             non_linearity='relu',
+            post_processing=False,
+            res=False,
             **kwargs,
         ):
         super().__init__(**kwargs)
@@ -87,6 +118,8 @@ class Vnet(Model):
         self.n_layers = len(self.layers_n_channels)
         self.layers_n_non_lins = layers_n_non_lins
         self.non_linearity = non_linearity
+        self.post_processing = post_processing
+        self.res = res
         self.down_convs = [
             ConvBlock(
                 n_filters=n_channels,
@@ -95,7 +128,10 @@ class Vnet(Model):
                 n_non_lins=self.layers_n_non_lins,
             ) for n_channels in self.layers_n_channels[:-1]
         ]
-        self.down = MaxPooling3D(pool_size=(2, 2, 2), padding='same')
+        self.down = MaxPooling3D(
+            pool_size=(1 if self.post_processing else 2, 2, 2),
+            padding='same',
+        )
         self.bottom_conv = ConvBlock(
             n_filters=self.layers_n_channels[-1],
             kernel_size=self.kernel_size,
@@ -114,6 +150,7 @@ class Vnet(Model):
             UpConv(
                 n_filters=n_channels,
                 kernel_size=self.kernel_size,
+                post_processing=self.post_processing,
             ) for n_channels in self.layers_n_channels[:-1]
         ]
         self.final_conv = Conv3D(
@@ -136,6 +173,8 @@ class Vnet(Model):
             outputs = tf.concat([outputs, scale], axis=-1)
             outputs = conv(outputs)
         outputs = self.final_conv(outputs)
+        if self.res:
+            outputs = outputs + inputs
         return outputs
 
 

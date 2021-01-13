@@ -41,6 +41,7 @@ class MultiscaleComplex(Model):
             n_scales=0,
             n_output_channels=1,
             fastmri_format=False,
+            multicoil=False,
             **kwargs,
         ):
         super(MultiscaleComplex, self).__init__(**kwargs)
@@ -52,6 +53,7 @@ class MultiscaleComplex(Model):
         self.fastmri_format = fastmri_format
         if self.fastmri_format:
             self.adj_op = IFFT(masked=False, multicoil=False)
+        self.multicoil = multicoil
         self.model = self.model_fun(**self.model_kwargs)
 
     def call(self, inputs):
@@ -62,8 +64,20 @@ class MultiscaleComplex(Model):
             outputs = self.adj_op(outputs)
             # this is to be consistent for residual connexion
             inputs = outputs
+        if self.multicoil:
+            shape = tf.shape(inputs)
+            batch_size = shape[0]
+            n_coils = shape[1]
+            height = shape[2]
+            width = shape[3]
+            outputs = tf.reshape(
+                inputs,
+                [batch_size * n_coils, height, width, inputs.shape[-1]],
+            )
+        else:
+            outputs = inputs
         if self.n_scales > 0:
-            outputs, padding = pad_for_pool(inputs, self.n_scales)
+            outputs, padding = pad_for_pool(outputs, self.n_scales)
         outputs = tf.concat([tf.math.real(outputs), tf.math.imag(outputs)], axis=-1)
         outputs = self.model(outputs)
         outputs = to_complex(outputs, self.n_output_channels)
@@ -74,6 +88,11 @@ class MultiscaleComplex(Model):
                 tf.reduce_sum(padding) == 0,
                 lambda: outputs,
                 lambda: outputs[:, :, padding[0]:-padding[1]],
+            )
+        if self.multicoil:
+            outputs = tf.reshape(
+                outputs,
+                [batch_size, n_coils, height, width, self.n_output_channels],
             )
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
@@ -90,5 +109,6 @@ class MultiscaleComplex(Model):
             'n_scales': self.n_scales,
             'n_output_channels': self.n_output_channels,
             'fastmri_format': self.fastmri_format,
+            'multicoil': self.multicoil,
         })
         return config

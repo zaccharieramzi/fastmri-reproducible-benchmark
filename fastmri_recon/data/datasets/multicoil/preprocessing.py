@@ -2,9 +2,10 @@ import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
 
+from fastmri_recon.data.utils.crop import adjust_image_size
 from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
-from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
+from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft, FFTBase
 from ...utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 
 
@@ -15,8 +16,20 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         fixed_masks=False,
         output_shape_spec=False,
         mask_type='random',
+        batch_size=None,
+        target_image_size=(640, 400),
     ):
+    @tf.function
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
+        if batch_size is not None:
+            fft = FFTBase(False, multicoil=True, use_smaps=False)
+            complex_images = fft.adj_op([kspaces[..., None], None])[..., 0]
+            complex_images_padded = adjust_image_size(
+                complex_images,
+                target_image_size,
+                multicoil=True,
+            )
+            kspaces = fft.op([complex_images_padded[..., None], None])[..., 0]
         if mask_type == 'random':
             mask = gen_mask_tf(
                 kspaces,
@@ -56,6 +69,9 @@ def generic_from_kspace_to_masked_kspace_and_mask(
             output_shape = tf.shape(images)[1:][None, :]
             output_shape = tf.tile(output_shape, [tf.shape(images)[0], 1])
             model_inputs += (output_shape,)
+        if batch_size is not None:
+            images_channeled = images_channeled[0]
+            model_inputs = tuple(mi[0] for mi in model_inputs)
         return model_inputs, images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
