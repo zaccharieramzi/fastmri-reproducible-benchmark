@@ -10,31 +10,31 @@ params_per_model = {
     model_name: {} for model_name in 'U-net-multi MWCNN-multi'.split()
 }
 
-params_per_model['U-net']['big'] = dict(
+params_per_model['U-net-multi']['big'] = dict(
     n_layers=4,
     layers_n_channels=[32, 64, 128, 256],
     layers_n_non_lins=2,
     res=False,
 )
-params_per_model['U-net']['medium'] = dict(
+params_per_model['U-net-multi']['medium'] = dict(
     n_layers=4,
     layers_n_channels=[16, 32, 64, 128],
     layers_n_non_lins=2,
     res=False,
 )
-params_per_model['U-net']['small'] = dict(
+params_per_model['U-net-multi']['small'] = dict(
     n_layers=3,
     layers_n_channels=[16, 32, 64],
     layers_n_non_lins=1,
     res=False,
 )
-params_per_model['U-net']['specs'] = dict(
+params_per_model['U-net-multi']['specs'] = dict(
     model=UnetMultiDomain,
     res=True,
     n_scales='n_layers',
 )
 
-params_per_model['MWCNN']['big'] = dict(
+params_per_model['MWCNN-multi']['big'] = dict(
     n_scales=3,
     n_filters_per_scale=DEFAULT_N_FILTERS_PER_SCALE,
     n_convs_per_scale=default_n_convs_mwcnn,
@@ -42,7 +42,7 @@ params_per_model['MWCNN']['big'] = dict(
     first_conv_n_filters=64,
     res=False,
 )
-params_per_model['MWCNN']['medium'] = dict(
+params_per_model['MWCNN-multi']['medium'] = dict(
     n_scales=3,
     n_filters_per_scale=[64, 128, 256],
     n_convs_per_scale=default_n_convs_mwcnn,
@@ -50,7 +50,7 @@ params_per_model['MWCNN']['medium'] = dict(
     first_conv_n_filters=32,
     res=False,
 )
-params_per_model['MWCNN']['small'] = dict(
+params_per_model['MWCNN-multi']['small'] = dict(
     n_scales=2,
     n_filters_per_scale=[32, 64],
     n_convs_per_scale=[2, 2],
@@ -58,7 +58,7 @@ params_per_model['MWCNN']['small'] = dict(
     first_conv_n_filters=32,
     res=False,
 )
-params_per_model['MWCNN']['specs'] = dict(
+params_per_model['MWCNN-multi']['specs'] = dict(
     model=MWCNNMultiDomain,
     output_kwarg='n_outputs',
     res=True,
@@ -89,7 +89,7 @@ def get_model_specs(n_primal=1):
                 n_scales = 0
             else:
                 n_scales = kwargs[n_scales_kwarg]
-                if model_name in 'MWCNN'.split():
+                if model_name in 'MWCNN-multi'.split():
                     n_scales += 1
             yield model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res
 
