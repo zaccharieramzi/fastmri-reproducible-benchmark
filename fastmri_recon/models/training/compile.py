@@ -3,6 +3,7 @@ from functools import partial
 import tensorflow as tf
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.optimizers import Adam
+from tensorflow.python.distribute import distribution_strategy_context as distribute_ctx
 import tensorflow_addons as tfa
 
 from ...evaluate.metrics.tf_metrics import keras_psnr, keras_ssim
@@ -11,7 +12,8 @@ from ...evaluate.metrics.tf_metrics import keras_psnr, keras_ssim
 def default_model_compile(model, lr, loss='mean_absolute_error'):
     opt_kwargs = {}
     precision_policy = mixed_precision.global_policy()
-    if precision_policy.loss_scale is None:
+    distributed = distribute_ctx.has_strategy()
+    if precision_policy.loss_scale is None and not distributed:
         opt_kwargs['clipnorm'] = 1.
     if loss == 'compound_mssim':
         loss = compound_l1_mssim_loss

@@ -29,6 +29,9 @@ def xpdnet_inference(
         refine_big=False,
         n_samples=None,
         cuda_visible_devices='0123',
+        primal_only=True,
+        n_dual=1,
+        n_dual_filters=16,
     ):
     if brain:
         if challenge:
@@ -50,6 +53,9 @@ def xpdnet_inference(
         'refine_big': refine_big,
         'res': res,
         'output_shape_spec': brain,
+        'primal_only': primal_only,
+        'n_dual': n_dual,
+        'n_dual_filters': n_dual_filters,
     }
 
     test_set = test_masked_kspace_dataset_from_indexable(
@@ -94,17 +100,11 @@ def xpdnet_inference(
         tqdm_total = n_samples
     tqdm_desc = f'{exp_id}_{contrast}_{af}'
 
-    # TODO: change when the following issue has been dealt with
-    # https://github.com/tensorflow/tensorflow/issues/38561
-    @tf.function(experimental_relax_shapes=True)
-    def predict(t):
-        return model(t)
-
     for data_example, filename in tqdm(zip(test_set, test_set_filenames), total=tqdm_total, desc=tqdm_desc):
-        res = predict(data_example)
+        res = model.predict(data_example, batch_size=16)
         write_result(
             exp_id,
-            res.numpy(),
+            res,
             filename.numpy().decode('utf-8'),
             scale_factor=1e6,
             brain=brain,

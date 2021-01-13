@@ -4,8 +4,11 @@ from pathlib import Path
 import time
 
 import click
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
+import pickle
+import tensorflow.keras.backend as K
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras.models import load_model
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
@@ -16,6 +19,8 @@ from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
+from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
+from fastmri_recon.training_scripts.model_saving_workaround import ModelCheckpointWorkAround
 
 
 n_volumes_train_fastmri = 973
@@ -23,7 +28,7 @@ n_volumes_train_oasis = 3273
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
-VOLUME_SIZE = (256, 256, 256)
+VOLUME_SIZE = (176, 256, 256)
 
 def train_ncnet(
         model,
@@ -40,6 +45,9 @@ def train_ncnet(
         use_mixed_precision=False,
         loss='mae',
         original_run_id=None,
+        checkpoint_epoch=0,
+        save_state=False,
+        lr=1e-4,
         **acq_kwargs,
     ):
     # paths
@@ -111,10 +119,12 @@ def train_ncnet(
         additional_info += f'_{loss}'
     if dcomp:
         additional_info += '_dcomp'
-    run_id = f'{run_id}_{additional_info}_{int(time.time())}'
+    if checkpoint_epoch == 0:
+        run_id = f'{run_id}_{additional_info}_{int(time.time())}'
+    else:
+        run_id = original_run_id
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
-    chkpt_cback = ModelCheckpoint(chkpt_path, period=n_epochs, save_weights_only=True)
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
     tboard_cback = TensorBoard(
         profile_batch=0,
@@ -125,30 +135,42 @@ def train_ncnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    if original_run_id is not None:
-        lr = 1e-7
-        n_steps = n_volumes_train//2
-    else:
-        lr = 1e-4
-        n_steps = n_volumes_train
+    n_steps = n_volumes_train
+
+    chkpt_cback = ModelCheckpointWorkAround(
+        chkpt_path,
+        save_freq=int(n_epochs*n_steps),
+        save_weights_only=True,
+    )
     default_model_compile(model, lr=lr, loss=loss)
+    # first run of the model to avoid the saving error
+    # ValueError: as_list() is not defined on an unknown TensorShape.
+    # it can also allow loading of weights
+    model(next(iter(train_set))[0])
+    if not checkpoint_epoch == 0:
+        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
+        model._make_train_function()
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+            weight_values = pickle.load(f)
+        model.optimizer.set_weights(weight_values)
     print(run_id)
-    if original_run_id is not None:
-        if os.environ.get('FASTMRI_DEBUG'):
-            n_epochs_original = 1
-        else:
-            n_epochs_original = 250
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
+
 
     model.fit(
         train_set,
         steps_per_epoch=n_steps,
+        initial_epoch=checkpoint_epoch,
         epochs=n_epochs,
         validation_data=val_set,
         validation_steps=2,
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+    if save_state:
+        symbolic_weights = getattr(model.optimizer, 'weights')
+        weight_values = K.batch_get_value(symbolic_weights)
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-optimizer.pkl', 'wb') as f:
+            pickle.dump(weight_values, f)
     return run_id
 
 def train_ncpdnet(
@@ -199,7 +221,7 @@ def train_ncpdnet(
     run_id = f'{ncpdnet_type}_{additional_info}'
     model = NCPDNet(**run_params)
 
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         multicoil=multicoil,
@@ -239,7 +261,7 @@ def train_unet_nc(
     run_id = f'{unet_type}_{additional_info}'
 
     model = UnetComplex(**run_params)
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         multicoil=multicoil,
@@ -273,7 +295,7 @@ def train_vnet_nc(
 
     model = VnetComplex(**run_params)
     train_kwargs.update(three_d=True)
-    train_ncnet(
+    return train_ncnet(
         model,
         run_id=run_id,
         dcomp=dcomp,
@@ -295,6 +317,10 @@ def train_ncnet_multinet(
         n_iter=10,
         normalize_image=False,
         n_primal=5,
+        use_mixed_precision=False,
+        original_run_id=None,
+        checkpoint_epoch=0,
+        save_state=False,
     ):
     if model == 'pdnet':
         train_function = train_ncpdnet
@@ -321,7 +347,7 @@ def train_ncnet_multinet(
         add_kwargs.update(dcomp=True)
     else:
         add_kwargs.update(dcomp=dcomp)
-    train_function(
+    return train_function(
         af=af,
         n_epochs=n_epochs,
         loss=loss,
@@ -329,6 +355,10 @@ def train_ncnet_multinet(
         acq_type=acq_type,
         scale_factor=scale_factor,
         three_d=three_d,
+        use_mixed_precision=use_mixed_precision,
+        original_run_id=original_run_id,
+        checkpoint_epoch=checkpoint_epoch,
+        save_state=save_state,
         **add_kwargs,
     )
 

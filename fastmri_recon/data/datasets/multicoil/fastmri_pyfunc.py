@@ -47,6 +47,8 @@ def train_masked_kspace_dataset_from_indexable(
         fixed_masks=False,
         output_shape_spec=False,
         mask_type='random',
+        batch_size=None,
+        target_image_size=(640, 400),
     ):
     r"""Dataset for the training/validation set of multi-coil fastMRI.
 
@@ -147,16 +149,19 @@ def train_masked_kspace_dataset_from_indexable(
     )
     image_and_kspace_and_contrast_ds = files_ds.map(
         _tf_filename_to_image_and_kspace_and_contrast,
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
-    # contrast filtering
-    if contrast:
+    # contrast and size filtering
+    if contrast or target_image_size is not None:
         image_and_kspace_and_contrast_ds = image_and_kspace_and_contrast_ds.filter(
-            lambda image, kspace, tf_contrast: tf_contrast == contrast
+            lambda image, kspace, tf_contrast: tf.logical_and(
+                tf_contrast == contrast if contrast else True,
+                tf.reduce_all(tf.less_equal(tf.shape(kspace)[-2:], target_image_size))
+            )
         )
     image_and_kspace_ds = image_and_kspace_and_contrast_ds.map(
         lambda image, kspace, tf_contrast: (image, kspace),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
     )
     if n_samples is not None:
         image_and_kspace_ds = image_and_kspace_ds.take(n_samples)
@@ -168,12 +173,18 @@ def train_masked_kspace_dataset_from_indexable(
             fixed_masks=fixed_masks,
             output_shape_spec=output_shape_spec,
             mask_type=mask_type,
+            batch_size=batch_size,
+            target_image_size=target_image_size,
         ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else None,
-    ).repeat()
+        num_parallel_calls=tf.data.experimental.AUTOTUNE if rand or parallel else 2,
+    )
+    if batch_size is not None:
+        masked_kspace_ds = masked_kspace_ds.batch(batch_size)
+    masked_kspace_ds = masked_kspace_ds.repeat()
     if rand or parallel:
         masked_kspace_ds = masked_kspace_ds.prefetch(tf.data.experimental.AUTOTUNE)
-
+    else:
+        masked_kspace_ds = masked_kspace_ds.prefetch(2)
     return masked_kspace_ds
 
 def test_masked_kspace_dataset_from_indexable(

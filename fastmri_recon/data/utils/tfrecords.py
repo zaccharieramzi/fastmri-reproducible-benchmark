@@ -6,6 +6,7 @@ TENSOR_DTYPES = {
     'ktraj': tf.float32,
     'output_shape': tf.int32,
     'volume': tf.float32,
+    'reconstructed_volume': tf.float32,
     'dcomp': tf.float32,
 }
 
@@ -20,6 +21,49 @@ def serialize_tensor(tensor):
     else:
         return bytes_feature(tf.io.serialize_tensor(tensor).numpy())
 
+def feature_decode():
+    return tf.io.FixedLenFeature(shape=(), dtype=tf.string)
+
+def set_shapes(data_dict):
+    for k, v in data_dict.items():
+        if k == 'kspace':
+            data_dict[k] = tf.reshape(v, [1, 1, -1, 1])
+        elif k == 'dcomp':
+            data_dict[k] = tf.reshape(v, [1, 1, -1])
+        elif k == 'ktraj':
+            v.set_shape([1, 3, None])
+        elif 'volume' in k:
+            v.set_shape([None, None, None, 1])
+    return data_dict
+
+# Post-proc functions
+def encode_postproc_example(model_inputs, model_outputs):
+    model_inputs = [serialize_tensor(mi) for mi in model_inputs]
+    model_outputs = [serialize_tensor(mo) for mo in model_outputs]
+
+    feature = {
+        'reconstructed_volume': model_inputs[0],
+        'volume': model_outputs[0],
+    }
+    example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+    return example_proto.SerializeToString()
+
+def decode_postproc_example(raw_record):
+    features = {
+        'reconstructed_volume': feature_decode(),
+        'volume': feature_decode(),
+    }
+    example = tf.io.parse_example(raw_record, features=features)
+    example_parsed = {
+        k: tf.io.parse_tensor(tensor, TENSOR_DTYPES[k])
+        for k, tensor in example.items()
+    }
+    example_parsed = set_shapes(example_parsed)
+    model_inputs = example_parsed['reconstructed_volume']
+    model_outputs = example_parsed['volume']
+    return model_inputs, model_outputs
+
+# OASIS functions
 def encode_example(model_inputs, model_outputs, compute_dcomp=False):
     model_inputs = [serialize_tensor(mi) for mi in model_inputs]
     model_outputs = [serialize_tensor(mo) for mo in model_outputs]
@@ -35,9 +79,6 @@ def encode_example(model_inputs, model_outputs, compute_dcomp=False):
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
 
-def feature_decode():
-    return tf.io.FixedLenFeature(shape=(), dtype=tf.string)
-
 def decode_example(raw_record, compute_dcomp=False):
     features = {
         'kspace': feature_decode(),
@@ -52,6 +93,7 @@ def decode_example(raw_record, compute_dcomp=False):
         k: tf.io.parse_tensor(tensor, TENSOR_DTYPES[k])
         for k, tensor in example.items()
     }
+    example_parsed = set_shapes(example_parsed)
     extra_args = (example_parsed['output_shape'],)
     if compute_dcomp:
         extra_args += (example_parsed['dcomp'],)
