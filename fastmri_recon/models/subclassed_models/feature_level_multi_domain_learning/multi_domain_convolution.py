@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Layer, Conv2D
 
-from feature_multidomain_learning.models.complex import to_complex, to_real
-from feature_multidomain_learning.models.fourier import ortho_fft2d, ortho_ifft2d
+from fastmri_recon.models.utils.complex import to_complex, to_real
+from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.fourier import ortho_fft2d, ortho_ifft2d
 
 class MultiDomainConv(Layer):
     def __init__(self, n_filters=32, non_linearity=None, kernel_size=1, **kwargs):
