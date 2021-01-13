@@ -78,7 +78,7 @@ def get_model_specs(n_primal=1):
         n_scales_kwarg = model_specs['n_scales']
         res = model_specs['res']
         extra_kwargs = model_specs.get('extra_kwargs', {})
-        extra_kwargs.update({model_specs['output_kwarg']: n_outputs})
+        extra_kwargs.update({'n_outputs': n_outputs})
         model_sizes = sorted(params.keys())
         model_sizes.remove('specs')
         for model_size in tqdm(model_sizes, model_name):
