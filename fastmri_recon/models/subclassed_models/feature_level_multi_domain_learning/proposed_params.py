@@ -11,22 +11,16 @@ params_per_model = {
 }
 
 params_per_model['U-net-multi']['big'] = dict(
-    n_layers=4,
     layers_n_channels=[32, 64, 128, 256],
     layers_n_non_lins=2,
-    res=False,
 )
 params_per_model['U-net-multi']['medium'] = dict(
-    n_layers=4,
     layers_n_channels=[16, 32, 64, 128],
     layers_n_non_lins=2,
-    res=False,
 )
 params_per_model['U-net-multi']['small'] = dict(
-    n_layers=3,
     layers_n_channels=[16, 32, 64],
     layers_n_non_lins=1,
-    res=False,
 )
 params_per_model['U-net-multi']['specs'] = dict(
     model=UnetMultiDomain,
@@ -88,7 +82,7 @@ def get_model_specs(n_primal=1):
             if n_scales_kwarg == 0:
                 n_scales = 0
             else:
-                n_scales = kwargs[n_scales_kwarg]
+                n_scales = kwargs.get(n_scales_kwarg, 4)
                 if model_name in 'MWCNN-multi'.split():
                     n_scales += 1
             yield model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res
