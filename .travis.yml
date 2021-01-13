@@ -1,8 +1,7 @@
 language: python
 cache: pip
 install:
-  - pip install pyxb
-  - pip install pytest==5.0.0 ismrmrd
+  - pip install pytest==5.0.0
   - pip install .
   - pip install -U --no-deps tensorflow-io==0.13.0
 
