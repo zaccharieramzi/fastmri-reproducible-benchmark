@@ -67,16 +67,9 @@ params_per_model['MWCNN']['specs'] = dict(
 )
 
 
-def get_model_specs(n_primal=None, force_res=False, dealiasing=False):
-    if dealiasing:
-        n_inputs = 2
-        n_outputs = 2
-    elif n_primal is None:
-        n_outputs = 1
-        n_inputs = 1
-    else:
-        n_outputs = 2*n_primal
-        n_inputs = 2*(n_primal+1)
+def get_model_specs(n_primal=1):
+    n_outputs = 2*n_primal
+    n_inputs = 2*(n_primal+1)
     model_names = sorted(params_per_model.keys())
     for model_name in tqdm(model_names, 'Models'):
         params = params_per_model[model_name]
@@ -89,10 +82,7 @@ def get_model_specs(n_primal=None, force_res=False, dealiasing=False):
         model_sizes = sorted(params.keys())
         model_sizes.remove('specs')
         for model_size in tqdm(model_sizes, model_name):
-            print(model_name, model_size)
             param_values = params[model_size]
-            if 'res' in param_values:
-                param_values['res'] = param_values['res'] or force_res
             kwargs = param_values
             kwargs.update(extra_kwargs)
             if n_scales_kwarg == 0:
@@ -108,8 +98,8 @@ def build_model_from_specs(model_fun, kwargs, n_inputs):
     model(tf.zeros([1, 32, 32, n_inputs]))
     return model
 
-def get_models(n_primal=None, force_res=False, dealiasing=False):
-    models_specs = get_model_specs(n_primal=n_primal, force_res=force_res, dealiasing=dealiasing)
+def get_models(n_primal=1):
+    models_specs = get_model_specs(n_primal=n_primal)
     for model_name, model_size, model_fun, kwargs, n_inputs, n_scales, res in models_specs:
         model = build_model_from_specs(model_fun, kwargs, n_inputs)
         yield model_name, model_size, model, n_scales, res
