@@ -48,7 +48,7 @@ class UpConv(Layer):
 class UnetMultiDomain(Model):
     def __init__(
             self,
-            n_output_channels=1,
+            n_outputs=1,
             kernel_size=3,
             layers_n_channels=[64, 128, 256, 512, 1024],
             layers_n_non_lins=2,
@@ -56,7 +56,7 @@ class UnetMultiDomain(Model):
             **kwargs,
         ):
         super().__init__(**kwargs)
-        self.n_output_channels = n_output_channels
+        self.n_outputs = n_outputs
         self.kernel_size = kernel_size
         self.layers_n_channels = layers_n_channels
         self.n_layers = len(self.layers_n_channels)
@@ -92,7 +92,7 @@ class UnetMultiDomain(Model):
             ) for n_channels in self.layers_n_channels[:-1]
         ]
         self.final_conv = Conv2D(
-            filters=self.n_output_channels,
+            filters=self.n_outputs,
             kernel_size=1,
             padding='same',
             activation=None,
