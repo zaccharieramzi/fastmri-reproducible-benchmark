@@ -1,7 +1,7 @@
 # fastMRI reproducible benchmark
 
 [![Travis Build Status](https://travis-ci.com/zaccharieramzi/fastmri-reproducible-benchmark.svg?branch=master)](https://travis-ci.org/zaccharieramzi/fastmri-reproducible-benchmark)
-[![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)]
+![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master)
 
 The idea of this repository is to have a way to rapidly benchmark new solutions against existing reconstruction algorithms on the fastMRI dataset single-coil track.
@@ -14,7 +14,7 @@ The reconstruction algorithms implemented or adapted to the fastMRI dataset incl
 - [KIKI net](https://www.ncbi.nlm.nih.gov/pubmed/29624729)
 - [Learned Primal Dual](https://arxiv.org/abs/1707.06474), adapted to MRI reconstruction
 - [XPDNet](https://arxiv.org/abs/2010.07290), a modular unrolled reconstruction algorithm, in which you can plug your best denoiser.
-- NCPDNet, an unrolled reconstruction algorithm for non-cartesian acquisitions, with density-compensation.
+- [NCPDNet](https://arxiv.org/abs/2101.01570), an unrolled reconstruction algorithm for non-cartesian acquisitions, with density-compensation.
 
 All the neural networks are implemented in TensorFlow with the Keras API.
 The older ones (don't judge this was the beginning of my thesis) are coded using the functional API.
@@ -81,4 +81,4 @@ If you use this package or parts of it, please cite one of the following work:
 - [Benchmarking Deep Nets MRI Reconstruction Models on the FastMRI Publicly Available Dataset](https://hal.inria.fr/hal-02436223)
 - [Benchmarking MRI Reconstruction Neural Networks on Large Public Datasets](https://www.mdpi.com/2076-3417/10/5/1816)
 - [XPDNet for MRI Reconstruction: an Application to the fastMRI 2020 Brain Challenge](https://arxiv.org/abs/2010.07290)
-- Density Compensated Unrolled Networks for Non-Cartesian MRI Reconstruction, submitted to ISBI 2021
+- [Density Compensated Unrolled Networks for Non-Cartesian MRI Reconstruction](https://arxiv.org/abs/2101.01570), submitted to ISBI 2021
