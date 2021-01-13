@@ -7,7 +7,7 @@ from tensorflow.keras.layers import (
     Layer,
 )
 
-from from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.multi_domain_convolution import MultiDomainConv
+from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.multi_domain_convolution import MultiDomainConv
 
 
 DEFAULT_N_FILTERS_PER_SCALE = [128, 256, 512]

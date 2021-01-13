@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import Layer, UpSampling2D, MaxPooling2D, Conv2D
 from tensorflow.keras.models import Model
 
-from from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.multi_domain_convolution import MultiDomainConv
+from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.multi_domain_convolution import MultiDomainConv
 
 
 class ConvBlockMultiDomain(Layer):

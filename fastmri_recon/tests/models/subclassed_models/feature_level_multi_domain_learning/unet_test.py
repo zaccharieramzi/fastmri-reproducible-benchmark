@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.unet import UnetMultiDomain
+from fastmri_recon.models.subclassed_models.feature_level_multi_domain_learning.unet import UnetMultiDomain
 
 
 def test_unet():
