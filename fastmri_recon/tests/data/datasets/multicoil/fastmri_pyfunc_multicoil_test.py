@@ -71,6 +71,7 @@ def test_test_masked_kspace_dataset_from_indexable(create_full_fastmri_test_tmp_
     tf_tester = tf.test.TestCase()
     tf_tester.assertAllInSet(mask, [1, 0])  # this because we set af to 1
 
+@pytest.mark.skipif(ismrmrd_not_avail, reason='ismrmrd not installed')
 @pytest.mark.parametrize('ds_kwargs', [
     {},
     {'n_samples': 1},
