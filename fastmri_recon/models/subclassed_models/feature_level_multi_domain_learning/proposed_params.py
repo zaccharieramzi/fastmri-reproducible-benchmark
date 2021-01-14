@@ -10,6 +10,10 @@ params_per_model = {
     model_name: {} for model_name in 'U-net-multi MWCNN-multi'.split()
 }
 
+params_per_model['U-net-multi']['XL'] = dict(
+    layers_n_channels=[128, 256, 512, 1024, 1024],
+    layers_n_non_lins=2,
+)
 params_per_model['U-net-multi']['big'] = dict(
     layers_n_channels=[32, 64, 128, 256],
     layers_n_non_lins=2,
@@ -28,6 +32,14 @@ params_per_model['U-net-multi']['specs'] = dict(
     n_scales='n_layers',
 )
 
+params_per_model['MWCNN-multi']['XL'] = dict(
+    n_scales=5,
+    n_filters_per_scale=[128, 256, 512, 1024, 1024],
+    n_convs_per_scale=[2, 2, 2, 2, 2],
+    n_first_convs=3,
+    first_conv_n_filters=64,
+    res=False,
+)
 params_per_model['MWCNN-multi']['big'] = dict(
     n_scales=3,
     n_filters_per_scale=DEFAULT_N_FILTERS_PER_SCALE,
