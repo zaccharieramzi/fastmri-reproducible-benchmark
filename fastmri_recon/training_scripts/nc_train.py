@@ -164,7 +164,7 @@ def train_ncnet(
         train_set,
         steps_per_epoch=n_steps,
         initial_epoch=checkpoint_epoch,
-        epochs=n_epochs,
+        epochs=final_epoch,
         validation_data=val_set,
         validation_steps=2,
         verbose=0,
