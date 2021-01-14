@@ -15,12 +15,14 @@ class MultiDomainConv(Layer):
             self.kernel_size,
             padding='same',
             activation=self.non_linearity,
+            name='conv_image',
         )
         self.conv_kspace = Conv2D(
             self.n_filters,
             self.kernel_size,
             padding='same',
             activation=self.non_linearity,
+            name='conv_image',
         )
 
     def build(self, input_shape):
