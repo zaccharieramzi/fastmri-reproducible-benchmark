@@ -124,6 +124,7 @@ def train_ncnet(
         run_id = f'{run_id}_{additional_info}_{int(time.time())}'
     else:
         run_id = original_run_id
+    final_epoch = checkpoint_epoch + n_epochs
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
