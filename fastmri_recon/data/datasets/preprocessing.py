@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
-from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
+from tfkbnufft.mri.dcomp_calc import calculate_density_compensator
 
 from fastmri_recon.data.utils.crop import adjust_image_size
 from ..utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
@@ -53,12 +53,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
             interpob = nfft_ob._extract_nufft_interpob()
-            nufftob_forw = kbnufft_forward(interpob)
-            nufftob_back = kbnufft_adjoint(interpob)
-            dcomp = calculate_radial_dcomp_tf(
+            dcomp = calculate_density_compensator(
                 interpob,
-                nufftob_forw,
-                nufftob_back,
                 traj[0],
             )
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
