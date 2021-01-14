@@ -56,7 +56,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             dcomp = calculate_density_compensator(
                 interpob,
                 traj[0],
-            )
+            )[:, 0]
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
         orig_image = tf_unmasked_adj_op(kspaces[..., None])
         nc_kspace = nufft(nfft_ob, orig_image[:, None, ..., 0], traj, image_size)
