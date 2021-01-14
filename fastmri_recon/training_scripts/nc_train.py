@@ -5,6 +5,7 @@ import time
 
 import click
 import pickle
+import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
@@ -149,7 +150,9 @@ def train_ncnet(
     model(next(iter(train_set))[0])
     if not checkpoint_epoch == 0:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
-        model._make_train_function()
+        grad_vars = model.trainable_weights
+        zero_grads = [tf.zeros_like(w) for w in grad_vars]
+        model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
         with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
             weight_values = pickle.load(f)
         model.optimizer.set_weights(weight_values)
