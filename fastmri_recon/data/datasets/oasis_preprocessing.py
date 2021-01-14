@@ -19,7 +19,7 @@ def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_ty
             dcomp = calculate_density_compensator(
                 interpob,
                 traj[0],
-            )[:, 0]
+            )[0, 0]
         # need to add batch and coil dimension to the volume
         nc_kspace = nufft(nfft_ob, volume[None, None, ...], traj, volume_size)
         nc_kspace_scaled = nc_kspace * scale_factor
