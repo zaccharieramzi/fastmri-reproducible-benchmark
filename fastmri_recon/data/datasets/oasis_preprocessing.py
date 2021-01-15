@@ -16,10 +16,14 @@ def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_ty
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
             interpob = nfft_ob._extract_nufft_interpob()
+            nufftob_back = kbnufft_adjoint(interpob)
+            nufftob_forw = kbnufft_forward(interpob)
             dcomp = calculate_density_compensator(
                 interpob,
+                nufftob_forw,
+                nufftob_back,
                 traj[0],
-            )[0, 0]
+            )
         # need to add batch and coil dimension to the volume
         nc_kspace = nufft(nfft_ob, volume[None, None, ...], traj, volume_size)
         nc_kspace_scaled = nc_kspace * scale_factor
