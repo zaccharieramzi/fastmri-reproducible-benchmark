@@ -81,7 +81,6 @@ def test_train_xpdnet(create_full_fastmri_test_tmp_dataset, model_fun, model_kwa
     ), 4, True),
     # unet
     (UnetMultiDomain, dict(
-        n_layers=2,
         layers_n_channels=[16, 32,],
         res=False,
         layers_n_non_lins=1,
