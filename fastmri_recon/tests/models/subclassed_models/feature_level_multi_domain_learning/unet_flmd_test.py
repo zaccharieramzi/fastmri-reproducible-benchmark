@@ -9,7 +9,7 @@ def test_unet():
     model = UnetMultiDomain(
         layers_n_channels=[4, 8],
         layers_n_non_lins=1,
-        n_output_channels=n_out,
+        n_outputs=n_out,
     )
     shape = [1, 32, 32, 4]
     res = model(tf.zeros(shape))
@@ -21,7 +21,7 @@ def test_unet_change():
     model = UnetMultiDomain(
         layers_n_channels=[4, 8],
         layers_n_non_lins=1,
-        n_output_channels=2,
+        n_outputs=2,
     )
     x = tf.random.normal((1, 64, 64, 2))
     y = x
