@@ -53,8 +53,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         if compute_dcomp:
             interpob = nfft_ob._extract_nufft_interpob()
-            nufftob_back = kbnufft_adjoint(interpob)
-            nufftob_forw = kbnufft_forward(interpob)
+            nufftob_back = kbnufft_adjoint(interpob, multiprocessing=True)
+            nufftob_forw = kbnufft_forward(interpob, multiprocessing=True)
             dcomp = calculate_density_compensator(
                 interpob,
                 nufftob_forw,
