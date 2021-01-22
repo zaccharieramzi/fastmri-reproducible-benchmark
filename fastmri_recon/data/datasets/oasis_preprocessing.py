@@ -36,11 +36,4 @@ def non_cartesian_from_volume_to_nc_kspace_and_traj(nfft_ob, volume_size, acq_ty
             dcomp = tf.ones([1, tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
             extra_args += (dcomp,)
         return (nc_kspaces_channeled, traj, extra_args), volume_channeled
-    return tf.function(
-        from_volume_to_nc_kspace_and_traj,
-        input_signature=[
-            tf.TensorSpec([None, None, None], dtype=tf.complex64),
-        ],
-        autograph=True,
-        experimental_relax_shapes=True,
-    )
+    return from_volume_to_nc_kspace_and_traj
