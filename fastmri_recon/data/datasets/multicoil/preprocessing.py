@@ -3,6 +3,7 @@ from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_density_compensator
 
 from fastmri_recon.data.utils.crop import adjust_image_size
+from fastmri_recon.data.utils.fourier import tf_ortho_ifft2d
 from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft, FFTBase
@@ -102,7 +103,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
             traj[0],
         )
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
-        orig_image_channels = tf_unmasked_adj_op(kspaces[..., None])[..., 0]
+        orig_image_channels = tf_ortho_ifft2d(kspaces)
         nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size, multiprocessing=True)
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
