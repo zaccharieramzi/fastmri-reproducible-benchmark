@@ -103,7 +103,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         )
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
         orig_image_channels = tf_unmasked_adj_op(kspaces[..., None])[..., 0]
-        nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size)
+        nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size, multiprocessing=True)
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
         images_channeled = images_scaled[..., None]
