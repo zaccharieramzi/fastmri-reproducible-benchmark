@@ -60,7 +60,7 @@ def ifft(kspace):
     image = fourier_op.adj_op(kspace)
     return image
 
-def tf_ortho_ifft2d(kspace, multiprocessing=True):
+def tf_ortho_ifft2d(kspace, enable_multiprocessing=True):
     axes = [len(kspace.shape) - 2, len(kspace.shape) - 1]
     scaling_norm = tf.cast(tf.math.sqrt(tf.cast(tf.math.reduce_prod(tf.shape(kspace)[-2:]), 'float32')), kspace.dtype)
     if len(kspace.shape) == 4:
@@ -70,7 +70,7 @@ def tf_ortho_ifft2d(kspace, multiprocessing=True):
     k_shape_x = tf.shape(kspace)[-2]
     k_shape_y = tf.shape(kspace)[-1]
     shifted_kspace = ifftshift(kspace, axes=axes)
-    if multiprocessing:
+    if enable_multiprocessing:
         batched_shifted_kspace = tf.reshape(shifted_kspace, (-1, k_shape_x, k_shape_y))
         batched_shifted_image = tf.map_fn(
             ifft2d,
