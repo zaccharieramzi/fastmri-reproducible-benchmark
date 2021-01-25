@@ -7,7 +7,7 @@ TENSOR_DTYPES = {
     'output_shape': tf.int32,
     'volume': tf.float32,
     'reconstructed_volume': tf.float32,
-    'dcomp': tf.float32,
+    'dcomp': tf.complex64,
     'smaps': tf.complex64,
 }
 
