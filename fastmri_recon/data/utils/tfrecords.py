@@ -110,7 +110,7 @@ def decode_ncmc_example(raw_record, slice_random=True):
     }
     example_parsed = set_shapes_ncmc(example_parsed)
     num_slices = tf.shape(example_parsed['volume'])[0]
-    slice_start = tf.random.uniform([1], maxval=num_slices, dtype=tf.int32) if slice_random else 0
+    slice_start = tf.random.uniform([1], maxval=num_slices, dtype=tf.int32)[0] if slice_random else 0
     num_slices_selected = 1 if slice_random else num_slices
     slice_end = slice_start + num_slices_selected
     extra_args = (
