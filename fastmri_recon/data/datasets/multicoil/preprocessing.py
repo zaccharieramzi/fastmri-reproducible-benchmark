@@ -82,6 +82,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         image_size,
         acq_type='radial',
         scale_factor=1,
+        multiprocessing=True,
         **acq_kwargs
 ):
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
@@ -94,8 +95,8 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         interpob = nfft_ob._extract_nufft_interpob()
-        nufftob_back = kbnufft_adjoint(interpob, multiprocessing=True)
-        nufftob_forw = kbnufft_forward(interpob, multiprocessing=True)
+        nufftob_back = kbnufft_adjoint(interpob, multiprocessing=multiprocessing)
+        nufftob_forw = kbnufft_forward(interpob, multiprocessing=multiprocessing)
         dcomp = calculate_density_compensator(
             interpob,
             nufftob_forw,
