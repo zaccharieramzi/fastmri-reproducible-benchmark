@@ -8,6 +8,7 @@ TENSOR_DTYPES = {
     'volume': tf.float32,
     'reconstructed_volume': tf.float32,
     'dcomp': tf.float32,
+    'smaps': tf.complex64,
 }
 
 ## From
