@@ -40,7 +40,7 @@ def set_shapes(data_dict):
 def set_shapes_ncmc(data_dict):
     for k, v in data_dict.items():
         if k == 'kspace':
-            v.set_shape([None, None, None, None, 1])
+            v.set_shape([None, None, None, 1])
         elif k == 'dcomp':
             v.set_shape([None, None])
         elif k == 'ktraj':
