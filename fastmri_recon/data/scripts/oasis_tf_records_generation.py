@@ -18,6 +18,9 @@ def generate_oasis_tf_records(
         shard_size=3300,
         slice_size=176,
     ):
+    tf.config.experimental_run_functions_eagerly(
+        True,
+    )
     path = Path(OASIS_DATA_DIR) / mode
     filenames = sorted(list(path.glob('*.nii.gz')))
     filenames = filenames[shard*shard_size:(shard+1)*shard_size]
