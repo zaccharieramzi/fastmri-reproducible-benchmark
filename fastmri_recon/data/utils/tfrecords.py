@@ -48,7 +48,7 @@ def set_shapes_ncmc(data_dict):
         elif 'volume' in k:
             v.set_shape([None, None, None, 1])
         elif 'smaps' in k:
-            v.set_shape([None, None, None])
+            v.set_shape([None, None, None, None])
     return data_dict
 
 # Post-proc functions
