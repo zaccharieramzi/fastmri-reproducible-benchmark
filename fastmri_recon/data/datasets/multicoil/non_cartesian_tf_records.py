@@ -10,7 +10,13 @@ def train_nc_kspace_dataset_from_tfrecords(
         path,
         acq_type='radial',
         n_samples=None,
-        slice_random=True,
+        rand=True,
+        scale_factor=1e6,
+        compute_dcomp=True,
+        image_size=(640, 400),
+        af=4,
+        contrast=None,
+        inner_slices=None,
     ):
     pattern = acq_type
     filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
@@ -21,7 +27,7 @@ def train_nc_kspace_dataset_from_tfrecords(
     if n_samples is not None:
         raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
-        partial(decode_ncmc_example, slice_random=slice_random),
+        partial(decode_ncmc_example, slice_random=rand),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     return volume_ds
