@@ -17,6 +17,7 @@ from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_ks
 from fastmri_recon.data.datasets.oasis_tf_records import train_nc_kspace_dataset_from_tfrecords as three_d_dataset
 from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train_nc_kspace_dataset_from_tfrecords as multicoil_dataset
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
+from fastmri_recon.models.subclassed_models.pdnet import PDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
@@ -234,6 +235,43 @@ def train_ncpdnet(
         **train_kwargs,
     )
 
+def train_gridded_pdnet(
+        n_iter=10,
+        n_filters=32,
+        n_primal=5,
+        non_linearity='relu',
+        **train_kwargs,
+    ):
+    run_params = {
+        'n_primal': n_primal,
+        'activation': non_linearity,
+        'n_iter': n_iter,
+        'n_filters': n_filters,
+        'primal_only': True,
+    }
+
+    ncpdnet_type = 'pdnet_gridded_singlecoil_'
+    additional_info = ''
+    if n_iter != 10:
+        additional_info += f'_i{n_iter}'
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+
+
+    run_id = f'{ncpdnet_type}_{additional_info}'
+    model = PDNet(**run_params)
+    train_kwargs.update(dict(
+        multicoil=False,
+        dcomp=False,
+        three_d=False,
+        gridding=True,
+    ))
+    return train_ncnet(
+        model,
+        run_id=run_id,
+        **train_kwargs,
+    )
+
 def train_unet_nc(
         multicoil=False,
         dcomp=False,
@@ -335,6 +373,15 @@ def train_ncnet_multinet(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+            'n_primal': n_primal,
+        }
+    if model == 'pdnet-gridded':
+        train_function = train_gridded_pdnet
+        if n_filters is None:
+            n_filters = 32
+        add_kwargs = {
+            'n_filters': n_filters,
+            'n_iter': n_iter,
             'n_primal': n_primal,
         }
     elif model == 'unet':
