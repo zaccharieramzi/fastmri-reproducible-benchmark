@@ -102,7 +102,10 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
         if compute_dcomp:
             dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(dcomp)[0]], dtype=dcomp.dtype) * dcomp[None, :]
             extra_args += (dcomp,)
-        return (nc_kspaces_channeled, traj, extra_args), images_channeled
+        if gridding:
+            return (nc_kspaces_channeled, traj), images_channeled
+        else:
+            return (nc_kspaces_channeled, traj, extra_args), images_channeled
     return tf.function(
         from_kspace_to_nc_kspace_and_traj,
         input_signature=[
