@@ -22,7 +22,7 @@ def train_nc_kspace_dataset_from_tfrecords(
     filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
     raw_dataset = tf.data.TFRecordDataset(
         [str(f) for f in filenames],
-        num_parallel_reads=tf.data.experimental.AUTOTUNE,
+        num_parallel_reads=4,
     )
     if n_samples is not None:
         raw_dataset.take(n_samples)
