@@ -1,3 +1,7 @@
+import math
+import multiprocessing
+
+from scipy.interpolate import griddata
 import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.mri.dcomp_calc import calculate_density_compensator
@@ -41,7 +45,11 @@ def generic_from_kspace_to_masked_kspace_and_mask(
             return (kspaces_channeled, mask), images_channeled
     return from_kspace_to_masked_kspace_and_mask
 
-def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_type='radial', scale_factor=1, compute_dcomp=False, **acq_kwargs):
+def grid_non_cartesian(traj, nc_kspace, X_grid, Y_grid):
+    grid = griddata(traj.T, nc_kspace[0], (X_grid, Y_grid), fill_value=0)
+    return grid.T
+
+def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_type='radial', scale_factor=1, compute_dcomp=False, gridding=False, **acq_kwargs):
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
         if acq_type == 'radial':
             traj = get_radial_trajectory(image_size, **acq_kwargs)
@@ -66,6 +74,27 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
         nc_kspace = nufft(nfft_ob, orig_image[:, None, ..., 0], traj, image_size)
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
+        # Here implement gridding
+        if gridding:
+            pi = tf.constant(math.pi)
+            def tf_grid_nc(nc_kspace, traj):
+                X_grid, Y_grid = tf.meshgrid(
+                    tf.range(-pi, pi, 2*pi / image_size[0]),
+                    tf.range(-pi, pi, 2*pi / image_size[1]),
+                )
+                nc_kspace = tf.numpy_function(
+                    grid_non_cartesian,
+                    [traj, nc_kspace, X_grid, Y_grid],
+                    tf.complex64,
+                )
+                return nc_kspace
+            nc_kspace_scaled = tf.nest.map_structure(tf.stop_gradient, tf.map_fn(
+                tf_grid_nc,
+                (nc_kspace_scaled, traj),
+                dtype=tf.complex64,
+                parallel_iterations=multiprocessing.cpu_count(),
+            ))
+            traj = tf.ones_like(nc_kspace_scaled)
         images_channeled = images_scaled[..., None]
         nc_kspaces_channeled = nc_kspace_scaled[..., None]
         orig_shape = tf.ones([tf.shape(kspaces)[0]], dtype=tf.int32) * tf.shape(kspaces)[-1]
