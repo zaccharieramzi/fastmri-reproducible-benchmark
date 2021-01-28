@@ -375,7 +375,7 @@ def train_ncnet_multinet(
             'normalize_image': normalize_image,
             'n_primal': n_primal,
         }
-    if model == 'pdnet-gridded':
+    elif model == 'pdnet-gridded':
         train_function = train_gridded_pdnet
         if n_filters is None:
             n_filters = 32
