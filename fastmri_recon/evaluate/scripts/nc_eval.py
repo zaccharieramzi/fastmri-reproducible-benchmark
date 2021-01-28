@@ -12,6 +12,7 @@ from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train
 from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
+from fastmri_recon.models.subclassed_models.pdnet import PDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 
@@ -134,6 +135,32 @@ def evaluate_ncpdnet(
         **eval_kwargs,
     )
 
+def evaluate_gridded_pdnet(
+        n_iter=10,
+        n_filters=32,
+        n_primal=5,
+        non_linearity='relu',
+        **eval_kwargs
+    ):
+    run_params = {
+        'n_primal': n_primal,
+        'activation': non_linearity,
+        'n_iter': n_iter,
+        'n_filters': n_filters,
+        'primal_only': True,
+    }
+    model = PDNet(**run_params)
+    eval_kwargs.update(dict(
+        multicoil=False,
+        dcomp=False,
+        three_d=False,
+        gridding=True,
+    ))
+    return evaluate_nc(
+        model,
+        **eval_kwargs,
+    )
+
 def evaluate_dcomp(multicoil=False, three_d=False, **eval_kwargs):
     if three_d:
         image_size = VOLUME_SIZE
@@ -226,6 +253,14 @@ def evaluate_nc_multinet(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+        }
+    elif model == 'pdnet-gridded':
+        evaluate_function = evaluate_gridded_pdnet
+        if n_filters is None:
+            n_filters = 32
+        add_kwargs = {
+            'n_filters': n_filters,
+            'n_iter': n_iter,
         }
     elif model == 'unet':
         if n_filters is None:
