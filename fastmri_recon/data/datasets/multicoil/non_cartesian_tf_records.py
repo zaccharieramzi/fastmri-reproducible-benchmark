@@ -8,12 +8,12 @@ from fastmri_recon.data.utils.tfrecords import decode_ncmc_example
 
 def train_nc_kspace_dataset_from_tfrecords(
         path,
+        image_size=(640, 400),
         acq_type='radial',
         n_samples=None,
         rand=True,
         scale_factor=1e6,
         compute_dcomp=True,
-        image_size=(640, 400),
         af=4,
         contrast=None,
         inner_slices=None,
