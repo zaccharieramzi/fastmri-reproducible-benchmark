@@ -97,7 +97,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
                 parallel_iterations=multiprocessing.cpu_count(),
             ))
             nc_kspace_scaled.set_shape([
-                tf.shape(images)[0],
+                None,
                 *image_size,
             ])
             traj = tf.ones_like(nc_kspace_scaled)
