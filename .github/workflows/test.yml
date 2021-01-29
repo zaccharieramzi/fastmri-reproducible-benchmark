@@ -17,7 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        test_suite: ['data', 'models', 'training_scripts/denoising', 'training_scripts/multi_coil', 'training_scripts/dealiasing_train_test.py', 'training_scripts/ncpdnet_train_test.py', 'training_scripts/unet_nc_train_test.py', 'training_scripts/updnet_train_test.py', 'training_scripts/xpdnet_train_test.py']
+        test_suite: [
+          'data',
+          'models',
+          'training_scripts/denoising',
+          'training_scripts/multi_coil',
+          'training_scripts/dealiasing_train_test.py',
+          'training_scripts/ncpdnet_train_test.py',
+          'training_scripts/unet_nc_train_test.py',
+          'training_scripts/updnet_train_test.py',
+          'training_scripts/xpdnet_train_test.py',
+        ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.6
