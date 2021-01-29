@@ -18,3 +18,4 @@ def test_gridded_preprocessing():
     image = tf.random.normal([1, 320, 320])
     kspace = tf.cast(tf.random.normal([1, 640, 320]), tf.complex64)
     (kspace_masked, mask), image_out = preproc_fun(image, kspace)
+    assert tf.squeeze(kspace_masked).shape == image_size
