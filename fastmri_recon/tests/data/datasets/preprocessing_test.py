@@ -10,6 +10,7 @@ def test_gridded_preprocessing():
         nfft_ob,
         image_size,
         gridding=True,
+        af=8,
     )
     image = tf.random.normal([1, 32, 32])
     kspace = tf.cast(tf.random.normal([1, 64, 32]), tf.complex64)
