@@ -83,16 +83,19 @@ def xpdnet_inference(
         contrast=contrast,
         n_samples=n_samples,
     )
-
+    if multicoil:
+        fake_kspace_size = [15, 640, 372]
+    else:
+        fake_kspace_size = [640, 372]
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
         model = XPDNet(model_fun, model_kwargs, **run_params)
         fake_inputs = [
-            tf.zeros([1, 15, 640, 372, 1], dtype=tf.complex64),
-            tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
+            tf.zeros([1, *fake_kspace_size, 1], dtype=tf.complex64),
+            tf.zeros([1, *fake_kspace_size], dtype=tf.complex64),
         ]
         if multicoil:
-            fake_inputs.append(tf.zeros([1, 15, 640, 372], dtype=tf.complex64))
+            fake_inputs.append(tf.zeros([1, *fake_kspace_size], dtype=tf.complex64))
         if brain:
             fake_inputs.append(tf.constant([[320, 320]]))
         model(fake_inputs)
