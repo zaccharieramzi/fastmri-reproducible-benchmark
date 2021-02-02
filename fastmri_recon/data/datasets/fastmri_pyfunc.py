@@ -140,7 +140,7 @@ def train_masked_kspace_dataset_from_indexable(
 
     return masked_kspace_ds
 
-def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contrast=None):
+def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contrast=None, n_samples=None):
     r"""Dataset for the testing/challenge set of single coil fastMRI.
 
     The output of the dataset is of the form:
@@ -193,6 +193,8 @@ def test_masked_kspace_dataset_from_indexable(path, AF=4, scale_factor=1, contra
         mask_and_kspace_ds = mask_and_kspace_ds.filter(
             lambda mask, kspace: tf_af(mask) > 5.5
         )
+    if n_samples is not None:
+        mask_and_kspace_ds = mask_and_kspace_ds.take(n_samples)
     masked_kspace_ds = mask_and_kspace_ds.map(
         generic_prepare_mask_and_kspace(
             scale_factor=scale_factor,

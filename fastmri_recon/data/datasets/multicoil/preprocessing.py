@@ -1,8 +1,9 @@
 import tensorflow as tf
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
-from tfkbnufft.mri.dcomp_calc import calculate_radial_dcomp_tf
+from tfkbnufft.mri.dcomp_calc import calculate_density_compensator
 
 from fastmri_recon.data.utils.crop import adjust_image_size
+from fastmri_recon.data.utils.fourier import tf_ortho_ifft2d
 from ...utils.masking.gen_mask_tf import gen_mask_tf, gen_mask_equidistant_tf
 from ...utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from ....models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft, FFTBase
@@ -81,6 +82,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         image_size,
         acq_type='radial',
         scale_factor=1,
+        multiprocessing=True,
         **acq_kwargs
 ):
     def from_kspace_to_nc_kspace_and_traj(images, kspaces):
@@ -93,17 +95,17 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(
         else:
             raise NotImplementedError(f'{acq_type} dataset not implemented yet.')
         interpob = nfft_ob._extract_nufft_interpob()
-        nufftob_forw = kbnufft_forward(interpob)
-        nufftob_back = kbnufft_adjoint(interpob)
-        dcomp = calculate_radial_dcomp_tf(
+        nufftob_back = kbnufft_adjoint(interpob, multiprocessing=multiprocessing)
+        nufftob_forw = kbnufft_forward(interpob, multiprocessing=multiprocessing)
+        dcomp = calculate_density_compensator(
             interpob,
             nufftob_forw,
             nufftob_back,
             traj[0],
         )
         traj = tf.repeat(traj, tf.shape(images)[0], axis=0)
-        orig_image_channels = tf_unmasked_adj_op(kspaces[..., None])[..., 0]
-        nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size)
+        orig_image_channels = tf_ortho_ifft2d(kspaces)
+        nc_kspace = nufft(nfft_ob, orig_image_channels, traj, image_size, multiprocessing=multiprocessing)
         nc_kspace_scaled = nc_kspace * scale_factor
         images_scaled = images * scale_factor
         images_channeled = images_scaled[..., None]

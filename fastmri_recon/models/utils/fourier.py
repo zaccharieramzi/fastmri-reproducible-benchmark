@@ -187,8 +187,8 @@ def _crop_for_nufft(image, im_size):
     else:
         return _crop_for_nufft_3d(image, im_size)
 
-def nufft(nufft_ob, image, ktraj, image_size=None):
-    forward_op = kbnufft_forward(nufft_ob._extract_nufft_interpob())
+def nufft(nufft_ob, image, ktraj, image_size=None, multiprocessing=False):
+    forward_op = kbnufft_forward(nufft_ob._extract_nufft_interpob(), multiprocessing=multiprocessing)
     shape = tf.shape(image)[2:]
     if image_size is not None:
         image_adapted = tf.cond(
