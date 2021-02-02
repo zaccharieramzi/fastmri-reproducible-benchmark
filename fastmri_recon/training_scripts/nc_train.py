@@ -5,6 +5,7 @@ import time
 
 import click
 import pickle
+import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
@@ -14,8 +15,9 @@ from tensorflow_addons.callbacks import TQDMProgressBar
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.data.datasets.oasis_tf_records import train_nc_kspace_dataset_from_tfrecords as three_d_dataset
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as multicoil_dataset
+from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train_nc_kspace_dataset_from_tfrecords as multicoil_dataset
 from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
+from fastmri_recon.models.subclassed_models.pdnet import PDNet
 from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 from fastmri_recon.models.training.compile import default_model_compile
@@ -123,6 +125,7 @@ def train_ncnet(
         run_id = f'{run_id}_{additional_info}_{int(time.time())}'
     else:
         run_id = original_run_id
+    final_epoch = checkpoint_epoch + n_epochs
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
@@ -149,7 +152,9 @@ def train_ncnet(
     model(next(iter(train_set))[0])
     if not checkpoint_epoch == 0:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
-        model._make_train_function()
+        grad_vars = model.trainable_weights
+        zero_grads = [tf.zeros_like(w) for w in grad_vars]
+        model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
         with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
             weight_values = pickle.load(f)
         model.optimizer.set_weights(weight_values)
@@ -160,7 +165,7 @@ def train_ncnet(
         train_set,
         steps_per_epoch=n_steps,
         initial_epoch=checkpoint_epoch,
-        epochs=n_epochs,
+        epochs=final_epoch,
         validation_data=val_set,
         validation_steps=2,
         verbose=0,
@@ -227,6 +232,43 @@ def train_ncpdnet(
         multicoil=multicoil,
         dcomp=dcomp,
         three_d=three_d,
+        **train_kwargs,
+    )
+
+def train_gridded_pdnet(
+        n_iter=10,
+        n_filters=32,
+        n_primal=5,
+        non_linearity='relu',
+        **train_kwargs,
+    ):
+    run_params = {
+        'n_primal': n_primal,
+        'activation': non_linearity,
+        'n_iter': n_iter,
+        'n_filters': n_filters,
+        'primal_only': True,
+    }
+
+    ncpdnet_type = 'pdnet_gridded_singlecoil_'
+    additional_info = ''
+    if n_iter != 10:
+        additional_info += f'_i{n_iter}'
+    if non_linearity != 'relu':
+        additional_info += f'_{non_linearity}'
+
+
+    run_id = f'{ncpdnet_type}_{additional_info}'
+    model = PDNet(**run_params)
+    train_kwargs.update(dict(
+        multicoil=False,
+        dcomp=False,
+        three_d=False,
+        gridding=True,
+    ))
+    return train_ncnet(
+        model,
+        run_id=run_id,
         **train_kwargs,
     )
 
@@ -331,6 +373,15 @@ def train_ncnet_multinet(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+            'n_primal': n_primal,
+        }
+    elif model == 'pdnet-gridded':
+        train_function = train_gridded_pdnet
+        if n_filters is None:
+            n_filters = 32
+        add_kwargs = {
+            'n_filters': n_filters,
+            'n_iter': n_iter,
             'n_primal': n_primal,
         }
     elif model == 'unet':

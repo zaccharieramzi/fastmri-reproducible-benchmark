@@ -18,6 +18,9 @@ def generate_oasis_tf_records(
         shard_size=3300,
         slice_size=176,
     ):
+    tf.config.experimental_run_functions_eagerly(
+        True,
+    )
     path = Path(OASIS_DATA_DIR) / mode
     filenames = sorted(list(path.glob('*.nii.gz')))
     filenames = filenames[shard*shard_size:(shard+1)*shard_size]
@@ -45,6 +48,10 @@ def generate_oasis_tf_records(
         af=af,
     )
     for filename in tqdm(filenames):
+        directory = filename.parent
+        filename_tfrecord = directory / (filename.stem + extension)
+        if filename_tfrecord.exists():
+            continue
         volume = from_file_to_volume(filename)
         if volume.shape[0] % 2 != 0:
             continue
@@ -53,8 +60,6 @@ def generate_oasis_tf_records(
         with tf.device('/gpu:0'):
             volume = tf.constant(volume, dtype=tf.complex64)
             model_inputs, model_outputs = volume_transform(volume)
-        directory = filename.parent
-        filename_tfrecord = directory / (filename.stem + extension)
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_example(model_inputs, model_outputs, compute_dcomp=True)
             writer.write(example)

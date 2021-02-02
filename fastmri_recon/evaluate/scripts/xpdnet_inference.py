@@ -5,7 +5,9 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from fastmri_recon.config import *
-from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable, test_filenames
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_filenames
+from fastmri_recon.data.datasets.multicoil.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable as multicoil_dataset
+from fastmri_recon.data.datasets.fastmri_pyfunc import test_masked_kspace_dataset_from_indexable as singecoil_dataset
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.evaluate.utils.write_results import write_result
@@ -15,6 +17,7 @@ def xpdnet_inference(
         model_fun,
         model_kwargs,
         run_id,
+        multicoil=True,
         exp_id='xpdnet',
         brain=False,
         challenge=False,
@@ -39,14 +42,17 @@ def xpdnet_inference(
         else:
             test_path = f'{FASTMRI_DATA_DIR}brain_multicoil_test/'
     else:
-        test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
+        if multicoil:
+            test_path = f'{FASTMRI_DATA_DIR}multicoil_test_v2/'
+        else:
+            test_path = f'{FASTMRI_DATA_DIR}singlecoil_test/'
 
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(cuda_visible_devices)
     af = int(af)
 
     run_params = {
         'n_primal': n_primal,
-        'multicoil': True,
+        'multicoil': multicoil,
         'n_scales': n_scales,
         'n_iter': n_iter,
         'refine_smaps': refine_smaps,
@@ -57,14 +63,19 @@ def xpdnet_inference(
         'n_dual': n_dual,
         'n_dual_filters': n_dual_filters,
     }
-
-    test_set = test_masked_kspace_dataset_from_indexable(
+    if multicoil:
+        ds_fun = multicoil_dataset
+        extra_kwargs = dict(output_shape_spec=brain)
+    else:
+        ds_fun = singecoil_dataset
+        extra_kwargs = {}
+    test_set = ds_fun(
         test_path,
         AF=af,
         contrast=contrast,
         scale_factor=1e6,
         n_samples=n_samples,
-        output_shape_spec=brain,
+        **extra_kwargs
     )
     test_set_filenames = test_filenames(
         test_path,
@@ -72,15 +83,19 @@ def xpdnet_inference(
         contrast=contrast,
         n_samples=n_samples,
     )
-
+    if multicoil:
+        fake_kspace_size = [15, 640, 372]
+    else:
+        fake_kspace_size = [640, 372]
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
         model = XPDNet(model_fun, model_kwargs, **run_params)
         fake_inputs = [
-            tf.zeros([1, 15, 640, 372, 1], dtype=tf.complex64),
-            tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
-            tf.zeros([1, 15, 640, 372], dtype=tf.complex64),
+            tf.zeros([1, *fake_kspace_size, 1], dtype=tf.complex64),
+            tf.zeros([1, *fake_kspace_size], dtype=tf.complex64),
         ]
+        if multicoil:
+            fake_inputs.append(tf.zeros([1, *fake_kspace_size], dtype=tf.complex64))
         if brain:
             fake_inputs.append(tf.constant([[320, 320]]))
         model(fake_inputs)
@@ -109,6 +124,7 @@ def xpdnet_inference(
             scale_factor=1e6,
             brain=brain,
             challenge=challenge,
+            coiltype='multicoil' if multicoil else 'singlecoil',
         )
 
 

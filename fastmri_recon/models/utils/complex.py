@@ -7,6 +7,12 @@ def to_complex(x, n):
         tf.cast(x[..., n:], dtype=tf.float32),
     )
 
+def to_real(x):
+    return tf.concat([
+        tf.math.real(x),
+        tf.math.imag(x),
+    ], axis=-1)
+
 def _concatenate_real_imag(x):
     x_real = Lambda(tf.math.real)(x)
     x_imag = Lambda(tf.math.imag)(x)
