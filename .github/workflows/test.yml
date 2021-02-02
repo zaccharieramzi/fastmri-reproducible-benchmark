@@ -18,7 +18,9 @@ jobs:
     strategy:
       matrix:
         test_suite: [
-          'data',
+          'data/utils',
+          'data/datasets/multicoil',
+          'data/datasets/*.py',
           'models',
           'training_scripts/denoising',
           'training_scripts/multi_coil',
