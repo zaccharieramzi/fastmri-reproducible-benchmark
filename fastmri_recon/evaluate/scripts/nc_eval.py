@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from fastmri_recon.config import *
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
-from fastmri_recon.data.datasets.oasis_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as three_d_dataset
+from fastmri_recon.data.datasets.oasis_tf_records import train_nc_kspace_dataset_from_tfrecords as three_d_dataset
 from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train_nc_kspace_dataset_from_tfrecords as multicoil_dataset
 from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.non_cartesian_dcomp_reconstruction import NCDcompReconstructor
@@ -73,7 +73,7 @@ def evaluate_nc(
         image_size,
         acq_type=acq_type,
         compute_dcomp=dcomp,
-        scale_factor=1e6,
+        scale_factor=1e6 if not three_d else 1e-2,
         **add_kwargs
     )
     if n_samples is not None:
@@ -93,6 +93,9 @@ def evaluate_nc(
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=1)
         m.push(y_true[..., 0], y_pred[..., 0])
+        del x
+        del y_true
+        del y_pred
     print(METRIC_FUNCS.keys())
     print(list(m.means().values()))
     return METRIC_FUNCS, list(m.means().values())
