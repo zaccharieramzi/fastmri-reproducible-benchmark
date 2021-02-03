@@ -166,7 +166,7 @@ def evaluate_dcomp(multicoil=False, three_d=False, **eval_kwargs):
         image_size = VOLUME_SIZE
     else:
         image_size = IM_SIZE
-    model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size)
+    model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size, fastmri_format=not three_d)
     return evaluate_nc(
         model,
         multicoil=multicoil,
