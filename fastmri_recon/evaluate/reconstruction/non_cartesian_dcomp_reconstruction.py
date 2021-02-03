@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.keras.models import Model
 
 from fastmri_recon.models.utils.fourier import NFFT, AdjNFFT
