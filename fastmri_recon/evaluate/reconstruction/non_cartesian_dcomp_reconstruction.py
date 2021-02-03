@@ -4,17 +4,17 @@ from fastmri_recon.models.utils.fourier import NFFT, AdjNFFT
 from fastmri_recon.models.utils.fastmri_format import tf_fastmri_format
 
 class NCDcompReconstructor(Model):
-    def __init__(self, im_size=(640, 474), multicoil=False, **kwargs):
+    def __init__(self, im_size=(640, 474), multicoil=False, fastmri_format=True, **kwargs):
         self.im_size = im_size
         self.multicoil = multicoil
         super(NCDcompReconstructor, self).__init__(**kwargs)
         self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=True)
+        self.fastmri_format = fastmri_format
 
     def call(self, inputs):
-        if self.multicoil:
-            raise NotImplementedError('Multicoil has yet to be implemented')
+        image = self.adj_op([*inputs[:-1], *inputs[-1]])
+        if self.fastmri_format:
+            image = tf_fastmri_format(image)
         else:
-            original_kspace, ktraj, op_args = inputs
-        image = self.adj_op([original_kspace, ktraj, *op_args])
-        image = tf_fastmri_format(image)
+            image = tf.abs(image)
         return image
