@@ -93,7 +93,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             nc_kspace_scaled = tf.nest.map_structure(tf.stop_gradient, tf.map_fn(
                 tf_grid_nc,
                 (nc_kspace_scaled, traj),
-                dtype=tf.complex64,
+                fn_output_signature=tf.complex64,
                 parallel_iterations=multiprocessing.cpu_count(),
             ))
             nc_kspace_scaled.set_shape([
