@@ -2,6 +2,7 @@ import os
 
 import click
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 from tqdm import tqdm
 
 from fastmri_recon.config import *
@@ -11,6 +12,7 @@ from fastmri_recon.data.datasets.fastmri_pyfunc import test_masked_kspace_datase
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
 from fastmri_recon.evaluate.utils.write_results import write_result
+from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
 
 
 def xpdnet_inference(
@@ -35,6 +37,7 @@ def xpdnet_inference(
         primal_only=True,
         n_dual=1,
         n_dual_filters=16,
+        distributed=False,
     ):
     if brain:
         if challenge:
@@ -89,17 +92,23 @@ def xpdnet_inference(
         fake_kspace_size = [640, 372]
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
-        model = XPDNet(model_fun, model_kwargs, **run_params)
-        fake_inputs = [
-            tf.zeros([1, *fake_kspace_size, 1], dtype=tf.complex64),
-            tf.zeros([1, *fake_kspace_size], dtype=tf.complex64),
-        ]
-        if multicoil:
-            fake_inputs.append(tf.zeros([1, *fake_kspace_size], dtype=tf.complex64))
-        if brain:
-            fake_inputs.append(tf.constant([[320, 320]]))
-        model(fake_inputs)
-    model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
+        if distributed:
+            model = load_model(
+                f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}',
+                custom_objects=CUSTOM_TF_OBJECTS,
+            )
+        else:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            fake_inputs = [
+                tf.zeros([1, *fake_kspace_size, 1], dtype=tf.complex64),
+                tf.zeros([1, *fake_kspace_size], dtype=tf.complex64),
+            ]
+            if multicoil:
+                fake_inputs.append(tf.zeros([1, *fake_kspace_size], dtype=tf.complex64))
+            if brain:
+                fake_inputs.append(tf.constant([[320, 320]]))
+            model(fake_inputs)
+            model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     if n_samples is None:
         if not brain:
             if contrast:
