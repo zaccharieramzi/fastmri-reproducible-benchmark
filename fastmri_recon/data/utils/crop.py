@@ -14,7 +14,9 @@ def adjust_image_size(image, target_image_size, multicoil=False):
     height = tf.shape(image)[-2]
     width = tf.shape(image)[-1]
     n_slices = tf.shape(image)[0]
-    reshaped_image = tf.reshape(image, [height, width, -1])  # 3D tensors accepted
+    transpose_axis = [1, 2, 0] if not multicoil else [2, 3, 0, 1]
+    transposed_image = tf.transpose(image, transpose_axis)
+    reshaped_image = tf.reshape(transposed_image, [height, width, -1])  # 3D tensors accepted
     # with channels dimension last
     target_height = target_image_size[0]
     target_width = target_image_size[1]
@@ -24,8 +26,10 @@ def adjust_image_size(image, target_image_size, multicoil=False):
         target_width,
     )
     if multicoil:
-        final_shape = [n_slices, -1, target_height, target_width]
+        final_shape = [target_height, target_width, n_slices, -1]
     else:
-        final_shape = [n_slices, target_height, target_width]
+        final_shape = [target_height, target_width, n_slices]
     reshaped_padded_image = tf.reshape(padded_image, final_shape)
-    return reshaped_padded_image
+    transpose_axis = [2, 0, 1] if not multicoil else [2, 3, 0, 1]
+    transpose_padded_image = tf.transpose(reshaped_padded_image, transpose_axis)
+    return transpose_padded_image
