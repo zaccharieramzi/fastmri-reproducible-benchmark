@@ -2,6 +2,7 @@ import os
 
 import click
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 from tqdm import tqdm
 
 from fastmri_recon.config import *
@@ -10,6 +11,7 @@ from fastmri_recon.data.datasets.fastmri_pyfunc import train_masked_kspace_datas
 from fastmri_recon.evaluate.metrics.np_metrics import Metrics, METRIC_FUNCS
 from fastmri_recon.models.subclassed_models.denoisers.proposed_params import get_model_specs
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
+from fastmri_recon.training_scripts.custom_objects import CUSTOM_TF_OBJECTS
 
 
 def evaluate_xpdnet(
@@ -35,6 +37,7 @@ def evaluate_xpdnet(
         n_dual=1,
         n_dual_filters=16,
         multiscale_kspace_learning=False,
+        distributed=False,
     ):
     if multicoil:
         if brain:
@@ -105,22 +108,28 @@ def evaluate_xpdnet(
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
-        if multicoil:
-            kspace_size = [1, 15, 640, 372]
+        if distributed:
+            model = load_model(
+                f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}',
+                custom_objects=CUSTOM_TF_OBJECTS,
+            )
         else:
-            kspace_size = [1, 640, 372]
+            if multicoil:
+                kspace_size = [1, 15, 640, 372]
+            else:
+                kspace_size = [1, 640, 372]
 
-        model = XPDNet(model_fun, model_kwargs, **run_params)
-        inputs = [
-            tf.zeros(kspace_size + [1], dtype=tf.complex64),
-            tf.zeros(kspace_size, dtype=tf.complex64),
-        ]
-        if multicoil:
-            inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
-        if brain:
-            inputs.append(tf.constant([[320, 320]]))
-        model(inputs)
-    model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            inputs = [
+                tf.zeros(kspace_size + [1], dtype=tf.complex64),
+                tf.zeros(kspace_size, dtype=tf.complex64),
+            ]
+            if multicoil:
+                inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
+            if brain:
+                inputs.append(tf.constant([[320, 320]]))
+            model(inputs)
+            model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     eval_res = Metrics(METRIC_FUNCS)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=n_volumes if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=4)

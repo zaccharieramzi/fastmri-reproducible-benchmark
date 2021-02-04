@@ -1,3 +1,4 @@
+from contextlib import ExitStack
 import os
 import os.path as op
 import time
@@ -57,6 +58,7 @@ def train_xpdnet(
         n_dual=1,
         n_dual_filters=16,
         multiscale_kspace_learning=False,
+        distributed=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -251,28 +253,30 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    # mirrored_strategy = tf.distribute.MirroredStrategy()
-    # with mirrored_strategy.scope():
-    # for now commenting out because of https://github.com/tensorflow/tensorflow/issues/46146
-    if checkpoint_epoch == 0:
-        model = XPDNet(model_fun, model_kwargs, **run_params)
-        if original_run_id is not None:
-            lr = 1e-7
-            n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+    with ExitStack() as stack:
+        # can't be always used because of https://github.com/tensorflow/tensorflow/issues/46146
+        if distributed:
+            mirrored_strategy = tf.distribute.MirroredStrategy()
+            stack.enter_context(mirrored_strategy.scope())
+        if checkpoint_epoch == 0:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            if original_run_id is not None:
+                lr = 1e-7
+                n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+            else:
+                n_steps = n_volumes
+            default_model_compile(model, lr=lr, loss=loss)
         else:
+            model = load_model(
+                f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+                custom_objects=CUSTOM_TF_OBJECTS,
+            )
             n_steps = n_volumes
-        default_model_compile(model, lr=lr, loss=loss)
-    else:
-        model = load_model(
-            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
-            custom_objects=CUSTOM_TF_OBJECTS,
-        )
-        n_steps = n_volumes
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=int(n_epochs*n_steps),
-        save_weights_only=not save_state,
+        save_weights_only=not save_state and not distributed,
     )
     print(run_id)
     if original_run_id is not None and not checkpoint_epoch:
