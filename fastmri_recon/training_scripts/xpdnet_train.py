@@ -303,7 +303,7 @@ def train_xpdnet(
 
     model.fit(
         train_set,
-        steps_per_epoch=n_steps,
+        steps_per_epoch=n_steps if batch_size is None else n_steps//batch_size,
         initial_epoch=checkpoint_epoch,
         epochs=final_epoch,
         validation_data=val_set,
