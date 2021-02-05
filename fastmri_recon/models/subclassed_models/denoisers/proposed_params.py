@@ -133,7 +133,7 @@ params_per_model['DIDN']['big'] = dict(
     n_scales=3,
     n_filters=128,
     n_dubs=4,
-    n_convs_recon=6,
+    n_convs_recon=2,
     res=False,
 )
 params_per_model['DIDN']['medium'] = dict(
