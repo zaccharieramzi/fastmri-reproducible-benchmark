@@ -256,7 +256,8 @@ def train_xpdnet(
     with ExitStack() as stack:
         # can't be always used because of https://github.com/tensorflow/tensorflow/issues/46146
         if distributed:
-            mirrored_strategy = tf.distribute.MirroredStrategy()
+            slurm_resolver = tf.distribute.cluster_resolver.SlurmClusterResolver(port_base=15000)
+            mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy(cluster_resolver=slurm_resolver)
             stack.enter_context(mirrored_strategy.scope())
         if checkpoint_epoch == 0:
             model = XPDNet(model_fun, model_kwargs, **run_params)
