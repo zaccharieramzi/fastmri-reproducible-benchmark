@@ -258,6 +258,8 @@ def train_xpdnet(
         if distributed:
             slurm_resolver = tf.distribute.cluster_resolver.SlurmClusterResolver(port_base=15000)
             mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy(cluster_resolver=slurm_resolver)
+            train_set = mirrored_strategy.experimental_distribute_dataset(train_set)
+            val_set = mirrored_strategy.experimental_distribute_dataset(val_set)
             stack.enter_context(mirrored_strategy.scope())
         if checkpoint_epoch == 0:
             model = XPDNet(model_fun, model_kwargs, **run_params)
