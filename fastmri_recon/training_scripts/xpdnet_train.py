@@ -127,8 +127,14 @@ def train_xpdnet(
         - str: the run id of the trained network.
     """
     if distributed:
+        com_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL,
+        )
         slurm_resolver = tf.distribute.cluster_resolver.SlurmClusterResolver(port_base=15000)
-        mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy(cluster_resolver=slurm_resolver)
+        mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy(
+            cluster_resolver=slurm_resolver,
+            communication_options=com_options,
+        )
     if brain:
         n_volumes = brain_n_volumes_train
     else:
