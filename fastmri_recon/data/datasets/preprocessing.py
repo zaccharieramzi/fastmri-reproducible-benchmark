@@ -28,7 +28,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
             complex_images_padded = adjust_image_size(
                 complex_images,
                 target_image_size,
-                multicoil=True,
+                multicoil=False,
             )
             kspaces = fft.op(complex_images_padded[..., None])[..., 0]
         if mask_type == 'random':
