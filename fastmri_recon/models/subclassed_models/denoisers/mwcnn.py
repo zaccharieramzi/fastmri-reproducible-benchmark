@@ -17,7 +17,7 @@ DEFAULT_N_CONVS_PER_SCALE_CONF = [4] * 3
 
 
 class MWCNNConvBlock(Layer):
-    def __init__(self, n_filters=256, kernel_size=3, bn=False, **kwargs):
+    def __init__(self, n_filters=256, kernel_size=3, bn=False, use_bias=True, **kwargs):
         super(MWCNNConvBlock, self).__init__(**kwargs)
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -25,11 +25,12 @@ class MWCNNConvBlock(Layer):
             self.bn = BatchNormalization()
         else:
             self.bn = None
+        self.use_bias = use_bias
         self.conv = Conv2D(
             self.n_filters,
             self.kernel_size,
             padding='same',
-            use_bias=not self.bn,
+            use_bias=not self.bn and self.use_bias,
         )
         self.activation = Activation('relu')
 
@@ -142,6 +143,7 @@ class MWCNN(Model):
             first_conv_n_filters=64,
             res=False,
             n_outputs=1,
+            use_bias=True,
             **kwargs,
         ):
         super(MWCNN, self).__init__(**kwargs)
@@ -154,11 +156,13 @@ class MWCNN(Model):
         self.first_conv_n_filters = first_conv_n_filters
         self.res = res
         self.n_outputs = n_outputs
+        self.use_bias = use_bias
         if self.n_first_convs > 0:
             self.first_convs = [MWCNNConvBlock(
                 n_filters=self.first_conv_n_filters,
                 kernel_size=self.kernel_size,
                 bn=self.bn,
+                use_bias=self.use_bias,
             ) for _ in range(2 * self.n_first_convs - 1)]
             self.first_convs.append(Conv2D(
                 self.n_outputs,
