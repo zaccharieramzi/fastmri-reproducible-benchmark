@@ -1,4 +1,5 @@
 from contextlib import ExitStack
+from functools import partial
 import os
 import os.path as op
 import time
@@ -179,28 +180,55 @@ def train_xpdnet(
     else:
         dataset = singlecoil_dataset
         kwargs = {}
-    train_set = dataset(
-        train_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=True,
-        scale_factor=1e6,
-        n_samples=n_samples,
-        fixed_masks=fixed_masks,
-        batch_size=batch_size,
-        target_image_size=IM_SIZE,
-        **kwargs
-    )
-    val_set = dataset(
-        val_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=True,
-        scale_factor=1e6,
-        **kwargs
-    )
+    if distributed:
+        def _dataset_fn(input_context, mode='train'):
+            ds = dataset(
+                train_path if mode == 'train' else val_path,
+                input_context=input_context,
+                AF=af,
+                contrast=contrast,
+                inner_slices=None,
+                rand=True,
+                scale_factor=1e6,
+                batch_size=batch_size,
+                target_image_size=IM_SIZE,
+                **kwargs
+            )
+            options = tf.data.Options()
+            options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+            ds = ds.with_options(options)
+            return ds
+        train_set = mirrored_strategy.distribute_datasets_from_function(partial(
+            _dataset_fn,
+            mode='train',
+        ))
+        val_set = mirrored_strategy.distribute_datasets_from_function(partial(
+            _dataset_fn,
+            mode='val',
+        ))
+    else:
+        train_set = dataset(
+            train_path,
+            AF=af,
+            contrast=contrast,
+            inner_slices=None,
+            rand=True,
+            scale_factor=1e6,
+            n_samples=n_samples,
+            fixed_masks=fixed_masks,
+            batch_size=batch_size,
+            target_image_size=IM_SIZE,
+            **kwargs
+        )
+        val_set = dataset(
+            val_path,
+            AF=af,
+            contrast=contrast,
+            inner_slices=None,
+            rand=True,
+            scale_factor=1e6,
+            **kwargs
+        )
 
     run_params = {
         'n_primal': n_primal,
@@ -268,8 +296,6 @@ def train_xpdnet(
     with ExitStack() as stack:
         # can't be always used because of https://github.com/tensorflow/tensorflow/issues/46146
         if distributed:
-            train_set = mirrored_strategy.experimental_distribute_dataset(train_set)
-            val_set = mirrored_strategy.experimental_distribute_dataset(val_set)
             stack.enter_context(mirrored_strategy.scope())
         if checkpoint_epoch == 0:
             model = XPDNet(model_fun, model_kwargs, **run_params)
