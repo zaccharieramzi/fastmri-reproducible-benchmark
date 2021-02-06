@@ -32,6 +32,7 @@ def train_masked_kspace_dataset_from_indexable(
         batch_size=None,
         target_image_size=(640, 400),
         mask_type='random',
+        input_context=None,
     ):
     r"""Dataset for the training/validation set of single coil fastMRI.
 
@@ -101,6 +102,8 @@ def train_masked_kspace_dataset_from_indexable(
         return image, kspace, contrast
 
     files_ds = tf.data.Dataset.list_files(f'{path}*.h5', shuffle=False)
+    if input_context is not None:
+        files_ds = files_ds.shard(input_context.num_input_pipelines, input_context.input_pipeline_id)
     # this makes sure the file selection is happening once when using less than
     # all samples
     files_ds = files_ds.shuffle(
