@@ -190,7 +190,7 @@ def train_xpdnet(
                 inner_slices=None,
                 rand=True,
                 scale_factor=1e6,
-                batch_size=batch_size,
+                batch_size=batch_size // input_context.num_input_pipelines,
                 target_image_size=IM_SIZE,
                 **kwargs
             )

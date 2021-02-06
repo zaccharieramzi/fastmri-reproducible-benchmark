@@ -146,7 +146,7 @@ def train_masked_kspace_dataset_from_indexable(
     # this makes sure the file selection is happening once when using less than
     # all samples
     files_ds = files_ds.shuffle(
-        buffer_size=1000,
+        buffer_size=1000 if input_context is not None else 1000 // input_context.num_input_pipelines,
         seed=0,
         reshuffle_each_iteration=False,
     )
