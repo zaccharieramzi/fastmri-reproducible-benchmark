@@ -312,6 +312,9 @@ def train_xpdnet(
             )
             n_steps = n_volumes
 
+    if batch_size is not None:
+        n_steps //= batch_size
+
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=int(n_epochs*n_steps),
@@ -338,7 +341,7 @@ def train_xpdnet(
 
     model.fit(
         train_set,
-        steps_per_epoch=n_steps if batch_size is None else n_steps//batch_size,
+        steps_per_epoch=n_steps,
         initial_epoch=checkpoint_epoch,
         epochs=final_epoch,
         validation_data=val_set,
