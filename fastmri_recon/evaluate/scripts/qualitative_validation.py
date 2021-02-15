@@ -172,11 +172,11 @@ def dcomp_qualitative_validation(multicoil=False, three_d=False, **eval_kwargs):
         image_size = IM_SIZE
     model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size, fastmri_format=not three_d)
     name = 'adj-dcomp'
+    eval_kwargs.update(dcomp=True)
     return ncnet_qualitative_validation(
         model,
         name,
         multicoil=multicoil,
-        dcomp=True,
         three_d=three_d,
         **eval_kwargs,
     )
