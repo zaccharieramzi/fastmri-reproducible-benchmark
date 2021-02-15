@@ -278,6 +278,7 @@ def nc_multinet_qualitative_validation(
         add_kwargs = {'base_n_filters': base_n_filters}
     elif model == 'adj-dcomp':
         evaluate_function = dcomp_qualitative_validation
+        add_kwargs = {}
     if multicoil:
         add_kwargs.update(dcomp=True)
     else:
