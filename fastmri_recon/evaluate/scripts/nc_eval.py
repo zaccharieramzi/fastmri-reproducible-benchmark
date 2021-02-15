@@ -39,10 +39,14 @@ def evaluate_nc(
         n_samples=None,
         cuda_visible_devices='0123',
         dcomp=False,
+        brain=False,
         **acq_kwargs,
     ):
     if multicoil:
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     elif three_d:
         val_path = f'{OASIS_DATA_DIR}/val/'
     else:
@@ -246,6 +250,7 @@ def evaluate_nc_multinet(
         n_filters=None,
         n_iter=10,
         normalize_image=False,
+        brain=False,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -287,6 +292,7 @@ def evaluate_nc_multinet(
         n_epochs=n_epochs,
         n_samples=n_samples,
         three_d=three_d,
+        brain=brain,
         **add_kwargs,
     )
     return metric_names, metrics
