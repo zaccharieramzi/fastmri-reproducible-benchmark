@@ -84,7 +84,14 @@ def ncnet_qualitative_validation(
     img_batch = model_outputs
     im_recos /= scale_factor
     img_batch /= scale_factor
-    save_figure(im_recos, img_batch, name, slice_index=slice_index, three_d=three_d)
+    save_figure(
+        im_recos,
+        img_batch,
+        name,
+        slice_index=slice_index,
+        three_d=three_d,
+        acq_type=acq_type,
+    )
 
 def ncpdnet_qualitative_validation(
         multicoil=False,
