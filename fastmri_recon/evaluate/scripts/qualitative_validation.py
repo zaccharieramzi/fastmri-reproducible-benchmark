@@ -37,9 +37,13 @@ def ncnet_qualitative_validation(
         contrast=None,
         dcomp=True,
         slice_index=15,
+        brain=False,
     ):
     if multicoil:
-        val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if brain:
+            val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+        else:
+            val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
     elif three_d:
         val_path = f'{OASIS_DATA_DIR}/val/'
     else:
@@ -254,6 +258,7 @@ def nc_multinet_qualitative_validation(
         normalize_image=False,
         slice_index=15,
         contrast=None,
+        brain=False,
     ):
     if model == 'pdnet':
         evaluate_function = ncpdnet_qualitative_validation
@@ -299,5 +304,6 @@ def nc_multinet_qualitative_validation(
         three_d=three_d,
         slice_index=slice_index,
         contrast=contrast,
+        brain=brain,
         **add_kwargs,
     )
