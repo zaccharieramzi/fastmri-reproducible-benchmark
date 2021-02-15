@@ -13,7 +13,7 @@ def save_figure(im_recos, img_batch, name, slice_index=15, acq_type='radial', af
         im_gt = img_batch[0, slice_index]
     else:
         im_reco = im_recos[0]
-        im_gt = img_batch[slice_index]
+        im_gt = img_batch[0]
     im_res = np.abs(im_gt - im_reco)
     fig, ax = plt.subplots(1, frameon=False)
     ax.imshow(np.abs(np.squeeze(im_reco)), aspect='auto')
