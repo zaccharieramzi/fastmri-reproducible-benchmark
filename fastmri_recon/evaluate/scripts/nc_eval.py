@@ -78,6 +78,7 @@ def evaluate_nc(
         acq_type=acq_type,
         compute_dcomp=dcomp,
         scale_factor=1e6 if not three_d else 1e-2,
+        brain=brain,
         **add_kwargs
     )
     if n_samples is not None:
@@ -114,6 +115,7 @@ def evaluate_ncpdnet(
         n_primal=5,
         non_linearity='relu',
         refine_smaps=True,
+        brain=False,
         **eval_kwargs
     ):
     if three_d:
@@ -131,6 +133,7 @@ def evaluate_ncpdnet(
         'dcomp': dcomp,
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     model = NCPDNet(**run_params)
@@ -139,6 +142,7 @@ def evaluate_ncpdnet(
         multicoil=multicoil,
         dcomp=dcomp,
         three_d=three_d,
+        brain=brain,
         **eval_kwargs,
     )
 
@@ -168,17 +172,23 @@ def evaluate_gridded_pdnet(
         **eval_kwargs,
     )
 
-def evaluate_dcomp(multicoil=False, three_d=False, **eval_kwargs):
+def evaluate_dcomp(multicoil=False, three_d=False, brain=False, **eval_kwargs):
     if three_d:
         image_size = VOLUME_SIZE
     else:
         image_size = IM_SIZE
-    model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size, fastmri_format=not three_d)
+    model = NCDcompReconstructor(
+        multicoil=multicoil,
+        im_size=image_size,
+        fastmri_format=not three_d,
+        brain=brain,
+    )
     return evaluate_nc(
         model,
         multicoil=multicoil,
         dcomp=True,
         three_d=three_d,
+        brain=brain,
         **eval_kwargs,
     )
 
