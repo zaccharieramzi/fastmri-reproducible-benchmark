@@ -10,7 +10,6 @@ def train_postproc_dataset_from_tfrecords(
         path,
         run_id,
         n_samples=None,
-        brain=False,
     ):
     extension = f'_{run_id}.tfrecords'
     filenames = sorted(list(Path(path).glob(f'*{extension}')))
@@ -21,7 +20,7 @@ def train_postproc_dataset_from_tfrecords(
     if n_samples is not None:
         raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
-        partial(decode_postproc_example, brain=brain),
+        decode_postproc_example,
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     ).repeat().prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     return volume_ds
