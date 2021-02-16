@@ -229,15 +229,16 @@ class CrossDomainNet(Model):
             if self.output_shape_spec:
                 # NOTE: for now we only consider the case of a specified output
                 # shape when in multicoil
-                original_kspace, mask, smaps, output_shape = inputs
-                op_args = ()
+                if len(inputs) == 4:
+                    original_kspace, mask, smaps, output_shape = inputs
+                    op_args = ()
+                else:
+                    original_kspace, mask, smaps, output_shape, op_args = inputs
             elif len(inputs) == 3:
                 original_kspace, mask, smaps = inputs
                 output_shape = None
                 op_args = ()
             else:
-                # NOTE: for now we don't consider the case of a specified
-                # output shape as well as extra arguments for the op.
                 original_kspace, mask, smaps, op_args = inputs
                 output_shape = None
             if self.refine_smaps:
