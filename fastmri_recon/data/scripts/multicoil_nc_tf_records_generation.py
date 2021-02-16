@@ -7,20 +7,25 @@ from tfkbnufft.mri.dcomp_calc import calculate_density_compensator
 from tqdm import tqdm
 
 from fastmri_recon.config import FASTMRI_DATA_DIR
+from fastmri_recon.data.utils.crop import adjust_image_size
 from fastmri_recon.data.utils.fourier import tf_ortho_ifft2d
 from fastmri_recon.data.utils.non_cartesian import get_radial_trajectory, get_debugging_cartesian_trajectory, get_spiral_trajectory
 from fastmri_recon.data.utils.multicoil.smap_extract import extract_smaps, non_cartesian_extract_smaps
 from fastmri_recon.data.utils.h5 import from_multicoil_train_file_to_image_and_kspace_and_contrast
 from fastmri_recon.data.utils.tfrecords import encode_ncmc_example
-from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft
+from fastmri_recon.models.utils.fourier import tf_unmasked_adj_op, tf_unmasked_adj_op, nufft, FFTBase
 
 
 def generate_multicoil_nc_tf_records(
         acq_type='radial',
         af=4,
         mode='train',
+        brain=False,
     ):
-    path = Path(FASTMRI_DATA_DIR) / f'multicoil_{mode}'
+    if brain:
+        path = Path(FASTMRI_DATA_DIR) / f'brain_multicoil_{mode}'
+    else:
+        path = Path(FASTMRI_DATA_DIR) / f'multicoil_{mode}'
     filenames = sorted(list(path.glob('*.h5')))
     scale_factor = 1e6
     image_size = (640, 400)
@@ -49,8 +54,18 @@ def generate_multicoil_nc_tf_records(
                 self.nufftob_back,
                 self.traj[0],
             )
+            if brain:
+                self.fft = FFTBase(False, multicoil=True, use_smaps=False)
         def call(self, inputs):
             images, kspaces = inputs
+            if brain:
+                complex_images = self.fft.adj_op([kspaces[..., None], None])[..., 0]
+                complex_images_padded = adjust_image_size(
+                    complex_images,
+                    image_size,
+                    multicoil=True,
+                )
+                kspaces = self.fft.op([complex_images_padded[..., None], None])[..., 0]
             traj = tf.repeat(self.traj, tf.shape(images)[0], axis=0)
             orig_image_channels = tf_ortho_ifft2d(kspaces)
             nc_kspace = nufft(nufft_ob, orig_image_channels, traj, image_size, multiprocessing=False)
@@ -62,7 +77,12 @@ def generate_multicoil_nc_tf_records(
             dcomp = tf.ones([tf.shape(kspaces)[0], tf.shape(self.dcomp)[0]], dtype=self.dcomp.dtype) * self.dcomp[None, :]
             extra_args = (orig_shape, dcomp)
             smaps = non_cartesian_extract_smaps(nc_kspace, traj, dcomp, self.nufftob_back, orig_shape)
-            return (nc_kspaces_channeled, traj, smaps, extra_args), images_channeled
+            model_inputs = (nc_kspaces_channeled, traj, smaps, extra_args)
+            if brain:
+                output_shape = tf.shape(images)[1:][None, :]
+                output_shape = tf.tile(output_shape, [tf.shape(images)[0], 1])
+                model_inputs += (output_shape,)
+            return model_inputs, images_channeled
 
     extension = f'_nc_{acq_type}.tfrecords'
     selection = [
