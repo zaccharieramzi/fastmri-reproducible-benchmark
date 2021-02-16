@@ -14,7 +14,7 @@ class NCDcompReconstructor(Model):
         self.brain = brain
 
     def call(self, inputs):
-        if brain:
+        if self.brain:
             image = self.adj_op([*inputs[:-2], *inputs[-1]])
             output_shape = inputs[-2]
         else:
