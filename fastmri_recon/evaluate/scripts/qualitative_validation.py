@@ -74,6 +74,7 @@ def ncnet_qualitative_validation(
         acq_type=acq_type,
         compute_dcomp=dcomp,
         scale_factor=scale_factor,
+        brain=brain,
         **add_kwargs
     )
     model_inputs, model_outputs = _extract_slice_of_batch(
@@ -107,6 +108,7 @@ def ncpdnet_qualitative_validation(
         n_primal=5,
         non_linearity='relu',
         refine_smaps=True,
+        brain=False,
         **eval_kwargs
     ):
     if three_d:
@@ -124,6 +126,7 @@ def ncpdnet_qualitative_validation(
         'dcomp': dcomp,
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
+        'output_shape_spec': brain,
     }
 
     model = NCPDNet(**run_params)
@@ -138,6 +141,7 @@ def ncpdnet_qualitative_validation(
         multicoil=multicoil,
         dcomp=dcomp,
         three_d=three_d,
+        brain=brain,
         **eval_kwargs,
     )
 
@@ -169,12 +173,17 @@ def gridded_pdnet_qualitative_validation(
         **eval_kwargs,
     )
 
-def dcomp_qualitative_validation(multicoil=False, three_d=False, **eval_kwargs):
+def dcomp_qualitative_validation(multicoil=False, three_d=False, brain=False, **eval_kwargs):
     if three_d:
         image_size = VOLUME_SIZE
     else:
         image_size = IM_SIZE
-    model = NCDcompReconstructor(multicoil=multicoil, im_size=image_size, fastmri_format=not three_d)
+    model = NCDcompReconstructor(
+        multicoil=multicoil,
+        im_size=image_size,
+        fastmri_format=not three_d,
+        brain=brain,
+    )
     name = 'adj-dcomp'
     eval_kwargs.update(dcomp=True)
     return ncnet_qualitative_validation(
@@ -182,6 +191,7 @@ def dcomp_qualitative_validation(multicoil=False, three_d=False, **eval_kwargs):
         name,
         multicoil=multicoil,
         three_d=three_d,
+        brain=brain,
         **eval_kwargs,
     )
 
