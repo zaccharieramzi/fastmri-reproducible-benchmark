@@ -88,6 +88,9 @@ def ncnet_qualitative_validation(
         chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5'
         model.load_weights(chkpt_path)
     if timing:
+        if run_id is None:
+            # to warm-up the graph
+            model.predict(model_inputs)
         start = time.time()
     im_recos = model.predict(model_inputs)
     if timing:
