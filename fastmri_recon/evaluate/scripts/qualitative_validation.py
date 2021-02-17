@@ -61,7 +61,7 @@ def ncnet_qualitative_validation(
         image_size = IM_SIZE
     add_kwargs = {}
     if not multicoil and not three_d:
-        add_kwargs.update(gridding=gridding)
+        add_kwargs.update(gridding=gridding, brain=brain)
     if not three_d:
         add_kwargs.update(**{
             'contrast': contrast,
@@ -76,7 +76,6 @@ def ncnet_qualitative_validation(
         acq_type=acq_type,
         compute_dcomp=dcomp,
         scale_factor=scale_factor,
-        brain=brain,
         **add_kwargs
     )
     model_inputs, model_outputs = _extract_slice_of_batch(

@@ -69,6 +69,8 @@ def evaluate_nc(
             'rand': False,
             'inner_slices': None,
         }
+    elif multicoil:
+        add_kwargs.update(brain=brain)
     else:
         add_kwargs = {}
     add_kwargs.update(**acq_kwargs)
@@ -78,7 +80,6 @@ def evaluate_nc(
         acq_type=acq_type,
         compute_dcomp=dcomp,
         scale_factor=1e6 if not three_d else 1e-2,
-        brain=brain,
         **add_kwargs
     )
     if n_samples is not None:
