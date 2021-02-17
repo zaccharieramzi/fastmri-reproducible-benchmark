@@ -61,7 +61,9 @@ def ncnet_qualitative_validation(
         image_size = IM_SIZE
     add_kwargs = {}
     if not multicoil and not three_d:
-        add_kwargs.update(gridding=gridding, brain=brain)
+        add_kwargs.update(gridding=gridding)
+    if multicoil:
+        add_kwargs.update(brain=brain)
     if not three_d:
         add_kwargs.update(**{
             'contrast': contrast,
