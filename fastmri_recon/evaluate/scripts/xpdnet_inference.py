@@ -38,6 +38,7 @@ def xpdnet_inference(
         n_dual=1,
         n_dual_filters=16,
         distributed=False,
+        manual_saving=False,
     ):
     if brain:
         if challenge:
@@ -92,7 +93,7 @@ def xpdnet_inference(
         fake_kspace_size = [640, 372]
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
-        if distributed:
+        if distributed and not manual_saving:
             model = load_model(
                 f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}',
                 custom_objects=CUSTOM_TF_OBJECTS,
