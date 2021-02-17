@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import tensorflow as tf
@@ -38,6 +39,7 @@ def ncnet_qualitative_validation(
         dcomp=True,
         slice_index=15,
         brain=False,
+        timing=False,
     ):
     if multicoil:
         if brain:
@@ -85,18 +87,26 @@ def ncnet_qualitative_validation(
         model.predict(model_inputs)
         chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5'
         model.load_weights(chkpt_path)
+    if timing:
+        start = time.time()
     im_recos = model.predict(model_inputs)
+    if timing:
+        end = time.time()
+        duration = end - start
+        print(f'Time for {name}, {acq_type}: {duration}')
     img_batch = model_outputs
     im_recos /= scale_factor
     img_batch /= scale_factor
-    save_figure(
-        im_recos,
-        img_batch,
-        name,
-        slice_index=slice_index,
-        three_d=three_d,
-        acq_type=acq_type,
-    )
+    if not timing:
+        save_figure(
+            im_recos,
+            img_batch,
+            name,
+            slice_index=slice_index,
+            three_d=three_d,
+            acq_type=acq_type,
+        )
+    return duration
 
 def ncpdnet_qualitative_validation(
         multicoil=False,
@@ -269,6 +279,7 @@ def nc_multinet_qualitative_validation(
         slice_index=15,
         contrast=None,
         brain=False,
+        timing=False,
     ):
     if model == 'pdnet':
         evaluate_function = ncpdnet_qualitative_validation
@@ -315,5 +326,6 @@ def nc_multinet_qualitative_validation(
         slice_index=slice_index,
         contrast=contrast,
         brain=brain,
+        timing=timing,
         **add_kwargs,
     )
