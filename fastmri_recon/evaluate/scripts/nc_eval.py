@@ -69,8 +69,8 @@ def evaluate_nc(
             'rand': False,
             'inner_slices': None,
         }
-    elif multicoil:
-        add_kwargs.update(brain=brain)
+        if multicoil:
+            add_kwargs.update(brain=brain)
     else:
         add_kwargs = {}
     add_kwargs.update(**acq_kwargs)
