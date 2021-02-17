@@ -5,7 +5,9 @@ import os.path as op
 import time
 
 import click
+import pickle
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.models import load_model
@@ -60,6 +62,7 @@ def train_xpdnet(
         n_dual_filters=16,
         multiscale_kspace_learning=False,
         distributed=False,
+        manual_saving=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -280,7 +283,7 @@ def train_xpdnet(
         chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
     else:
         chkpt_path = f'{TMP_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
-    if not save_state:
+    if not save_state or manual_saving:
         chkpt_path += '.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
@@ -305,7 +308,7 @@ def train_xpdnet(
             else:
                 n_steps = n_volumes
             default_model_compile(model, lr=lr, loss=loss)
-        else:
+        elif not manual_saving:
             model = load_model(
                 f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
                 custom_objects=CUSTOM_TF_OBJECTS,
@@ -321,9 +324,11 @@ def train_xpdnet(
         save_weights_only=not save_state and not distributed,
     )
     print(run_id)
-    if original_run_id is not None and not checkpoint_epoch:
+    if original_run_id is not None and (not checkpoint_epoch or manual_saving):
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
+        if manual_saving:
+            n_epochs_original = checkpoint_epoch
         if multicoil:
             kspace_size = [1, 15, 640, 372]
         else:
@@ -339,6 +344,14 @@ def train_xpdnet(
         model(inputs)
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
+    if manual_saving:
+        grad_vars = model.trainable_weights
+        zero_grads = [tf.zeros_like(w) for w in grad_vars]
+        model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+            weight_values = pickle.load(f)
+        model.optimizer.set_weights(weight_values)
+
     model.fit(
         train_set,
         steps_per_epoch=n_steps,
@@ -350,6 +363,12 @@ def train_xpdnet(
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+
+    if manual_saving:
+        symbolic_weights = getattr(model.optimizer, 'weights')
+        weight_values = K.batch_get_value(symbolic_weights)
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-optimizer.pkl', 'wb') as f:
+            pickle.dump(weight_values, f)
     return run_id
 
 

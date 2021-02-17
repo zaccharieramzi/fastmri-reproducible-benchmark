@@ -38,6 +38,7 @@ def evaluate_xpdnet(
         n_dual_filters=16,
         multiscale_kspace_learning=False,
         distributed=False,
+        manual_saving=False,
     ):
     if multicoil:
         if brain:
@@ -108,7 +109,7 @@ def evaluate_xpdnet(
 
     mirrored_strategy = tf.distribute.MirroredStrategy()
     with mirrored_strategy.scope():
-        if distributed:
+        if distributed and not manual_saving:
             model = load_model(
                 f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}',
                 custom_objects=CUSTOM_TF_OBJECTS,
