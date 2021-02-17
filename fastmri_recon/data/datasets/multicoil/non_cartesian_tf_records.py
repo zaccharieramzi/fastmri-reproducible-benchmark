@@ -23,12 +23,14 @@ def train_nc_kspace_dataset_from_tfrecords(
     filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
     raw_dataset = tf.data.TFRecordDataset(
         [str(f) for f in filenames],
-        num_parallel_reads=2,
+        num_parallel_reads=2 if rand else None,
     )
     if n_samples is not None:
         raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
         partial(decode_ncmc_example, slice_random=rand, brain=brain),
-        num_parallel_calls=2,
-    ).repeat().prefetch(buffer_size=2)
+        num_parallel_calls=2 if rand else None,
+    )
+    if rand:
+        volume_ds = volume_ds.repeat().prefetch(buffer_size=2)
     return volume_ds
