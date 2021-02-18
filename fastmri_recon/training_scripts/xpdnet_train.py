@@ -345,12 +345,17 @@ def train_xpdnet(
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
         if manual_saving:
-            grad_vars = model.trainable_weights
-            zero_grads = [tf.zeros_like(w) for w in grad_vars]
-            model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
-            with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
-                weight_values = pickle.load(f)
-            model.optimizer.set_weights(weight_values)
+            def _model_weight_setting():
+                grad_vars = model.trainable_weights
+                zero_grads = [tf.zeros_like(w) for w in grad_vars]
+                model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+                with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+                    weight_values = pickle.load(f)
+                model.optimizer.set_weights(weight_values)
+            if distributed:
+                mirrored_strategy.run(_model_weight_setting)
+            else:
+                _model_weight_setting()
 
     model.fit(
         train_set,
