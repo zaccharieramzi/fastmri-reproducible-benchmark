@@ -262,6 +262,7 @@ def evaluate_nc_multinet(
         n_iter=10,
         normalize_image=False,
         brain=False,
+        n_primal=5,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -272,6 +273,7 @@ def evaluate_nc_multinet(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+            'n_primal': n_primal,
         }
     elif model == 'pdnet-gridded':
         evaluate_function = evaluate_gridded_pdnet
