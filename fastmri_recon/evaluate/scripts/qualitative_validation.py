@@ -284,6 +284,7 @@ def nc_multinet_qualitative_validation(
         contrast=None,
         brain=False,
         timing=False,
+        n_primal=5,
     ):
     if model == 'pdnet':
         evaluate_function = ncpdnet_qualitative_validation
@@ -294,6 +295,7 @@ def nc_multinet_qualitative_validation(
             'n_filters': n_filters,
             'n_iter': n_iter,
             'normalize_image': normalize_image,
+            'n_primal': n_primal,
         }
     elif model == 'pdnet-gridded':
         evaluate_function = gridded_pdnet_qualitative_validation
