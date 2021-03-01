@@ -135,6 +135,7 @@ def evaluate_ncpdnet(
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
         'output_shape_spec': brain,
+        'fastmri': not three_d,
     }
 
     model = NCPDNet(**run_params)
