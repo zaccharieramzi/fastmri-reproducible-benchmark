@@ -86,7 +86,7 @@ def ncnet_qualitative_validation(
     )
     if run_id is not None:
         model.predict(model_inputs)
-        chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs}.hdf5'
+        chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:2d}.hdf5'
         model.load_weights(chkpt_path)
     if timing:
         if run_id is None:
