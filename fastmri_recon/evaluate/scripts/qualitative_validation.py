@@ -110,7 +110,8 @@ def ncnet_qualitative_validation(
             three_d=three_d,
             acq_type=acq_type,
         )
-    return duration
+    if timing:
+        return duration
 
 def ncpdnet_qualitative_validation(
         multicoil=False,
