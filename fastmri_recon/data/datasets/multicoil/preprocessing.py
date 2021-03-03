@@ -22,7 +22,7 @@ def generic_from_kspace_to_masked_kspace_and_mask(
     ):
     @tf.function
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        if batch_size is not None:
+        if batch_size is not None and batch_size > 1:
             fft = FFTBase(False, multicoil=True, use_smaps=False)
             complex_images = fft.adj_op([kspaces[..., None], None])[..., 0]
             complex_images_padded = adjust_image_size(
