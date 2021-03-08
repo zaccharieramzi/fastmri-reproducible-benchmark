@@ -314,6 +314,10 @@ def train_xpdnet(
                 custom_objects=CUSTOM_TF_OBJECTS,
             )
             n_steps = n_volumes
+        else:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            n_steps = n_volumes
+            default_model_compile(model, lr=lr, loss=loss)
 
     if batch_size is not None:
         n_steps //= batch_size
