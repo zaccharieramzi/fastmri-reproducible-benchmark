@@ -345,11 +345,11 @@ def train_xpdnet(
             inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
         if brain:
             inputs.append(tf.constant([[320, 320]]))
-        model(inputs)
         with ExitStack() as stack:
             if distributed:
                 # see https://github.com/tensorflow/tensorflow/issues/32561#issuecomment-544319907
                 stack.enter_context(mirrored_strategy.scope())
+            model(inputs)
             model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
 
         if manual_saving:
