@@ -203,14 +203,16 @@ def nufft(nufft_ob, image, ktraj, image_size=None, multiprocessing=False):
 
 
 class NFFTBase(Layer):
-    def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, **kwargs):
+    def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, grad_traj=False, **kwargs):
         super(NFFTBase, self).__init__(**kwargs)
         self.multicoil = multicoil
         self.im_size = im_size
+        self.grad_traj = grad_traj
         self.nufft_ob = KbNufftModule(
-            im_size=im_size,
+            im_size=self.im_size,
             grid_size=None,
             norm='ortho',
+            grad_traj=self.grad_traj,
         )
         self.density_compensation = density_compensation
         self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
