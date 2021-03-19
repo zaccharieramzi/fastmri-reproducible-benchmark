@@ -209,10 +209,10 @@ class NFFTBase(Layer):
         self.im_size = im_size
         self.grad_traj = grad_traj
         self.nufft_ob = KbNufftModule(
-            im_size=im_size,
+            im_size=self.im_size,
             grid_size=None,
             norm='ortho',
-            grad_traj=grad_traj,
+            grad_traj=self.grad_traj,
         )
         self.density_compensation = density_compensation
         self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
