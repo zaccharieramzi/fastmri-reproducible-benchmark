@@ -207,6 +207,7 @@ class NFFTBase(Layer):
         super(NFFTBase, self).__init__(**kwargs)
         self.multicoil = multicoil
         self.im_size = im_size
+        self.grad_traj = grad_traj
         self.nufft_ob = KbNufftModule(
             im_size=im_size,
             grid_size=None,
