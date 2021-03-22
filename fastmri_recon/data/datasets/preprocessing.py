@@ -22,13 +22,13 @@ def generic_from_kspace_to_masked_kspace_and_mask(
         target_image_size=(640, 400),
     ):
     def from_kspace_to_masked_kspace_and_mask(images, kspaces):
-        if batch_size is not None:
+        if batch_size is not None and batch_size > 1:
             fft = FFTBase(False)
             complex_images = fft.adj_op(kspaces[..., None])[..., 0]
             complex_images_padded = adjust_image_size(
                 complex_images,
                 target_image_size,
-                multicoil=True,
+                multicoil=False,
             )
             kspaces = fft.op(complex_images_padded[..., None])[..., 0]
         if mask_type == 'random':
@@ -93,7 +93,7 @@ def non_cartesian_from_kspace_to_nc_kspace_and_traj(nfft_ob, image_size, acq_typ
             nc_kspace_scaled = tf.nest.map_structure(tf.stop_gradient, tf.map_fn(
                 tf_grid_nc,
                 (nc_kspace_scaled, traj),
-                dtype=tf.complex64,
+                fn_output_signature=tf.complex64,
                 parallel_iterations=multiprocessing.cpu_count(),
             ))
             nc_kspace_scaled.set_shape([

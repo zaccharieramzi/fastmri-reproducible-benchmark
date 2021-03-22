@@ -13,7 +13,7 @@ class ParallelMulticoil(Model):
         reconstructed_slices = tf.map_fn(
             self.call_single_slice,
             inputs,
-            dtype=tf.float32,
+            fn_output_signature=tf.float32,
             parallel_iterations=2,
             back_prop=False,
         )

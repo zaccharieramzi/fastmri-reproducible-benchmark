@@ -46,9 +46,10 @@ class Metrics:
         self.metrics = {
             metric: Statistics() for metric in metric_funcs
         }
+        self.metric_funcs = metric_funcs
 
     def push(self, target, recons):
-        for metric, func in METRIC_FUNCS.items():
+        for metric, func in self.metric_funcs.items():
             self.metrics[metric].push(func(target, recons))
 
     def means(self):

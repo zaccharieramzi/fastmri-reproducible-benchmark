@@ -6,6 +6,7 @@ FASTMRI_DATA_DIR = os.environ.get('FASTMRI_DATA_DIR', '/media/Zaccharie/UHRes/')
 OASIS_DATA_DIR = os.environ.get('OASIS_DATA_DIR', '/media/Zaccharie/UHRes/OASIS_data')
 LOGS_DIR = os.environ.get('LOGS_DIR', './')
 CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', './')
+TMP_DIR = os.environ.get('TMP_DIR', './')
 
 n_volumes_train = 973
 n_volumes_val = 199

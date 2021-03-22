@@ -104,12 +104,12 @@ params_per_model['MWCNN']['specs'] = dict(
     extra_kwargs=dict(res=False),
 )
 
-# params_per_model['FocNet']['big'] = dict(
-#     n_scales=4,
-#     n_filters=128,
-#     n_convs_per_scale=default_n_convs_focnet,
-#     communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
-# )
+params_per_model['FocNet']['big'] = dict(
+    n_scales=4,
+    n_filters=128,
+    n_convs_per_scale=default_n_convs_focnet,
+    communications_between_scales=DEFAULT_COMMUNICATION_BETWEEN_SCALES,
+)
 params_per_model['FocNet']['medium'] = dict(
     n_scales=4,
     n_filters=32,
@@ -129,13 +129,13 @@ params_per_model['FocNet']['specs'] = dict(
     n_scales='n_scales',
 )
 
-# params_per_model['DIDN']['big'] = dict(
-#     n_scales=3,
-#     n_filters=128,
-#     n_dubs=4,
-#     n_convs_recon=6,
-#     res=False,
-# )
+params_per_model['DIDN']['big'] = dict(
+    n_scales=3,
+    n_filters=128,
+    n_dubs=4,
+    n_convs_recon=2,
+    res=False,
+)
 params_per_model['DIDN']['medium'] = dict(
     n_scales=3,
     n_filters=64,

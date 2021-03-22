@@ -3,7 +3,7 @@ from tensorflow.keras.models import Model
 
 from ..functional_models.unet import unet
 from ..utils.complex import to_complex
-from ..utils.fastmri_format import tf_fastmri_format
+from ..utils.fastmri_format import general_fastmri_format
 from ..utils.fourier import AdjNFFT
 from ..utils.pad_for_pool import pad_for_pool
 
@@ -62,13 +62,16 @@ class UnetComplex(Model):
         )
 
     def call(self, inputs):
+        output_shape = None
         if self.dealiasing_nc_fastmri:
             if self.multicoil:
                 if len(inputs) == 3:
                     original_kspace, mask, smaps = inputs
                     op_args = ()
-                else:
+                elif len(inputs) == 4:
                     original_kspace, mask, smaps, op_args = inputs
+                else:
+                    original_kspace, mask, smaps, output_shape, op_args = inputs
                 outputs = self.adj_op([original_kspace, mask, smaps, *op_args])
             else:
                 if len(inputs) == 2:
@@ -93,5 +96,5 @@ class UnetComplex(Model):
         if self.res:
             outputs = inputs[..., :self.n_output_channels] + outputs
         if self.dealiasing_nc_fastmri:
-            outputs = tf_fastmri_format(outputs)
+            outputs = general_fastmri_format(outputs, output_shape=output_shape)
         return outputs
