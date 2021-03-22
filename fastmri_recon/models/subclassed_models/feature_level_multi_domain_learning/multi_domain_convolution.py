@@ -22,7 +22,7 @@ class MultiDomainConv(Layer):
             self.kernel_size,
             padding='same',
             activation=self.non_linearity,
-            name='conv_image',
+            name='conv_kspace',
         )
 
     def build(self, input_shape):

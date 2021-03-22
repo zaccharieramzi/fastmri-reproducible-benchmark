@@ -121,6 +121,23 @@ class XPDNet(CrossDomainNet):
             # TODO: code small diff function
             self.kspace_net = [measurements_residual for i in range(self.n_iter)]
 
+    def get_config(self):
+        config = super(XPDNet, self).get_config()
+        config.update({
+            'model_fun': self.model_fun,
+            'model_kwargs': self.model_kwargs,
+            'res': self.res,
+            'n_scales': self.n_scales,
+            'n_primal': self.n_primal,
+            'n_dual': self.n_dual,
+            'n_dual_filters': self.n_dual_filters,
+            'n_iter': self.n_iter,
+            'primal_only': self.primal_only,
+            'multicoil': self.multicoil,
+            'multiscale_kspace_learning': self.multiscale_kspace_learning,
+            'refine_smaps': self.refine_smaps,
+        })
+
 
 def measurements_residual(concatenated_kspace):
     current_kspace = concatenated_kspace[..., 0:1]

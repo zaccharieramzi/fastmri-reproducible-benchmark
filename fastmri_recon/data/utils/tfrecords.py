@@ -5,6 +5,7 @@ TENSOR_DTYPES = {
     'kspace': tf.complex64,
     'ktraj': tf.float32,
     'output_shape': tf.int32,
+    'gt_shape': tf.int32,
     'volume': tf.float32,
     'reconstructed_volume': tf.float32,
     'dcomp': tf.complex64,
@@ -91,10 +92,18 @@ def encode_ncmc_example(model_inputs, model_outputs):
         'dcomp': model_inputs[3][1],
         'volume': model_outputs[0],
     }
+    if len(model_inputs) == 5:
+        # there are different shapes at play here
+        # the output_shape is a misnomer and it's actually used inside the
+        # network for the nufft computations to have an image that's reduced to
+        # its essential components
+        # the gt_shape is used for braind data which doesn't have a normalized
+        # "output shape" like the knee data
+        feature.update(gt_shape=model_inputs[4])
     example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
     return example_proto.SerializeToString()
 
-def decode_ncmc_example(raw_record, slice_random=True):
+def decode_ncmc_example(raw_record, slice_random=True, brain=False):
     features = {
         'kspace': feature_decode(),
         'ktraj': feature_decode(),
@@ -103,6 +112,8 @@ def decode_ncmc_example(raw_record, slice_random=True):
         'dcomp': feature_decode(),
         'volume': feature_decode(),
     }
+    if brain:
+        features.update(gt_shape=feature_decode())
     example = tf.io.parse_example(raw_record, features=features)
     example_parsed = {
         k: tf.io.parse_tensor(tensor, TENSOR_DTYPES[k])
@@ -121,8 +132,10 @@ def decode_ncmc_example(raw_record, slice_random=True):
         example_parsed['kspace'][slice_start:slice_end],
         example_parsed['ktraj'][slice_start:slice_end],
         example_parsed['smaps'][slice_start:slice_end],
-        extra_args,
     )
+    if brain:
+        model_inputs += (example_parsed['gt_shape'][slice_start:slice_end],)
+    model_inputs += (extra_args,)
     model_outputs = example_parsed['volume'][slice_start:slice_end]
     return model_inputs, model_outputs
 

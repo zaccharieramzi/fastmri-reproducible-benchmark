@@ -30,6 +30,7 @@ CI = os.environ.get('CONTINUOUS_INTEGRATION', False) == 'true'
 CI = CI or os.environ.get('CI', False) == 'true'
 CI = CI or os.environ.get('TRAVIS', False) == 'true'
 @pytest.mark.skipif(CI, reason='Non cartesian multicoil is too long to run in CI.')
+@pytest.mark.skip(reason='Currently this test is invalid because multicoil now relies on tfrecords')
 def test_train_ncpdnet_multicoil(create_full_fastmri_test_tmp_dataset):
     nc_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     nc_train.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']

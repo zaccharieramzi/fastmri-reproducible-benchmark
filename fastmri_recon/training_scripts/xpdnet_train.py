@@ -1,9 +1,13 @@
+from contextlib import ExitStack
+from functools import partial
 import os
 import os.path as op
 import time
 
 import click
+import pickle
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 from tensorflow.keras.models import load_model
@@ -57,6 +61,8 @@ def train_xpdnet(
         n_dual=1,
         n_dual_filters=16,
         multiscale_kspace_learning=False,
+        distributed=False,
+        manual_saving=False,
     ):
     r"""Train an XPDNet network on the fastMRI dataset.
 
@@ -124,6 +130,15 @@ def train_xpdnet(
     Returns:
         - str: the run id of the trained network.
     """
+    if distributed:
+        com_options = tf.distribute.experimental.CommunicationOptions(
+            implementation=tf.distribute.experimental.CommunicationImplementation.NCCL,
+        )
+        slurm_resolver = tf.distribute.cluster_resolver.SlurmClusterResolver(port_base=15000)
+        mirrored_strategy = tf.distribute.MultiWorkerMirroredStrategy(
+            cluster_resolver=slurm_resolver,
+            communication_options=com_options,
+        )
     if brain:
         n_volumes = brain_n_volumes_train
     else:
@@ -168,28 +183,55 @@ def train_xpdnet(
     else:
         dataset = singlecoil_dataset
         kwargs = {}
-    train_set = dataset(
-        train_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=True,
-        scale_factor=1e6,
-        n_samples=n_samples,
-        fixed_masks=fixed_masks,
-        batch_size=batch_size,
-        target_image_size=IM_SIZE,
-        **kwargs
-    )
-    val_set = dataset(
-        val_path,
-        AF=af,
-        contrast=contrast,
-        inner_slices=None,
-        rand=True,
-        scale_factor=1e6,
-        **kwargs
-    )
+    if distributed:
+        def _dataset_fn(input_context, mode='train'):
+            ds = dataset(
+                train_path if mode == 'train' else val_path,
+                input_context=input_context,
+                AF=af,
+                contrast=contrast,
+                inner_slices=None,
+                rand=True,
+                scale_factor=1e6,
+                batch_size=batch_size // input_context.num_replicas_in_sync,
+                target_image_size=IM_SIZE,
+                **kwargs
+            )
+            options = tf.data.Options()
+            options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+            ds = ds.with_options(options)
+            return ds
+        train_set = mirrored_strategy.distribute_datasets_from_function(partial(
+            _dataset_fn,
+            mode='train',
+        ))
+        val_set = mirrored_strategy.distribute_datasets_from_function(partial(
+            _dataset_fn,
+            mode='val',
+        ))
+    else:
+        train_set = dataset(
+            train_path,
+            AF=af,
+            contrast=contrast,
+            inner_slices=None,
+            rand=True,
+            scale_factor=1e6,
+            n_samples=n_samples,
+            fixed_masks=fixed_masks,
+            batch_size=batch_size,
+            target_image_size=IM_SIZE,
+            **kwargs
+        )
+        val_set = dataset(
+            val_path,
+            AF=af,
+            contrast=contrast,
+            inner_slices=None,
+            rand=True,
+            scale_factor=1e6,
+            **kwargs
+        )
 
     run_params = {
         'n_primal': n_primal,
@@ -237,8 +279,11 @@ def train_xpdnet(
     else:
         run_id = original_run_id
     final_epoch = checkpoint_epoch + n_epochs
-    chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
-    if not save_state:
+    if not distributed or slurm_resolver.task_id == 0:
+        chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
+    else:
+        chkpt_path = f'{TMP_DIR}checkpoints/{run_id}' + '-{epoch:02d}'
+    if not save_state or manual_saving:
         chkpt_path += '.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
@@ -251,33 +296,43 @@ def train_xpdnet(
     )
     tqdm_cback = TQDMProgressBar()
 
-    # mirrored_strategy = tf.distribute.MirroredStrategy()
-    # with mirrored_strategy.scope():
-    # for now commenting out because of https://github.com/tensorflow/tensorflow/issues/46146
-    if checkpoint_epoch == 0:
-        model = XPDNet(model_fun, model_kwargs, **run_params)
-        if original_run_id is not None:
-            lr = 1e-7
-            n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
-        else:
+    with ExitStack() as stack:
+        # can't be always used because of https://github.com/tensorflow/tensorflow/issues/46146
+        if distributed:
+            stack.enter_context(mirrored_strategy.scope())
+        if checkpoint_epoch == 0:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            if original_run_id is not None:
+                lr = 1e-7
+                n_steps = brain_volumes_per_contrast['train'].get(contrast, n_volumes)//2
+            else:
+                n_steps = n_volumes
+            default_model_compile(model, lr=lr, loss=loss)
+        elif not manual_saving:
+            model = load_model(
+                f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
+                custom_objects=CUSTOM_TF_OBJECTS,
+            )
             n_steps = n_volumes
-        default_model_compile(model, lr=lr, loss=loss)
-    else:
-        model = load_model(
-            f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}',
-            custom_objects=CUSTOM_TF_OBJECTS,
-        )
-        n_steps = n_volumes
+        else:
+            model = XPDNet(model_fun, model_kwargs, **run_params)
+            n_steps = n_volumes
+            default_model_compile(model, lr=lr, loss=loss)
+
+    if batch_size is not None:
+        n_steps //= batch_size
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=int(n_epochs*n_steps),
-        save_weights_only=not save_state,
+        save_weights_only=(not save_state and not distributed) or manual_saving,
     )
     print(run_id)
-    if original_run_id is not None and not checkpoint_epoch:
+    if original_run_id is not None and (not checkpoint_epoch or manual_saving):
         if os.environ.get('FASTMRI_DEBUG'):
             n_epochs_original = 1
+        if manual_saving:
+            n_epochs_original = checkpoint_epoch
         if multicoil:
             kspace_size = [1, 15, 640, 372]
         else:
@@ -290,8 +345,25 @@ def train_xpdnet(
             inputs.append(tf.zeros(kspace_size, dtype=tf.complex64))
         if brain:
             inputs.append(tf.constant([[320, 320]]))
-        model(inputs)
-        model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
+        with ExitStack() as stack:
+            if distributed:
+                # see https://github.com/tensorflow/tensorflow/issues/32561#issuecomment-544319907
+                stack.enter_context(mirrored_strategy.scope())
+            model(inputs)
+            model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{n_epochs_original:02d}.hdf5')
+
+        if manual_saving:
+            def _model_weight_setting():
+                grad_vars = model.trainable_weights
+                zero_grads = [tf.zeros_like(w) for w in grad_vars]
+                model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+                with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+                    weight_values = pickle.load(f)
+                model.optimizer.set_weights(weight_values)
+            if distributed:
+                mirrored_strategy.run(_model_weight_setting)
+            else:
+                _model_weight_setting()
 
     model.fit(
         train_set,
@@ -304,6 +376,12 @@ def train_xpdnet(
         verbose=0,
         callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
     )
+
+    if manual_saving:
+        symbolic_weights = getattr(model.optimizer, 'weights')
+        weight_values = K.batch_get_value(symbolic_weights)
+        with open(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-optimizer.pkl', 'wb') as f:
+            pickle.dump(weight_values, f)
     return run_id
 
 
