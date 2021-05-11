@@ -40,8 +40,8 @@ class NCPDNet(CrossDomainNet):
             multi_gpu=True,
             **kwargs,
         )
-        self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil, grad_traj=grad_traj)
-        self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=dcomp, grad_traj=grad_traj)
+        self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil, grad_traj=self.grad_traj)
+        self.adj_op = AdjNFFT(im_size=self.im_size, multicoil=self.multicoil, density_compensation=dcomp, grad_traj=self.grad_traj)
         available_gpus = get_gpus()
         n_gpus = len(available_gpus)
         self.image_net = []
