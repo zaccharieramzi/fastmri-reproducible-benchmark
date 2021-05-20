@@ -8,7 +8,7 @@ import tensorflow.keras.backend as K
 # taken from https://github.com/tensorflow/tensorflow/issues/39679
 class ModelCheckpointWorkAround(ModelCheckpoint):
     def __init__(self, filepath, save_optimizer=True, **kwargs):
-        os.makedirs(os.path.dirname(filepath))
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.save_optimizer = save_optimizer
         super(ModelCheckpointWithOptimizer, self).__init__(filepath=filepath, **kwargs)
 
