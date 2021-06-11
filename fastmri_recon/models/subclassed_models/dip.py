@@ -33,7 +33,9 @@ class DIPBase(Model):
             conv_2 = Conv2D(self.n_filters, 3, 'same', activation='relu')
             self.convs += [conv_1, conv_2]
         self.convs.append(Conv2D(2, 3, 'same'))
+        # XXX: I need to output more than 2 when doing multicoil with the Darestani technique
         self.op = NFFT(im_size=self.im_size)
+        # XXX: make sure this can be multicoil
 
     def call(self, inputs):
         x, ktraj = inputs
@@ -55,4 +57,5 @@ class DIPBase(Model):
         output = to_complex(output, 1)
         if fastmri_format:
             output = tf.math.abs(output)
+            # XXX: this won't be enough with brain data and multicoil data in general
         return output
