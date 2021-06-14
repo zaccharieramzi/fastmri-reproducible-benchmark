@@ -43,6 +43,7 @@ def reconstruct_dip(
             x=[in_random_vector, ktraj[i_slice:i_slice+1]],
             y=kspace[i_slice:i_slice+1],
             epochs=n_iter,
+            verbose=0,
         )
         if save_model:
             model.save_weights(save_path)
