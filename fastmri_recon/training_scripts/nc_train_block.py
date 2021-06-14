@@ -119,6 +119,8 @@ def train_ncnet_block(
         additional_info += f'_{loss}'
     if dcomp:
         additional_info += '_dcomp'
+    if block_overlap != 0:
+        additional_info += f'_blkov{block_overlap}'
     if checkpoint_epoch == 0:
         run_id = f'{run_id}_bbb_{additional_info}_{int(time.time())}'
     else:
