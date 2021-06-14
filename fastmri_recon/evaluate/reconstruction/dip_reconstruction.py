@@ -36,7 +36,7 @@ def reconstruct_dip(
     n_slices = kspace.shape[0]
     outputs = []
     for i_slice in range(n_slices):
-        if i_slice > 0 and model_checkpoint is None:
+        if i_slice == 1 and model_checkpoint is None:
             n_iter = n_iter // 10
         in_random_vector = tf.random.normal([1, in_dim])
         _history = model.fit(
