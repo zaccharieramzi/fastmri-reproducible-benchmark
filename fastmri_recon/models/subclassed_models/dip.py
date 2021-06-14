@@ -41,7 +41,7 @@ class DIPBase(Model):
         x, ktraj = inputs
         image = self.generate(x)
         image = tf.image.resize_with_crop_or_pad(image, self.im_size[0], self.im_size[1])
-        kspace = self.op([image, ktraj])
+        kspace, _ = self.op([image, ktraj])
         return kspace
 
     def generate(self, x, fastmri_format=False):
