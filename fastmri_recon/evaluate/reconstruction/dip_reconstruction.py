@@ -3,7 +3,7 @@ from tensorflow.keras.losses import MSE
 from tensorflow.keras.optimizers import Adam
 
 from fastmri_recon.models.subclassed_models.dip import DIPBase
-from fastmri_recon.models.training.compile import default_model_compile
+
 
 def dip_loss(y_true, y_pred):
     mse_real = MSE(tf.math.real(y_true), tf.math.real(y_pred))
