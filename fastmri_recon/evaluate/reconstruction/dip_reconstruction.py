@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.losses import MSE
+from tensorflow.keras.optimizers import Adam
 
 from fastmri_recon.models.subclassed_models.dip import DIPBase
 from fastmri_recon.models.training.compile import default_model_compile
@@ -25,6 +26,10 @@ def reconstruct_dip(
     model = DIPBase(**model_kwargs)
     if model_checkpoint is not None:
         model.load_weights(model_checkpoint)
+    model.compile(
+        optimizer=Adam(lr=lr),
+        loss=dip_loss,
+    )
     default_model_compile(model, lr=lr, loss=dip_loss)
     n_slices = kspace.shape[0]
     outputs = []
