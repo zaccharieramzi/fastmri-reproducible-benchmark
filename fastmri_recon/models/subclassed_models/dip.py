@@ -29,10 +29,10 @@ class DIPBase(Model):
         self.ups = [UpSampling2D(size=2, interpolation='nearest') for _ in range(self.n_up)]
         self.convs = []
         for i_up in range(self.n_up+1):
-            conv_1 = Conv2D(self.n_filters, 3, 'same', activation='relu')
-            conv_2 = Conv2D(self.n_filters, 3, 'same', activation='relu')
+            conv_1 = Conv2D(self.n_filters, 3, padding='same', activation='relu')
+            conv_2 = Conv2D(self.n_filters, 3, padding='same', activation='relu')
             self.convs += [conv_1, conv_2]
-        self.convs.append(Conv2D(2, 3, 'same'))
+        self.convs.append(Conv2D(2, 3, padding='same'))
         # XXX: I need to output more than 2 when doing multicoil with the Darestani technique
         self.op = NFFT(im_size=self.im_size)
         # XXX: make sure this can be multicoil
