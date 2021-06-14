@@ -26,7 +26,7 @@ class DIPBase(Model):
         self.n_filters = n_filters
         self.im_size = im_size
         self.denses = [Dense(self.n_hidden, 'relu'), Dense(self.n_base**2)]
-        self.ups = [UpSampling2D(size=2, interpolation='nearest') for _ in range(self.n_ups)]
+        self.ups = [UpSampling2D(size=2, interpolation='nearest') for _ in range(self.n_up)]
         self.convs = []
         for i_up in range(self.n_up+1):
             conv_1 = Conv2D(self.n_filters, 3, 'same', activation='relu')
