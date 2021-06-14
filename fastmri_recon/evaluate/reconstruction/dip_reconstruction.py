@@ -30,7 +30,6 @@ def reconstruct_dip(
         optimizer=Adam(lr=lr),
         loss=dip_loss,
     )
-    default_model_compile(model, lr=lr, loss=dip_loss)
     n_slices = kspace.shape[0]
     outputs = []
     for i_slice in range(n_slices):
