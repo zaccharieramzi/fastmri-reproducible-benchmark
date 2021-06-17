@@ -17,7 +17,7 @@ class BNConv(Layer):
         self.n_filters = n_filters
         self.conv = Conv2D(self.n_filters, 3, padding='same', activation='linear')
         if self.bn:
-            self.bnorm = BatchNormalization(eps=1e-5, momentum=0.1)
+            self.bnorm = BatchNormalization(epsilon=1e-5, momentum=0.1)
         if self.non_lin:
             self.act = Activation('relu')
 
