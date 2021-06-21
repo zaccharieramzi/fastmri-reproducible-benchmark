@@ -92,10 +92,15 @@ def evaluate_nc(
     model(inputs)
     if run_id is not None:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
+    res_name = f'{run_id}_eval_on_{acq_type}'
+    if brain:
+        res_name += 'brain'
+    if contrast is not None:
+        res_name += f'_{contrast}'
     if three_d:
-        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']})
+        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
-        m = Metrics(METRIC_FUNCS)
+        m = Metrics(METRIC_FUNCS, res_name)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=1)
         m.push(y_true[..., 0], y_pred[..., 0])
@@ -104,6 +109,7 @@ def evaluate_nc(
         del y_pred
     print(METRIC_FUNCS.keys())
     print(list(m.means().values()))
+    m.to_csv()
     return METRIC_FUNCS, list(m.means().values())
 
 def evaluate_ncpdnet(
