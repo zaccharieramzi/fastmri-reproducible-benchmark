@@ -264,6 +264,7 @@ def evaluate_nc_multinet(
         normalize_image=False,
         brain=False,
         n_primal=5,
+        contrast=None,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -307,6 +308,7 @@ def evaluate_nc_multinet(
         n_samples=n_samples,
         three_d=three_d,
         brain=brain,
+        contrast=contrast,
         **add_kwargs,
     )
     return metric_names, metrics
