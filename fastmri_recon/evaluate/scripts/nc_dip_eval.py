@@ -77,7 +77,11 @@ def evaluate_dip_nc(
     else:
         m = Metrics(METRIC_FUNCS)
     model_checkpoint = None
-    save_path = str(Path(CHECKPOINTS_DIR) / f'dip_model_weights_{acq_type}.h5')
+    model_path = f'dip_model_weights_{acq_type}'
+    if contrast is not None:
+        model_path += f'{contrast}'
+    model_path += '.h5'
+    save_path = str(Path(CHECKPOINTS_DIR) / model_path)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         x = x[0:2]
         # XXX: get gt shape for brain data
