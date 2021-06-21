@@ -4,6 +4,7 @@ from pathlib import Path
 import tensorflow as tf
 
 from fastmri_recon.data.utils.tfrecords import decode_ncmc_example
+from fastmri_recon.data.utils.h5 import from_file_to_contrast
 
 
 def train_nc_kspace_dataset_from_tfrecords(
@@ -20,7 +21,10 @@ def train_nc_kspace_dataset_from_tfrecords(
         brain=False,
     ):
     pattern = acq_type
-    filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
+    if contrast is None:
+        filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
+    else:
+        filenames = get_tfrecords_files_for_contrast(path, contrast, pattern)
     raw_dataset = tf.data.TFRecordDataset(
         [str(f) for f in filenames],
         num_parallel_reads=2 if rand else None,
@@ -34,3 +38,13 @@ def train_nc_kspace_dataset_from_tfrecords(
     if rand:
         volume_ds = volume_ds.repeat().prefetch(buffer_size=2)
     return volume_ds
+
+def get_tfrecords_files_for_contrast(path, contrast, pattern='radial'):
+    tfrec_filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
+    h5_filenames = sorted(list(Path(path).glob(f'*{pattern}.h5')))
+    assert len(tfrec_filenames) == len(h5_filenames)
+    filtered_tfrec_filenames = [
+        tfrec_filename for (tfrec_filename, h5_filename) in zip(tfrec_filenames, h5_filenames)
+        if from_file_to_contrast(h5_filename) == contrast
+    ]
+    return filtered_tfrec_filenames
