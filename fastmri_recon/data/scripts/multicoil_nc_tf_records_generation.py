@@ -84,7 +84,10 @@ def generate_multicoil_nc_tf_records(
                 model_inputs += (output_shape,)
             return model_inputs, images_channeled
 
-    extension = f'_nc_{acq_type}.tfrecords'
+    extension = f'_nc_{acq_type}'
+    if af != 4:
+        extension += f'_af{af}'
+    extension += '.tfrecords'
     selection = [
         {'inner_slices': None, 'rand': False},  # slice selection
         {'rand': False, 'keep_dim': False},  # coil selection
