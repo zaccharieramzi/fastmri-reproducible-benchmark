@@ -104,7 +104,12 @@ def generate_multicoil_nc_tf_records(
             filename,
             selection=selection,
         )
-        model_inputs, model_outputs = preproc_model.predict([image, kspace])
+        data = tf.data.Dataset.from_tensor_slices([image, kspace])
+        data = data.batch(len(image))
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+        data = data.with_options(options)
+        model_inputs, model_outputs = preproc_model.predict(data)
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_ncmc_example(model_inputs, [model_outputs])
             writer.write(example)
