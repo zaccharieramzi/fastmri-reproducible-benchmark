@@ -17,6 +17,8 @@ from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 
 
+tf.config.run_functions_eagerly(True)
+
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
