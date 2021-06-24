@@ -43,11 +43,16 @@ def ncnet_qualitative_validation(
         zoom=None,
     ):
     if multicoil:
+        name += '_mc'
         if brain:
+            name += '_brain'
             val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
         else:
             val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if run_id is not None and acq_type not in run_id:
+            name += '_rev'
     elif three_d:
+        name += '_3d'
         val_path = f'{OASIS_DATA_DIR}/val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
