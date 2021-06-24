@@ -43,7 +43,7 @@ def get_tfrecords_files_for_contrast(path, contrast, pattern='radial', af=4):
     if af == 8:
         pattern = pattern + '_af8'
     tfrec_filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
-    h5_filenames = sorted(list(Path(path).glob(f'*{pattern}.h5')))
+    h5_filenames = sorted(list(Path(path).glob(f'*.h5')))
     assert len(tfrec_filenames) == len(h5_filenames)
     filtered_tfrec_filenames = [
         tfrec_filename for (tfrec_filename, h5_filename) in zip(tfrec_filenames, h5_filenames)
