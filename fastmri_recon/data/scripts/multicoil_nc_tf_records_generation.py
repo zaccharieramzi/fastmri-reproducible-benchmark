@@ -104,10 +104,10 @@ def generate_multicoil_nc_tf_records(
             filename,
             selection=selection,
         )
-        data = tf.data.Dataset.zip([
+        data = tf.data.Dataset.zip((
             tf.data.Dataset.from_tensor_slices(image),
             tf.data.Dataset.from_tensor_slices(kspace),
-        ])
+        ))
         data = data.batch(len(image))
         options = tf.data.Options()
         options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
