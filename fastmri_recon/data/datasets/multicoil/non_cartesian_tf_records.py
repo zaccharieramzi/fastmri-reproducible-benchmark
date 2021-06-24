@@ -21,10 +21,10 @@ def train_nc_kspace_dataset_from_tfrecords(
         brain=False,
     ):
     pattern = acq_type
-    if contrast is None:
+    if contrast is None and af == 4:
         filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
     else:
-        filenames = get_tfrecords_files_for_contrast(path, contrast, pattern)
+        filenames = get_tfrecords_files_for_contrast(path, contrast, pattern, af)
     raw_dataset = tf.data.TFRecordDataset(
         [str(f) for f in filenames],
         num_parallel_reads=2 if rand else None,
@@ -39,7 +39,9 @@ def train_nc_kspace_dataset_from_tfrecords(
         volume_ds = volume_ds.repeat().prefetch(buffer_size=2)
     return volume_ds
 
-def get_tfrecords_files_for_contrast(path, contrast, pattern='radial'):
+def get_tfrecords_files_for_contrast(path, contrast, pattern='radial', af=4):
+    if af == 8:
+        pattern = pattern + '_af8'
     tfrec_filenames = sorted(list(Path(path).glob(f'*{pattern}.tfrecords')))
     h5_filenames = sorted(list(Path(path).glob(f'*{pattern}.h5')))
     assert len(tfrec_filenames) == len(h5_filenames)
