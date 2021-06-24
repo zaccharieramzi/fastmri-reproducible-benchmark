@@ -28,7 +28,7 @@ def train_nc_kspace_dataset_from_tfrecords(
     raw_dataset = tf.data.TFRecordDataset(
         [str(f) for f in filenames],
         num_parallel_reads=2 if rand else None,
-    )
+    ).apply(tf.data.experimental.ignore_errors(log_warning=True))
     if n_samples is not None:
         raw_dataset.take(n_samples)
     volume_ds = raw_dataset.map(
