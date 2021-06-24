@@ -99,6 +99,10 @@ def evaluate_nc(
         res_name += '_brain'
     if contrast is not None:
         res_name += f'_{contrast}'
+    if acq_kwargs:
+        af = acq_kwargs['af']
+        if af != 4:
+            res_name += f'_af{af}'
     if three_d:
         m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
