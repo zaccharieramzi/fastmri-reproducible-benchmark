@@ -96,7 +96,7 @@ def evaluate_nc(
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
     res_name = f'{run_id}_eval_on_{acq_type}'
     if brain:
-        res_name += 'brain'
+        res_name += '_brain'
     if contrast is not None:
         res_name += f'_{contrast}'
     if three_d:
