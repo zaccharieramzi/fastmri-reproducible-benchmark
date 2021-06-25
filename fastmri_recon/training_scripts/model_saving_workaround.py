@@ -20,7 +20,7 @@ class ModelCheckpointWorkAround(ModelCheckpoint):
 
     def _save_model(self, epoch, logs):
         # Save the model with super
-        super(ModelCheckpointWithOptimizer, self)._save_model(epoch, logs)
+        super(ModelCheckpointWorkAround, self)._save_model(epoch, logs)
         if self.save_optimizer:
             # Save the optimizer
             folder = os.path.dirname(self._get_file_path(epoch, logs))
