@@ -25,7 +25,7 @@ def save_figure(
         im_reco = im_recos[0]
         im_gt = img_batch[0]
     im_gt = im_gt.numpy().squeeze()
-    im_reco = im_reco.numpy().squeeze()
+    im_reco = im_reco.squeeze()
     if zoom is not None:
         name += '_zoom'
         im_gt = im_gt[zoom[0][0]:zoom[0][1], zoom[1][0]:zoom[1][1]]
