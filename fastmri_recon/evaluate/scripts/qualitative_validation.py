@@ -43,6 +43,7 @@ def ncnet_qualitative_validation(
         brain=False,
         timing=False,
         zoom=None,
+        draw_zoom=None,
     ):
     if multicoil:
         name += '_mc'
@@ -119,6 +120,7 @@ def ncnet_qualitative_validation(
             three_d=three_d,
             acq_type=acq_type,
             zoom=zoom,
+            draw_zoom=draw_zoom,
         )
     if timing:
         return duration
@@ -298,6 +300,7 @@ def nc_multinet_qualitative_validation(
         timing=False,
         n_primal=5,
         zoom=None,
+        draw_zoom=None,
     ):
     if model == 'pdnet':
         evaluate_function = ncpdnet_qualitative_validation
@@ -347,5 +350,6 @@ def nc_multinet_qualitative_validation(
         brain=brain,
         timing=timing,
         zoom=zoom,
+        draw_zoom=draw_zoom,
         **add_kwargs,
     )
