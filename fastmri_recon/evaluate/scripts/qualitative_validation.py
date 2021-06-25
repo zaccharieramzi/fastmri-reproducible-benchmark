@@ -16,6 +16,8 @@ from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.pdnet import PDNet
 
 
+tf.config.run_functions_eagerly(True)
+
 IM_SIZE = (640, 400)
 VOLUME_SIZE = (256, 256, 256)
 
