@@ -77,6 +77,16 @@ def save_figure(
         fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}_zoom.png')
     fig, ax = plt.subplots(1)
     ax.imshow(im_gt)
+    if draw_zoom is not None:
+        rect = patches.Rectangle(
+            (draw_zoom[0][0], draw_zoom[1][0]),
+            draw_zoom[0][1] - draw_zoom[0][0], draw_zoom[1][1] - draw_zoom[1][0],
+            linewidth=1,
+            edgecolor='r',
+            facecolor='none',
+        )
+        # Add the patch to the Axes
+        ax.add_patch(rect)
     ax.axis('off')
     if zoom is None:
         fig.savefig(f'{LOGS_DIR}figures/image_gt.png')
