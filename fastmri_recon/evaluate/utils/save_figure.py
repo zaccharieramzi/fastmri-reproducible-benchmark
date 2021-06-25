@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 
 from fastmri_recon.config import LOGS_DIR
@@ -17,6 +18,7 @@ def save_figure(
         af=4,
         three_d=False,
         zoom=None,
+        draw_zoom=None,
     ):
     if three_d:
         p = psnr(img_batch[0].numpy().squeeze(), im_recos[0].squeeze())
@@ -31,14 +33,13 @@ def save_figure(
     im_reco = im_reco.squeeze()
     if zoom is not None:
         name += '_zoom'
-        im_gt = im_gt[zoom[0][0]:zoom[0][1], zoom[1][0]:zoom[1][1]]
-        im_reco = im_reco[zoom[0][0]:zoom[0][1], zoom[1][0]:zoom[1][1]]
+        im_gt = im_gt[zoom[1][0]:zoom[1][1], zoom[0][0]:zoom[0][1]]
+        im_reco = im_reco[zoom[1][0]:zoom[1][1], zoom[0][0]:zoom[0][1]]
     im_res = np.abs(im_gt - im_reco)
     im_res = np.abs(im_res)
     im_gt = np.abs(im_gt)
     im_reco = np.abs(im_reco)
-    p = psnr(im_gt, im_reco)
-    s = ssim(im_gt[None], im_reco[None])
+
     fig, ax = plt.subplots(1, frameon=False)
     ax.imshow(im_reco, aspect='auto')
     if zoom is None:
@@ -52,12 +53,28 @@ def save_figure(
             fontsize='large',
             color='red',
         )
+    if draw_zoom is not None:
+        rect = patches.Rectangle(
+            (draw_zoom[0][0], draw_zoom[1][0]),
+            draw_zoom[0][1] - draw_zoom[0][0], draw_zoom[1][1] - draw_zoom[1][0],
+            linewidth=1,
+            edgecolor='r',
+            facecolor='none',
+        )
+        # Add the patch to the Axes
+        ax.add_patch(rect)
     ax.axis('off')
-    fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}.png')
+    if zoom is None:
+        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}.png')
+    else:
+        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}_zoom.png')
     fig, ax = plt.subplots(1, frameon=False)
     ax.imshow(im_res, aspect='auto')
     ax.axis('off')
-    fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}.png')
+    if zoom is None:
+        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}.png')
+    else:
+        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}_zoom.png')
     fig, ax = plt.subplots(1)
     ax.imshow(im_gt)
     ax.axis('off')
