@@ -19,11 +19,14 @@ def save_figure(
         zoom=None,
     ):
     if three_d:
+        p = psnr(img_batch[0].numpy().squeeze(), im_recos[0].squeeze())
         im_reco = im_recos[0, slice_index]
         im_gt = img_batch[0, slice_index]
     else:
-        im_reco = im_recos[0]
-        im_gt = img_batch[0]
+        p = psnr(img_batch.numpy().squeeze(), im_recos.squeeze())
+        s = ssim(img_batch.numpy().squeeze(), im_recos.squeeze())
+        im_reco = im_recos[slice_index]
+        im_gt = img_batch[slice_index]
     im_gt = im_gt.numpy().squeeze()
     im_reco = im_reco.squeeze()
     if zoom is not None:
@@ -39,13 +42,15 @@ def save_figure(
     fig, ax = plt.subplots(1, frameon=False)
     ax.imshow(im_reco, aspect='auto')
     if zoom is None:
+        text = f'PSNR: {p:.2f}'
+        if not three_d:
+            text += f'/ SSIM: {s:.4f}'
         ax.text(
             1.0, 1.0,
-            f'PSNR: {p:.2f}/ SSIM: {s:.4f}',
+            text,
             ha='left', va='top',
-            fontsize='medium',
-            color='white',
-            transform=fig.transFigure,
+            fontsize='large',
+            color='red',
         )
     ax.axis('off')
     fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}.png')

@@ -88,20 +88,21 @@ def ncnet_qualitative_validation(
         scale_factor=scale_factor,
         **add_kwargs
     )
-    model_inputs, model_outputs = _extract_slice_of_batch(
-        next(iter(val_set)),
+    model_inputs, model_outputs = next(iter(val_set))
+    model_inputs_dummy = _extract_slice_of_batch(
+        model_inputs,
         0 if three_d else slice_index,
     )
     if run_id is not None:
-        model.predict(model_inputs)
+        model.predict(model_inputs_dummy)
         chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5'
         model.load_weights(chkpt_path)
     if timing:
         if run_id is None:
             # to warm-up the graph
-            model.predict(model_inputs)
+            model.predict(model_inputs_dummy)
         start = time.time()
-    im_recos = model.predict(model_inputs)
+    im_recos = model.predict(model_inputs, batch_size=8)
     if timing:
         end = time.time()
         duration = end - start
