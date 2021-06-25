@@ -10,7 +10,7 @@ class ModelCheckpointWorkAround(ModelCheckpoint):
     def __init__(self, filepath, save_optimizer=True, **kwargs):
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.save_optimizer = save_optimizer
-        super(ModelCheckpointWithOptimizer, self).__init__(filepath=filepath, **kwargs)
+        super(ModelCheckpointWorkAround, self).__init__(filepath=filepath, **kwargs)
 
     def set_model(self, model):
         # Work around, so that the if at
