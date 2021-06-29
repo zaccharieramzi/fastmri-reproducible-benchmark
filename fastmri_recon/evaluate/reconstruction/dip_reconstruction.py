@@ -21,6 +21,7 @@ def reconstruct_dip(
         lr=1e-3,
         n_iter=10_000,
         multicoil=False,
+        debug=False,
         **model_kwargs,
     ):
     model = DIPBase(**model_kwargs)
@@ -50,4 +51,7 @@ def reconstruct_dip(
         output = model.generate(in_random_vector, fastmri_format=True)
         outputs.append(output)
     output = tf.concat(outputs, axis=0)
-    return output
+    if debug:
+        return output, _history
+    else:
+        return output
