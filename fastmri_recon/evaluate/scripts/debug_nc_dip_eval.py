@@ -98,5 +98,5 @@ def debug_dip_nc(
         **model_kwargs,
     )
     print(save_path)
-    pd.DataFrame(_history).to_csv("history.csv")
+    pd.DataFrame(_history.history).to_csv("history.csv")
     return save_path, _history
