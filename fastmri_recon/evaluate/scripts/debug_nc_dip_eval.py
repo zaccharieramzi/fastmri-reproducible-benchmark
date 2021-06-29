@@ -99,4 +99,4 @@ def debug_dip_nc(
     )
     print(save_path)
     pd.DataFrame(_history.history).to_csv("history.csv")
-    return save_path, _history
+    return save_path
