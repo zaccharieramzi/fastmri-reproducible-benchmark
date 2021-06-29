@@ -27,7 +27,7 @@ def reconstruct_dip(
     model = DIPBase(**model_kwargs)
     if model_checkpoint is not None:
         # build the model first before loading the weights
-        in_random_vector = tf.random.normal([1, in_dim])
+        in_random_vector = tf.random.normal([1, in_dim], seed=0 if debug else None)
         model([in_random_vector, ktraj[0:1]])
         model.load_weights(model_checkpoint)
     model.compile(
