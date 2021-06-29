@@ -17,6 +17,8 @@ from fastmri_recon.models.subclassed_models.unet import UnetComplex
 from fastmri_recon.models.subclassed_models.vnet import VnetComplex
 
 
+tf.config.run_functions_eagerly(True)
+
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
@@ -92,10 +94,19 @@ def evaluate_nc(
     model(inputs)
     if run_id is not None:
         model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5')
+    res_name = f'{run_id}_eval_on_{acq_type}'
+    if brain:
+        res_name += '_brain'
+    if contrast is not None:
+        res_name += f'_{contrast}'
+    if acq_kwargs:
+        af = acq_kwargs['af']
+        if af != 4:
+            res_name += f'_af{af}'
     if three_d:
-        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']})
+        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
-        m = Metrics(METRIC_FUNCS)
+        m = Metrics(METRIC_FUNCS, res_name)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=1)
         m.push(y_true[..., 0], y_pred[..., 0])
@@ -104,6 +115,7 @@ def evaluate_nc(
         del y_pred
     print(METRIC_FUNCS.keys())
     print(list(m.means().values()))
+    m.to_csv()
     return METRIC_FUNCS, list(m.means().values())
 
 def evaluate_ncpdnet(
@@ -264,6 +276,7 @@ def evaluate_nc_multinet(
         normalize_image=False,
         brain=False,
         n_primal=5,
+        contrast=None,
     ):
     if model == 'pdnet':
         evaluate_function = evaluate_ncpdnet
@@ -307,6 +320,7 @@ def evaluate_nc_multinet(
         n_samples=n_samples,
         three_d=three_d,
         brain=brain,
+        contrast=contrast,
         **add_kwargs,
     )
     return metric_names, metrics
