@@ -93,7 +93,8 @@ def debug_dip_nc(
         save_path=save_path,
         multicoil=multicoil,
         n_iter=n_iter,
+        debug=True,
         **model_kwargs,
     )
     print(save_path)
-    return save_path,  _history
+    return save_path, _history
