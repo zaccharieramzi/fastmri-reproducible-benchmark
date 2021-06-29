@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
 
@@ -97,4 +98,5 @@ def debug_dip_nc(
         **model_kwargs,
     )
     print(save_path)
+    pd.DataFrame(_history).to_csv("history.csv")
     return save_path, _history
