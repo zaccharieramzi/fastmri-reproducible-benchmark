@@ -142,6 +142,7 @@ def train_ncnet_block(
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
         save_freq=int(n_epochs*n_steps),
+        save_optimizer=False,
         save_weights_only=True,
     )
     print(run_id)
@@ -158,7 +159,7 @@ def train_ncnet_block(
     ## epochs handling
     restart_at_block_step = checkpoint_epoch // epochs_per_block_step
     start_epoch = checkpoint_epoch
-    final_epoch = checkpoint_epoch + n_epochs
+    final_epoch = checkpoint_epoch + epochs_per_block_step
     for i_step in range(n_block_steps):
         # XXX: handle checkpoint epoch here
         if restart_at_block_step is not None and i_step < restart_at_block_step:
@@ -185,12 +186,14 @@ def train_ncnet_block(
             initial_epoch=start_epoch,
             epochs=final_epoch,
             validation_data=val_set,
-            validation_steps=2,
+            validation_steps=5,
             verbose=0,
             callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
         )
         start_epoch = final_epoch
-        final_epoch += n_epochs
+        final_epoch += epochs_per_block_step
+        if start_epoch > n_epochs:
+            break
     if save_state:
         symbolic_weights = getattr(model.optimizer, 'weights')
         weight_values = K.batch_get_value(symbolic_weights)
