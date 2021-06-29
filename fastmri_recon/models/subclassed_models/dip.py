@@ -94,5 +94,6 @@ class DIPBase(Model):
         output = to_complex(output, 1)
         if fastmri_format:
             output = tf.math.abs(output)
+            output = tf.image.resize_with_crop_or_pad(output, 320, 320)
             # XXX: this won't be enough with brain data and multicoil data in general
         return output
