@@ -5,6 +5,7 @@ This source code is licensed under the MIT license found in the
 LICENSE file in the root directory of this source tree.
 """
 import numpy as np
+import pandas as pd
 from runstats import Statistics
 from skimage.measure import compare_psnr, compare_ssim
 
@@ -42,15 +43,25 @@ class Metrics:
     Maintains running statistics for a given collection of metrics.
     """
 
-    def __init__(self, metric_funcs):
+    def __init__(self, metric_funcs, name=None):
         self.metrics = {
             metric: Statistics() for metric in metric_funcs
         }
+        self.values = {
+            metric: [] for metric in metric_funcs
+        }
         self.metric_funcs = metric_funcs
+        self.name = name
 
     def push(self, target, recons):
         for metric, func in self.metric_funcs.items():
-            self.metrics[metric].push(func(target, recons))
+            value = func(target, recons)
+            self.metrics[metric].push(value)
+            self.values[metric].append(value)
+
+    def to_csv(self):
+        df_values = pd.DataFrame(self.values)
+        df_values.to_csv(f'{self.name}.csv')
 
     def means(self):
         return {

@@ -57,7 +57,8 @@ def generate_multicoil_nc_tf_records(
             if brain:
                 self.fft = FFTBase(False, multicoil=True, use_smaps=False)
         def call(self, inputs):
-            images, kspaces = inputs
+            images = inputs['image']
+            kspaces = inputs['kspace']
             if brain:
                 complex_images = self.fft.adj_op([kspaces[..., None], None])[..., 0]
                 complex_images_padded = adjust_image_size(
@@ -84,7 +85,10 @@ def generate_multicoil_nc_tf_records(
                 model_inputs += (output_shape,)
             return model_inputs, images_channeled
 
-    extension = f'_nc_{acq_type}.tfrecords'
+    extension = f'_nc_{acq_type}'
+    if af != 4:
+        extension += f'_af{af}'
+    extension += '.tfrecords'
     selection = [
         {'inner_slices': None, 'rand': False},  # slice selection
         {'rand': False, 'keep_dim': False},  # coil selection
@@ -101,7 +105,15 @@ def generate_multicoil_nc_tf_records(
             filename,
             selection=selection,
         )
-        model_inputs, model_outputs = preproc_model.predict([image, kspace])
+        data = tf.data.Dataset.zip({
+            'image': tf.data.Dataset.from_tensor_slices(image),
+            'kspace': tf.data.Dataset.from_tensor_slices(kspace),
+        })
+        data = data.batch(len(image))
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+        data = data.with_options(options)
+        model_inputs, model_outputs = preproc_model.predict(data)
         with tf.io.TFRecordWriter(str(filename_tfrecord)) as writer:
             example = encode_ncmc_example(model_inputs, [model_outputs])
             writer.write(example)

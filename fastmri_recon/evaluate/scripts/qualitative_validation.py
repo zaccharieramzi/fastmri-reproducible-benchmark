@@ -16,6 +16,8 @@ from fastmri_recon.models.subclassed_models.ncpdnet import NCPDNet
 from fastmri_recon.models.subclassed_models.pdnet import PDNet
 
 
+tf.config.run_functions_eagerly(True)
+
 IM_SIZE = (640, 400)
 VOLUME_SIZE = (256, 256, 256)
 
@@ -40,13 +42,20 @@ def ncnet_qualitative_validation(
         slice_index=15,
         brain=False,
         timing=False,
+        zoom=None,
+        draw_zoom=None,
     ):
     if multicoil:
+        name += '_mc'
         if brain:
+            name += '_brain'
             val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
         else:
             val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+        if run_id is not None and acq_type not in run_id:
+            name += '_rev'
     elif three_d:
+        name += '_3d'
         val_path = f'{OASIS_DATA_DIR}/val/'
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
@@ -80,20 +89,21 @@ def ncnet_qualitative_validation(
         scale_factor=scale_factor,
         **add_kwargs
     )
-    model_inputs, model_outputs = _extract_slice_of_batch(
-        next(iter(val_set)),
+    model_inputs, model_outputs = next(iter(val_set))
+    model_inputs_dummy = _extract_slice_of_batch(
+        model_inputs,
         0 if three_d else slice_index,
     )
     if run_id is not None:
-        model.predict(model_inputs)
+        model.predict(model_inputs_dummy)
         chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}-{n_epochs:02d}.hdf5'
         model.load_weights(chkpt_path)
     if timing:
         if run_id is None:
             # to warm-up the graph
-            model.predict(model_inputs)
+            model.predict(model_inputs_dummy)
         start = time.time()
-    im_recos = model.predict(model_inputs)
+    im_recos = model.predict(model_inputs, batch_size=8)
     if timing:
         end = time.time()
         duration = end - start
@@ -109,6 +119,8 @@ def ncnet_qualitative_validation(
             slice_index=slice_index,
             three_d=three_d,
             acq_type=acq_type,
+            zoom=zoom,
+            draw_zoom=draw_zoom,
         )
     if timing:
         return duration
@@ -287,6 +299,8 @@ def nc_multinet_qualitative_validation(
         brain=False,
         timing=False,
         n_primal=5,
+        zoom=None,
+        draw_zoom=None,
     ):
     if model == 'pdnet':
         evaluate_function = ncpdnet_qualitative_validation
@@ -335,5 +349,7 @@ def nc_multinet_qualitative_validation(
         contrast=contrast,
         brain=brain,
         timing=timing,
+        zoom=zoom,
+        draw_zoom=draw_zoom,
         **add_kwargs,
     )
