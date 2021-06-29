@@ -47,7 +47,7 @@ def train_ncnet_block(
         lr=1e-4,
         block_size=10,
         block_overlap=0,
-        restart_at_block_step=None,
+        epochs_per_block_step=None,
         **acq_kwargs,
     ):
     # paths
@@ -125,7 +125,6 @@ def train_ncnet_block(
         run_id = f'{run_id}_bbb_{additional_info}_{int(time.time())}'
     else:
         run_id = original_run_id
-    final_epoch = checkpoint_epoch + n_epochs
     chkpt_path = f'{CHECKPOINTS_DIR}checkpoints/{run_id}' + '-{epoch:02d}.hdf5'
 
     log_dir = op.join(f'{LOGS_DIR}logs', run_id)
@@ -156,18 +155,23 @@ def train_ncnet_block(
     stride = block_size - block_overlap
     assert stride > 0
     n_block_steps = int(math.ceil((n_iter - block_size) /  stride) + 1)
+    ## epochs handling
+    restart_at_block_step = checkpoint_epoch // epochs_per_block_step
+    start_epoch = checkpoint_epoch
+    final_epoch = checkpoint_epoch + n_epochs
     for i_step in range(n_block_steps):
+        # XXX: handle checkpoint epoch here
         if restart_at_block_step is not None and i_step < restart_at_block_step:
             continue
         first_block_to_train = i_step * stride
-        blocks = list(range(first_block_to_train, first_block_to_train + block_size))
+        blocks = list(range(0, first_block_to_train + block_size))
         model.blocks_to_train = blocks
         default_model_compile(model, lr=lr, loss=loss)
         # first run of the model to avoid the saving error
         # ValueError: as_list() is not defined on an unknown TensorShape.
         # it can also allow loading of weights
         model(next(iter(train_set))[0])
-        if not checkpoint_epoch == 0:
+        if not checkpoint_epoch == 0 and i_step == restart_at_block_step:
             model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
             grad_vars = model.trainable_weights
             zero_grads = [tf.zeros_like(w) for w in grad_vars]
@@ -178,13 +182,15 @@ def train_ncnet_block(
         model.fit(
             train_set,
             steps_per_epoch=n_steps,
-            initial_epoch=checkpoint_epoch,
+            initial_epoch=start_epoch,
             epochs=final_epoch,
             validation_data=val_set,
             validation_steps=2,
             verbose=0,
             callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
         )
+        start_epoch = final_epoch
+        final_epoch += n_epochs
     if save_state:
         symbolic_weights = getattr(model.optimizer, 'weights')
         weight_values = K.batch_get_value(symbolic_weights)
