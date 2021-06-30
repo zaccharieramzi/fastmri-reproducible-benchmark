@@ -1,8 +1,9 @@
+from pathlib import Path
 import time
 
 import tensorflow as tf
 
-from fastmri_recon.config import FASTMRI_DATA_DIR, OASIS_DATA_DIR
+from fastmri_recon.config import FASTMRI_DATA_DIR, OASIS_DATA_DIR, CHECKPOINTS_DIR
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.data.datasets.oasis_tf_records import train_nc_kspace_dataset_from_tfrecords as three_d_dataset
 from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train_nc_kspace_dataset_from_tfrecords as multicoil_dataset
@@ -81,12 +82,13 @@ def dip_qualitative_validation(
     if af is not None:
         model_path += f'_af{af}'
     model_path += '.h5'
+    save_path = str(Path(CHECKPOINTS_DIR) / model_path)
     # XXX: get gt shape for brain data
     x = model_inputs[0:2]
     im_recos = reconstruct_dip(
         x[1],
         x[0],
-        model_checkpoint=model_path,
+        model_checkpoint=save_path,
         save_model=False,
         save_path=None,
         multicoil=multicoil,
