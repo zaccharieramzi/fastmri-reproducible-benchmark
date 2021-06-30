@@ -106,6 +106,7 @@ def dip_qualitative_validation(
             img_batch,
             name,
             slice_index=slice_index,
+            af=af,
             three_d=three_d,
             acq_type=acq_type,
             zoom=zoom,
