@@ -72,10 +72,21 @@ def evaluate_dip_nc(
     else:
         val_set = val_set.take(199)
 
+    res_name = f'dip_eval_on_{acq_type}'
+    if brain:
+        res_name += '_brain'
     if three_d:
-        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']})
+        res_name += '_3d'
+    if contrast is not None:
+        res_name += f'_{contrast}'
+    if acq_kwargs:
+        af = acq_kwargs['af']
+        if af != 4:
+            res_name += f'_af{af}'
+    if three_d:
+        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
-        m = Metrics(METRIC_FUNCS)
+        m = Metrics(METRIC_FUNCS, res_name)
     model_checkpoint = None
     model_path = f'dip_model_weights_{acq_type}'
     if contrast is not None:
@@ -102,4 +113,5 @@ def evaluate_dip_nc(
         del y_pred
     print(METRIC_FUNCS.keys())
     print(list(m.means().values()))
+    m.to_csv()
     return METRIC_FUNCS, list(m.means().values())
