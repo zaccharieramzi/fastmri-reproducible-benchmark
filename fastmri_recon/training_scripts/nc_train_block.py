@@ -141,7 +141,7 @@ def train_ncnet_block(
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
-        save_freq=int(n_epochs*n_steps),
+        save_freq=int(epochs_per_block_step*n_steps),
         save_optimizer=False,
         save_weights_only=True,
     )
@@ -164,7 +164,7 @@ def train_ncnet_block(
         if restart_at_block_step is not None and i_step < restart_at_block_step:
             continue
         first_block_to_train = i_step * stride
-        blocks = list(range(0, first_block_to_train + block_size))
+        blocks = list(range(first_block_to_train, first_block_to_train + block_size))
         model.blocks_to_train = blocks
         default_model_compile(model, lr=lr, loss=loss)
         # first run of the model to avoid the saving error
@@ -173,12 +173,13 @@ def train_ncnet_block(
         model(next(iter(train_set))[0])
         if not checkpoint_epoch == 0 and i_step == restart_at_block_step:
             model.load_weights(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-{checkpoint_epoch:02d}.hdf5')
-            grad_vars = model.trainable_weights
-            zero_grads = [tf.zeros_like(w) for w in grad_vars]
-            model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
-            with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
-                weight_values = pickle.load(f)
-            model.optimizer.set_weights(weight_values)
+            if not checkpoint_epoch % epochs_per_block_step == 0:
+                grad_vars = model.trainable_weights
+                zero_grads = [tf.zeros_like(w) for w in grad_vars]
+                model.optimizer.apply_gradients(zip(zero_grads, grad_vars))
+                with open(f'{CHECKPOINTS_DIR}checkpoints/{original_run_id}-optimizer.pkl', 'rb') as f:
+                    weight_values = pickle.load(f)
+                model.optimizer.set_weights(weight_values)
         model.fit(
             train_set,
             steps_per_epoch=n_steps,
