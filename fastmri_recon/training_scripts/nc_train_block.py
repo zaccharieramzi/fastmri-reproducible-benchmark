@@ -161,7 +161,6 @@ def train_ncnet_block(
     start_epoch = checkpoint_epoch
     final_epoch = checkpoint_epoch + epochs_per_block_step
     for i_step in range(n_block_steps):
-        # XXX: handle checkpoint epoch here
         if restart_at_block_step is not None and i_step < restart_at_block_step:
             continue
         first_block_to_train = i_step * stride
