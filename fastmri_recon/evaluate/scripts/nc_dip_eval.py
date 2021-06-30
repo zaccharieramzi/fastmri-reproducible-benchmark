@@ -83,6 +83,8 @@ def evaluate_dip_nc(
         af = acq_kwargs['af']
         if af != 4:
             res_name += f'_af{af}'
+    else:
+        af = None
     if three_d:
         m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
@@ -91,6 +93,8 @@ def evaluate_dip_nc(
     model_path = f'dip_model_weights_{acq_type}'
     if contrast is not None:
         model_path += f'{contrast}'
+    if af is not None:
+        model_path += f'_af{af}'
     model_path += '.h5'
     save_path = str(Path(CHECKPOINTS_DIR) / model_path)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
