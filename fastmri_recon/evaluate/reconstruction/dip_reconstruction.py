@@ -24,7 +24,7 @@ def reconstruct_dip(
         debug=False,
         **model_kwargs,
     ):
-    model = DIPBase(**model_kwargs)
+    model = DIPBase(multicoil=multicoil, **model_kwargs)
     if model_checkpoint is not None:
         # build the model first before loading the weights
         in_random_vector = tf.random.normal([1, in_dim], seed=0 if debug else None)

@@ -57,6 +57,8 @@ class DIPBase(Model):
             n_filters=128,
             im_size=(640, 400),
             bn=False,
+            multicoil=False,
+            n_coils=1,
             **kwargs,
         ):
         super(DIPBase, self).__init__(**kwargs)
@@ -66,13 +68,13 @@ class DIPBase(Model):
         self.n_filters = n_filters
         self.im_size = im_size
         self.bn = bn
+        self.multicoil = multicoil
+        self.n_coils = n_coils
         self.denses = [Dense(self.n_hidden, 'relu'), Dense(self.n_base**2)]
         self.ups = [UpSampling2D(size=2, interpolation='nearest') for _ in range(self.n_up)]
         self.convs = [ConvBlock(2, self.bn, True, self.n_filters) for _ in range(self.n_up+1)]
-        self.convs.append(Conv2D(2, 3, padding='same'))
-        # XXX: I need to output more than 2 when doing multicoil with the Darestani technique
-        self.op = NFFT(im_size=self.im_size)
-        # XXX: make sure this can be multicoil
+        self.convs.append(Conv2D(2 * self.n_coils, 3, padding='same'))
+        self.op = NFFT(im_size=self.im_size, multicoil=self.multicoil)
 
     def call(self, inputs):
         x, ktraj = inputs
@@ -91,9 +93,10 @@ class DIPBase(Model):
             if i_up < self.n_up:
                 output = self.ups[i_up](output)
         output = self.convs[-1](output)
-        output = to_complex(output, 1)
+        output = to_complex(output, self.n_coils)
         if fastmri_format:
             output = tf.math.abs(output)
             output = tf.image.resize_with_crop_or_pad(output, 320, 320)
-            # XXX: this won't be enough with brain data and multicoil data in general
+            if self.multicoil:
+                output = tf.sqrt(tf.reduce_sum(output**2, axis=-1, keepdims=True))
         return output
