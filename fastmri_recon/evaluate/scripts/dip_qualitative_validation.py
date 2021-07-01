@@ -25,7 +25,6 @@ def dip_qualitative_validation(
         three_d=False,
         acq_type='spiral',
         contrast=None,
-        dcomp=True,
         slice_index=15,
         brain=False,
         timing=False,
@@ -69,7 +68,6 @@ def dip_qualitative_validation(
         image_size,
         af=af,
         acq_type=acq_type,
-        compute_dcomp=dcomp,
         scale_factor=scale_factor,
         **add_kwargs
     )
