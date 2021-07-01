@@ -16,7 +16,7 @@ from fastmri_recon.evaluate.reconstruction.dip_reconstruction import reconstruct
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
-VOLUME_SIZE = (256, 256, 256)
+VOLUME_SIZE = (176, 256, 256)
 
 
 def debug_dip_nc(

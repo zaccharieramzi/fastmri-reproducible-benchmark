@@ -12,7 +12,7 @@ from fastmri_recon.evaluate.reconstruction.dip_reconstruction import reconstruct
 
 
 IM_SIZE = (640, 400)
-VOLUME_SIZE = (256, 256, 256)
+VOLUME_SIZE = (176, 256, 256)
 
 
 def dip_qualitative_validation(
