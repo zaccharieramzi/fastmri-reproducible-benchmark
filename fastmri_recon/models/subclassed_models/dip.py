@@ -82,8 +82,15 @@ class DIPBase(Model):
         image = tf.image.resize_with_crop_or_pad(image, self.im_size[0], self.im_size[1])
         if self.multicoil:
             # we do not use smaps like in the Darestani paper
-            smaps = tf.ones_like(image[..., 0], dtype=image.dtype)
-            kspace, _ = self.op([image, ktraj, smaps])
+            # however, because we still want a kspace per coil
+            # we need to use a trick where we make the smaps the image
+            # and vice versa
+            smaps = tf.ones_like(image[:, 0, ..., 0:1], dtype=image.dtype)
+            # at this point image has a shape [slices, h, w, coils]
+            # we need to make it [slices, coils, h, w, 1]
+            image = tf.transpose(image, [0, 3, 1, 2])
+            image = image[..., None]
+            kspace, _ = self.op([smaps, ktraj, image])
         else:
             kspace, _ = self.op([image, ktraj])
         return kspace
