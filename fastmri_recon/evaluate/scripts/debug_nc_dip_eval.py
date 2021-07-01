@@ -82,6 +82,11 @@ def debug_dip_nc(
     model_path = f'dip_model_weights_{acq_type}'
     if contrast is not None:
         model_path += f'{contrast}'
+    if multicoil:
+        model_path += '_mc'
+    if acq_kwargs:
+        af = acq_kwargs['af']
+        model_path += f'_af{af}'        
     model_path += '.h5'
     save_path = str(Path(CHECKPOINTS_DIR) / model_path)
     x, y_true = next(val_set.as_numpy_iterator())
