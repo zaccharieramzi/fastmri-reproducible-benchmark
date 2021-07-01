@@ -11,8 +11,6 @@ from fastmri_recon.evaluate.utils.save_figure import save_figure
 from fastmri_recon.evaluate.reconstruction.dip_reconstruction import reconstruct_dip
 
 
-tf.config.run_functions_eagerly(True)
-
 IM_SIZE = (640, 400)
 VOLUME_SIZE = (256, 256, 256)
 
