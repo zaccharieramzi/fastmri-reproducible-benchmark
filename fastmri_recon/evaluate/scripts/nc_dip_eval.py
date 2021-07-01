@@ -32,13 +32,18 @@ def evaluate_dip_nc(
     if multicoil:
         if brain:
             val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
+            # XXX: find a way to deal with brain potentially
+            n_coils = None
         else:
             val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
+            n_coils = 15
     elif three_d:
         val_path = f'{OASIS_DATA_DIR}/val/'
+        n_coils = 1
     else:
         val_path = f'{FASTMRI_DATA_DIR}singlecoil_val/'
-
+        n_coils = 1
+    model_kwargs.update(n_coils=n_coils)
     if multicoil:
         dataset = multicoil_dataset
         image_size = IM_SIZE
