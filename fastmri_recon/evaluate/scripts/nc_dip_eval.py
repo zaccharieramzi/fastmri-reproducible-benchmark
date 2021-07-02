@@ -32,7 +32,6 @@ def evaluate_dip_nc(
     if multicoil:
         if brain:
             val_path = f'{FASTMRI_DATA_DIR}brain_multicoil_val/'
-            # XXX: find a way to deal with brain potentially
             n_coils = None
         else:
             val_path = f'{FASTMRI_DATA_DIR}multicoil_val/'
@@ -115,6 +114,7 @@ def evaluate_dip_nc(
             n_coils = x[0].shape[1]
             save_path = str(Path(CHECKPOINTS_DIR) / model_path.format(n_coils=n_coils))
             model_checkpoint = model_checkpoints.get(n_coils, None)
+            model_kwargs.update(n_coils=n_coils)
         else:
             output_shape = (320, 320)
             save_path = str(Path(CHECKPOINTS_DIR) / model_path)
