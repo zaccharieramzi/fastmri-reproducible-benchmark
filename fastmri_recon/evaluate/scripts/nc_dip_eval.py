@@ -96,7 +96,6 @@ def evaluate_dip_nc(
         m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
     else:
         m = Metrics(METRIC_FUNCS, res_name)
-    model_checkpoint = None
     model_path = f'dip_model_weights_{acq_type}'
     if contrast is not None:
         model_path += f'{contrast}'
@@ -104,11 +103,22 @@ def evaluate_dip_nc(
         model_path += '_mc'
     if af is not None:
         model_path += f'_af{af}'
-    model_path += '.h5'
-    save_path = str(Path(CHECKPOINTS_DIR) / model_path)
+    if brain:
+        model_checkpoints = {}
+        model_path += '_brain_{n_coils}.h5'
+    else:
+        model_checkpoint = None
+        model_path += '.h5'
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
+        if brain:
+            output_shape = x[3][0]
+            n_coils = x[0].shape[1]
+            save_path = str(Path(CHECKPOINTS_DIR) / model_path.format(n_coils=n_coils))
+            model_checkpoint = model_checkpoints.get(n_coils, None)
+        else:
+            output_shape = (320, 320)
+            save_path = str(Path(CHECKPOINTS_DIR) / model_path)
         x = x[0:2]
-        # XXX: get gt shape for brain data
         y_pred = reconstruct_dip(
             x[1],
             x[0],
@@ -117,9 +127,13 @@ def evaluate_dip_nc(
             save_path=save_path,
             multicoil=multicoil,
             n_iter=n_iter if model_checkpoint is None else n_iter//10,
+            output_shape=output_shape,
             **model_kwargs,
         )
-        model_checkpoint = save_path
+        if brain:
+            model_checkpoints[n_coils] = save_path
+        else:
+            model_checkpoint = save_path
         m.push(y_true[..., 0], y_pred[..., 0].numpy())
         del x
         del y_true
