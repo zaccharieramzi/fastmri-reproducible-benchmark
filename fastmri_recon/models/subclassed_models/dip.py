@@ -94,7 +94,7 @@ class DIPBase(Model):
             kspace, _ = self.op([image, ktraj])
         return kspace
 
-    def generate(self, x, fastmri_format=False):
+    def generate(self, x, fastmri_format=False, output_shape=(320, 320)):
         output = x
         for dense in self.denses:
             output = dense(output)
@@ -107,7 +107,7 @@ class DIPBase(Model):
         output = to_complex(output, self.n_coils)
         if fastmri_format:
             output = tf.math.abs(output)
-            output = tf.image.resize_with_crop_or_pad(output, 320, 320)
+            output = tf.image.resize_with_crop_or_pad(output, *output_shape)
             if self.multicoil:
                 output = tf.sqrt(tf.reduce_sum(output**2, axis=-1, keepdims=True))
         return output
