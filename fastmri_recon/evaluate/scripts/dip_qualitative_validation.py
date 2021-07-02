@@ -105,7 +105,7 @@ def dip_qualitative_validation(
     img_batch /= scale_factor
     if not timing:
         save_figure(
-            im_recos,
+            im_recos.numpy(),
             img_batch,
             name,
             slice_index=slice_index,
