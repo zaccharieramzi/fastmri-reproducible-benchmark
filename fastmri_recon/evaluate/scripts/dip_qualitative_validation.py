@@ -80,6 +80,8 @@ def dip_qualitative_validation(
     model_path = f'dip_model_weights_{acq_type}'
     if contrast is not None:
         model_path += f'{contrast}'
+    if multicoil:
+        model_path += '_mc'
     if af is not None:
         model_path += f'_af{af}'
     model_path += '.h5'
