@@ -22,6 +22,7 @@ def reconstruct_dip(
         n_iter=10_000,
         multicoil=False,
         debug=False,
+        output_shape=(320, 320),
         **model_kwargs,
     ):
     model = DIPBase(multicoil=multicoil, **model_kwargs)
@@ -48,7 +49,11 @@ def reconstruct_dip(
         )
         if save_model:
             model.save_weights(save_path)
-        output = model.generate(in_random_vector, fastmri_format=True)
+        output = model.generate(
+            in_random_vector, 
+            fastmri_format=True, 
+            output_shape=output_shape,
+        )
         outputs.append(output)
     output = tf.concat(outputs, axis=0)
     if debug:
