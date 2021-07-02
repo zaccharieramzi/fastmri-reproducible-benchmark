@@ -84,9 +84,15 @@ def dip_qualitative_validation(
         model_path += '_mc'
     if af is not None:
         model_path += f'_af{af}'
+    if brain:
+        n_coils = model_inputs[0].shape[1]
+        output_shape = model_inputs[3][0]
+        model_kwargs.update(n_coils=n_coils)
+        model_path += f'_brain_{n_coils}'
+    else:
+        output_shape = (320, 320)
     model_path += '.h5'
     save_path = str(Path(CHECKPOINTS_DIR) / model_path)
-    # XXX: get gt shape for brain data
     x = model_inputs[0:2]
     im_recos = reconstruct_dip(
         x[1],
@@ -96,6 +102,7 @@ def dip_qualitative_validation(
         save_path=None,
         multicoil=multicoil,
         n_iter=n_iter,
+        output_shape=output_shape,
         **model_kwargs,
     )
     if timing:
