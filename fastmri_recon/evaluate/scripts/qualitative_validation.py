@@ -121,6 +121,7 @@ def ncnet_qualitative_validation(
             acq_type=acq_type,
             zoom=zoom,
             draw_zoom=draw_zoom,
+            brain=brain,
         )
     if timing:
         return duration

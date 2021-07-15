@@ -19,6 +19,7 @@ def save_figure(
         three_d=False,
         zoom=None,
         draw_zoom=None,
+        brain=False,
     ):
     if three_d:
         p = psnr(img_batch[0].numpy().squeeze(), im_recos[0].squeeze())
@@ -31,6 +32,9 @@ def save_figure(
         im_gt = img_batch[slice_index]
     im_gt = im_gt.numpy().squeeze()
     im_reco = im_reco.squeeze()
+    if brain:
+        im_gt = im_gt[::-1]
+        im_reco = im_reco[::-1]
     if zoom is not None:
         name += '_zoom'
         im_gt = im_gt[zoom[1][0]:zoom[1][1], zoom[0][0]:zoom[0][1]]
