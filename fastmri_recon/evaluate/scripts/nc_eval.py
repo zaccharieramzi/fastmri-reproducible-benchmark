@@ -22,7 +22,7 @@ tf.config.run_functions_eagerly(True)
 # this number means that 99.56% of all images will not be affected by
 # cropping
 IM_SIZE = (640, 400)
-VOLUME_SIZE = (256, 256, 256)
+VOLUME_SIZE = (176, 256, 256)
 
 def _extract_first_elem_of_batch(inputs):
     if isinstance(inputs, (list, tuple)):

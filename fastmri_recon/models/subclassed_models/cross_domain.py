@@ -143,6 +143,7 @@ class CrossDomainNet(Model):
         self.normalize_image = normalize_image
         self.multi_gpu = multi_gpu
         self.output_shape_spec = output_shape_spec
+        self._blocks_to_train = None
         if self.multi_gpu:
             self.available_gpus = get_gpus()
             self.n_gpus = len(self.available_gpus)
@@ -163,6 +164,26 @@ class CrossDomainNet(Model):
                 channel_attention_kwargs=None,
                 name=f'smaps_refiner',
             )
+
+    @property
+    def blocks_to_train(self):
+        return self._blocks_to_train
+
+    @blocks_to_train.setter
+    def blocks_to_train(self, value):
+        if isinstance(value, int):
+            value = [value]
+        self._blocks_to_train = value
+        for i_domain, domain in enumerate(self.domain_sequence):
+            trainable = self._blocks_to_train is None or i_domain // 2 in self._blocks_to_train
+            if domain == 'K':
+                try:
+                    self.kspace_net[i_domain//2].trainable = trainable
+                except AttributeError:
+                    pass
+            elif domain == 'I':
+                self.image_net[i_domain//2].trainable = trainable
+
 
     def _refine_smaps(self, smaps):
         # we deal with each smap independently
@@ -267,6 +288,8 @@ class CrossDomainNet(Model):
         kspace_buffer = tf.concat([original_kspace] * self.k_buffer_size, axis=-1)
         image_buffer = tf.concat([image] * self.i_buffer_size, axis=-1)
         for i_domain, domain in enumerate(self.domain_sequence):
+            if not(self._blocks_to_train is None or i_domain // 2 <= max(self._blocks_to_train)):
+                break
             with ExitStack() as stack:
                 if self.multi_gpu:
                     i_gpu = gpu_index_from_submodel_index(
