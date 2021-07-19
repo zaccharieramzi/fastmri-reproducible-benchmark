@@ -1,6 +1,5 @@
 # fastMRI reproducible benchmark
 
-[![Travis Build Status](https://travis-ci.com/zaccharieramzi/fastmri-reproducible-benchmark.svg?branch=master)](https://travis-ci.org/zaccharieramzi/fastmri-reproducible-benchmark)
 ![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master)
 
@@ -30,6 +29,11 @@ These settings are covered by almost all the networks in this repo, mainly becau
 
 __Non-cartesian__: you can reconstruct non-cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
 It relies on the TensorFlow implementation of the NUFFT, [`tfkbnufft`](https://github.com/zaccharieramzi/tfkbnufft).
+This network will allow you to work on 2D single-coil and multi-coil data, as well as 3D single-coil data.
+
+__Deep Image Prior__: you can also reconstruct non-cartesian data in an untrained fashion using the [DIP model](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/evaluate/reconstruction/dip_reconstrution.py).
+This idea originated from the [Deep Image Prior](https://dmitryulyanov.github.io/deep_image_prior) paper, and was later adapted to MRI reconstruction by different works ([Accelerated MRI with untrained Neural networks](https://arxiv.org/abs/2007.02471), [Time-Dependent Deep Image Prior for Dynamic MRI](https://arxiv.org/abs/1910.01684)).
+It currently is only used for 2D non-cartesian data (primarily for computation time reasons), but you can extend it easily to 2D cartesian data and 3D (PRs welcome).
 
 
 ## How to train the neural networks
@@ -81,4 +85,10 @@ If you use this package or parts of it, please cite one of the following work:
 - [Benchmarking Deep Nets MRI Reconstruction Models on the FastMRI Publicly Available Dataset](https://hal.inria.fr/hal-02436223)
 - [Benchmarking MRI Reconstruction Neural Networks on Large Public Datasets](https://www.mdpi.com/2076-3417/10/5/1816)
 - [XPDNet for MRI Reconstruction: an Application to the fastMRI 2020 Brain Challenge](https://arxiv.org/abs/2010.07290)
-- [Density Compensated Unrolled Networks for Non-Cartesian MRI Reconstruction](https://arxiv.org/abs/2101.01570), submitted to ISBI 2021
+- [Density Compensated Unrolled Networks for Non-Cartesian MRI Reconstruction](https://arxiv.org/abs/2101.01570)
+
+## Applications
+This package has been used to perform MRI reconstruction in the following projects (in addition to the ones mentioned above):
+- [Is good old GRAPPA dead?](https://arxiv.org/abs/2106.00753)
+- [Learning the sampling density in 2D SPARKLING MRI acquisition for optimized image reconstruction](https://arxiv.org/abs/2103.03559)
+- [Denoising Score-Matching for Uncertainty Quantification in Inverse Problems](https://arxiv.org/abs/2011.08698)
