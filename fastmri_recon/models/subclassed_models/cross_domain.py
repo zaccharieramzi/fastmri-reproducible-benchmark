@@ -281,7 +281,7 @@ class CrossDomainNet(Model):
             normalization_factor = tf.cast(normalization_factor, image.dtype)
             orig_image_shape = image.shape
             orig_kspace_shape = original_kspace.shape
-            image = image / normalization_factor
+            image = image / normalization_factor[:, None]
             image.set_shape(orig_image_shape)
             original_kspace = original_kspace / normalization_factor
             original_kspace.set_shape(orig_kspace_shape)
