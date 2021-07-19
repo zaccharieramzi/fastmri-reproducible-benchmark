@@ -229,6 +229,7 @@ class CrossDomainNet(Model):
                 normalization_factor_iteration = tf.reduce_max(
                     tf.abs(backward_op_res),
                     axis=[1, 2, 3, 4] if self.multicoil else [1, 2, 3],
+                    keepdims=True,
                 )
                 orig_bopres_shape = backward_op_res.shape
                 normalization_factor_iteration = tf.cast(normalization_factor_iteration, image_buffer.dtype)
