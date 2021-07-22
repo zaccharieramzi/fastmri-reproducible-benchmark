@@ -159,9 +159,9 @@ def train_ncnet_block(
     ## epochs handling
     restart_at_block_step = checkpoint_epoch // epochs_per_block_step
     start_epoch = checkpoint_epoch
-    final_epoch = checkpoint_epoch + epochs_per_block_step
+    final_epoch = checkpoint_epoch + min(epochs_per_block_step, n_epochs)
     for i_step in range(n_block_steps):
-        if restart_at_block_step is not None and i_step < restart_at_block_step:
+        if i_step < restart_at_block_step:
             continue
         first_block_to_train = i_step * stride
         blocks = list(range(first_block_to_train, first_block_to_train + block_size))
@@ -190,10 +190,11 @@ def train_ncnet_block(
             verbose=0,
             callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
         )
-        start_epoch = final_epoch
-        final_epoch += epochs_per_block_step
-        if start_epoch > n_epochs:
+        n_epochs = n_epochs - (final_epoch - start_epoch)
+        if n_epochs <= 0:
             break
+        start_epoch = final_epoch
+        final_epoch += min(epochs_per_block_step, n_epochs)
     if save_state:
         symbolic_weights = getattr(model.optimizer, 'weights')
         weight_values = K.batch_get_value(symbolic_weights)
