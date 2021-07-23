@@ -269,7 +269,7 @@ def train_xpdnet_block(
     n_block_steps = int(math.ceil((n_iter - block_size) /  stride) + 1)
     ## epochs handling
     start_epoch = 0
-    final_epoch = epochs_per_block_step
+    final_epoch = min(epochs_per_block_step, n_epochs)
 
     for i_step in range(n_block_steps):
         first_block_to_train = i_step * stride
@@ -288,8 +288,9 @@ def train_xpdnet_block(
             verbose=0,
             callbacks=[tboard_cback, chkpt_cback, tqdm_cback],
         )
-        start_epoch = final_epoch
-        final_epoch += epochs_per_block_step
-        if start_epoch > n_epochs:
+        n_epochs = n_epochs - (final_epoch - start_epoch)
+        if n_epochs <= 0:
             break
+        start_epoch = final_epoch
+        final_epoch += min(epochs_per_block_step, n_epochs)
     return run_id
