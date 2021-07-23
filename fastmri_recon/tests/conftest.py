@@ -178,3 +178,13 @@ def create_full_fastmri_test_tmp_dataset(tmpdir_factory):
         'I_shape': I_shape,
         'contrast': contrast,
     }
+
+
+@pytest.fixture(scope="session", autouse=False)
+def fake_ds():
+    def fake_ds_function(multicoil=False):
+        """A function which returns a fake tf dataset which will simply output
+        tensors with the right shapes and sizes
+        """
+        pass
+    return fake_ds_function
