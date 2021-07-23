@@ -19,6 +19,7 @@ def save_figure(
         three_d=False,
         zoom=None,
         draw_zoom=None,
+        brain=False,
     ):
     if three_d:
         p = psnr(img_batch[0].numpy().squeeze(), im_recos[0].squeeze())
@@ -31,6 +32,13 @@ def save_figure(
         im_gt = img_batch[slice_index]
     im_gt = im_gt.numpy().squeeze()
     im_reco = im_reco.squeeze()
+    if brain:
+        im_gt = im_gt[::-1]
+        im_reco = im_reco[::-1]
+    if three_d:
+        # we rotate the image 90 degrees counter-clockwise
+        im_gt = np.rot90(im_gt)
+        im_reco = np.rot90(im_reco)
     if zoom is not None:
         name += '_zoom'
         im_gt = im_gt[zoom[1][0]:zoom[1][1], zoom[0][0]:zoom[0][1]]
@@ -64,17 +72,11 @@ def save_figure(
         # Add the patch to the Axes
         ax.add_patch(rect)
     ax.axis('off')
-    if zoom is None:
-        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}.png')
-    else:
-        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}_zoom.png')
+    fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_recon_af{af}.png')
     fig, ax = plt.subplots(1, frameon=False)
     ax.imshow(im_res, aspect='auto')
     ax.axis('off')
-    if zoom is None:
-        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}.png')
-    else:
-        fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}_zoom.png')
+    fig.savefig(f'{LOGS_DIR}figures/{name}{acq_type}_residu_af{af}.png')
     fig, ax = plt.subplots(1)
     ax.imshow(im_gt)
     if draw_zoom is not None:

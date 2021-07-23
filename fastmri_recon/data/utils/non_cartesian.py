@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.transform import Rotation as Rot
 import tensorflow as tf
 
 from fastmri_recon.data.utils.masking.gen_mask_tf import gen_mask_tf
@@ -137,6 +138,73 @@ def get_stacks_of_spiral_trajectory(volume_shape, af=4, num_revolutions=3):
     )
     traj.set_shape((1, 3, nspokes*(spokelength-1)*nstacks))
     return traj
+
+# based on internal work by chaithyagr
+def get_3d_radial_trajectory_numpy(volume_shape, af=4):
+    spokelength = volume_shape[-2]
+    nshots = (volume_shape[-1] // af) * volume_shape[0]
+    traj = _init_radial_trajectories(
+        spokelength,
+        int(nshots**(0.5)),
+        dimension=3,
+        initialization='RadialIO',
+    )
+    traj = traj.reshape([3, -1])
+    traj = traj * (2 * np.pi) * np.pi
+    return traj
+
+def get_3d_radial_trajectory(volume_shape, af=4):
+    spokelength = volume_shape[-2]
+    nshots = (volume_shape[-1] // af) * volume_shape[0]
+    nshots = int(nshots**(0.5))**2
+    def _get_stacks_of_spiral_trajectory_numpy():
+        ktraj = get_3d_radial_trajectory_numpy(volume_shape, af=af)
+        traj = tf.convert_to_tensor(ktraj, dtype=tf.float32)[None, ...]
+        return traj
+    traj = tf.py_function(
+        _get_stacks_of_spiral_trajectory_numpy,
+        [],
+        tf.float32,
+    )
+    traj.set_shape((1, 3, nshots*spokelength))
+    return traj
+
+def _init_radial_trajectories(num_samples, num_shots, dimension,
+                              initialization, num_shots_z=None, **kwargs):
+    k_shots = []
+    shot = np.arange(0, num_samples, dtype=np.complex)
+    if initialization == 'RadialIO':
+        k_TE = num_samples // 2
+        shot = (-1 * shot / k_TE + 1) * \
+               (1 / (2 * np.pi)) * (1 - np.finfo(float).eps)
+        theta = np.pi / num_shots
+    else:
+        shot = shot / (num_samples - 1) * \
+               1 / (2 * np.pi) * (1 - np.finfo(float).eps)
+        theta = 2 * np.pi / num_shots
+        # Rotate shot in xy plane
+    for k in np.arange(num_shots):
+        angle_xy = k * theta + theta / 2
+        rotated_shot = shot * np.exp(1j * (angle_xy))
+        if dimension == 3:
+            if num_shots_z is None:
+                num_shots_z = num_shots
+            shot2d = _complex_to_2d(rotated_shot)
+            shot3d = np.zeros(
+                (*shot2d.shape[0:-1], shot2d.shape[-1] + 1)
+            )
+            shot3d[:, 0:2] = shot2d
+            for j in np.arange(num_shots_z):
+                angle_z = theta / 2 + j * theta
+                C = np.cos(angle_z / 2)
+                S = np.sin(angle_z / 2)
+                r = Rot.from_quat(
+                    [C, - np.sin(angle_xy) * S,
+                     np.cos(angle_xy) * S, 0])
+                k_shots.append(r.apply(shot3d))
+        else:
+            k_shots.append(_complex_to_2d(rotated_shot))
+    return np.asarray(k_shots)
 
 def get_debugging_cartesian_trajectory():
     # we fix those to have a determined tensor shape

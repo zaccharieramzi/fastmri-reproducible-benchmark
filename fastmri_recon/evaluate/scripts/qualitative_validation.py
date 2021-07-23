@@ -19,7 +19,7 @@ from fastmri_recon.models.subclassed_models.pdnet import PDNet
 tf.config.run_functions_eagerly(True)
 
 IM_SIZE = (640, 400)
-VOLUME_SIZE = (256, 256, 256)
+VOLUME_SIZE = (176, 256, 256)
 
 def _extract_slice_of_batch(inputs, slice_index=15):
     if isinstance(inputs, (list, tuple)):
@@ -122,6 +122,7 @@ def ncnet_qualitative_validation(
             acq_type=acq_type,
             zoom=zoom,
             draw_zoom=draw_zoom,
+            brain=brain,
         )
     if timing:
         return duration
