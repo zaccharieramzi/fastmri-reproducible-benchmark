@@ -141,7 +141,7 @@ def train_ncnet_block(
 
     chkpt_cback = ModelCheckpointWorkAround(
         chkpt_path,
-        save_freq=int(epochs_per_block_step*n_steps),
+        save_freq=int(min(epochs_per_block_step, n_epochs)*n_steps),
         save_optimizer=False,
         save_weights_only=True,
     )
