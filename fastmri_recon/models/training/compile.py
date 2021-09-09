@@ -20,8 +20,10 @@ def default_model_compile(model, lr, loss='mean_absolute_error'):
     elif loss == 'mssim':
         loss = partial(compound_l1_mssim_loss, alpha=0.9999)
         loss.__name__ = "mssim"
+   
+    #  tfa.optimizers.RectifiedAdam(lr=lr, **opt_kwargs)  
     model.compile(
-        optimizer=tfa.optimizers.RectifiedAdam(lr=lr, **opt_kwargs),
+        optimizer=Adam(lr=lr, **opt_kwargs),
         loss=loss,
         metrics=['mean_squared_error', keras_psnr, keras_ssim],
     )
