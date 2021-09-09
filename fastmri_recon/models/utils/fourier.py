@@ -27,6 +27,32 @@ def tf_op(y, idx=0):
 def tf_unmasked_op(x, idx=0):
     scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[1:3]), 'float32')), x.dtype)
     return tf.expand_dims(ifftshift(fft2d(fftshift(x[..., idx], axes=[1, 2])), axes=[1, 2]), axis=-1) / scaling_norm
+    
+    
+def mc_tf_adj_op(y, idx=0):
+    x, mask = y
+    x_masked = _mask_tf((x, mask))
+    x_inv = mc_tf_unmasked_adj_op(x_masked, idx=idx)
+    return x_inv
+
+def mc_tf_unmasked_adj_op(x, idx=0):
+    x = x[..., 0]
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[-2:]), 'float32')), x.dtype)
+    return scaling_norm * tf.expand_dims(fftshift(ifft2d(ifftshift(x, axes=[2, 3])), axes=[2, 3]), axis=-1)
+
+def mc_tf_op(y, idx=0):
+    x, mask = y
+    x_fourier = mc_tf_unmasked_op(x, idx=idx)
+    x_masked = _mask_tf((x_fourier, mask))
+    return x_masked
+
+def mc_tf_unmasked_op(x, idx=0):
+    x = x[..., 0]
+    scaling_norm = tf.dtypes.cast(tf.math.sqrt(tf.dtypes.cast(tf.math.reduce_prod(tf.shape(x)[-2:]), 'float32')), x.dtype)
+    return tf.expand_dims(ifftshift(fft2d(fftshift(x, axes=[2, 3])), axes=[2, 3]), axis=-1) / scaling_norm
+    
+
+    
 
 def _compute_scaling_norm(x):
     image_area = tf.reduce_prod(tf.shape(x)[-2:])
