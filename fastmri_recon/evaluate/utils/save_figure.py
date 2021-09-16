@@ -58,7 +58,7 @@ def save_figure(
             1.0, 1.0,
             text,
             ha='left', va='top',
-            fontsize='large',
+            fontsize='x-large',
             color='red',
         )
     if draw_zoom is not None:
