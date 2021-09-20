@@ -1,6 +1,6 @@
 # fastMRI reproducible benchmark
 
-[![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/actions/workflows/test.yml)
+[![GitHub Workflow Build Status](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/workflows/Continuous%20testing/badge.svg)](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/actions/workflows/test.yml?query=branch%3Amaster)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master)
 
 The idea of this repository is to have a way to rapidly benchmark new solutions against existing reconstruction algorithms on the fastMRI dataset single-coil track.
