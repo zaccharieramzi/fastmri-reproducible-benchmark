@@ -7,6 +7,7 @@ OASIS_DATA_DIR = os.environ.get('OASIS_DATA_DIR', '/volatile2/')
 LOGS_DIR = os.environ.get('LOGS_DIR', './')
 CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', '/volatile2/model_checkpoints')
 TMP_DIR = os.environ.get('TMP_DIR', './')
+NEUROSPIN_DATA_DIR = os.environ.get('NEUROSPIN_DATA_DIR', '/neurospin/optimed/SeniorData/')
 
 n_volumes_train = 973
 n_volumes_val = 199
