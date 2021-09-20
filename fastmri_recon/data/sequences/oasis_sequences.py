@@ -17,7 +17,8 @@ def _get_subject_from_filename(filename):
     subject_id = re.findall(r'OAS3\d{4}', base_name)[0]
     return subject_id
 
-class Oasis2DSequence(Sequence):
+
+class NIFTY2DSequence(Sequence):
     """The base class for using the OASIS data in keras.
     You need to specify the path to the type of data you want, the mode of
     the sequence, its acceleration rate and the validation split.
@@ -45,23 +46,24 @@ class Oasis2DSequence(Sequence):
     Raises:
     ValueError: when no nii.gz files can be found in the path directory.
     """
-    def __init__(self, path, mode='training', af=4, val_split=0.1, filenames=None, seed=None, reorder=True):
+    def __init__(self, path, mode='training', af=4, files_regex='**/*.nii.gz', val_split=0.1, filenames=None,
+                 filename_to_subject=_get_subject_from_filename, seed=None, reorder=True):
         self.path = path
         self.mode = mode
         self.af = af
         self.reorder = reorder
 
         if filenames is None:
-            self.filenames = glob.glob(path + '**/*.nii.gz', recursive=True)
+            self.filenames = glob.glob(path + files_regex, recursive=True)
             if not self.filenames:
                 raise ValueError('No compressed nifti files at path {}'.format(path))
             if val_split > 0:
-                subjects = [_get_subject_from_filename(filename) for filename in self.filenames]
+                subjects = [filename_to_subject(filename) for filename in self.filenames]
                 n_val = int(len(subjects) * val_split)
                 random.seed(seed)
                 random.shuffle(subjects)
                 val_subjects = subjects[:n_val]
-                val_filenames = [filename for filename in self.filenames if _get_subject_from_filename(filename) in val_subjects]
+                val_filenames = [filename for filename in self.filenames if filename_to_subject(filename) in val_subjects]
                 self.filenames = [filename for filename in self.filenames if filename not in val_filenames]
                 self.val_sequence = type(self)(path, mode=mode, af=af, val_split=0, filenames=val_filenames, reorder=reorder)
             else:
@@ -94,7 +96,7 @@ class Oasis2DSequence(Sequence):
         return images
 
 
-class Masked2DSequence(Oasis2DSequence):
+class Masked2DSequence(NIFTY2DSequence):
     def __init__(self, *args, inner_slices=None, rand=False, scale_factor=1, **kwargs):
         super().__init__(*args, **kwargs)
         self.inner_slices = inner_slices
@@ -144,6 +146,7 @@ class Masked2DSequence(Oasis2DSequence):
         images_scaled = images_scaled.astype(np.float32)
         return ([kspaces_scaled, mask_batch], images_scaled)
 
+
 class ZeroFilled2DSequence(Masked2DSequence):
     """
     This sequence generates pre-reconstructed examples, with zero filling.
@@ -187,7 +190,7 @@ class ZeroFilled2DSequence(Masked2DSequence):
         return img_padded
 
 
-class KIKISequence(Oasis2DSequence):
+class KIKISequence(NIFTY2DSequence):
     """This sequence allows to generate a mask on-the-fly when enumerating
     training or validation examples. It also allows you to restrict the
     training to only innermost parts of the volumes, and select randomly
