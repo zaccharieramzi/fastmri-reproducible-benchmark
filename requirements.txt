@@ -1,11 +1,11 @@
 numpy >= 1.18
-h5py<2.11.0,>=2.10.0
-scikit-image
+h5py>=2.10.0
+scikit-image==0.17.2
 tqdm >= 4.36.1
 runstats
 nibabel
 Pillow
-tensorflow == 2.4
+tensorflow == 2.5
 tensorflow-addons >= 0.9.1
 click
 tfkbnufft >= 0.1.2

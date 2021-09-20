@@ -3,9 +3,9 @@
 import os
 
 FASTMRI_DATA_DIR = os.environ.get('FASTMRI_DATA_DIR', '/media/Zaccharie/UHRes/')
-OASIS_DATA_DIR = os.environ.get('OASIS_DATA_DIR', '/media/Zaccharie/UHRes/OASIS_data')
+OASIS_DATA_DIR = os.environ.get('OASIS_DATA_DIR', '/volatile2/')
 LOGS_DIR = os.environ.get('LOGS_DIR', './')
-CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', './')
+CHECKPOINTS_DIR = os.environ.get('CHECKPOINTS_DIR', '/volatile2/model_checkpoints')
 TMP_DIR = os.environ.get('TMP_DIR', './')
 
 n_volumes_train = 973

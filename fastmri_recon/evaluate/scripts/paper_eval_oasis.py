@@ -39,8 +39,8 @@ def evaluate_paper_oasis(n_samples=200):
         val_split=0.1,
     )
     val_gen_mask = train_gen.val_sequence
-    n_train = 1000
-    n_val = n_samples
+    n_train = min(1000, len(train_gen.filenames))
+    n_val = min(n_samples,len(val_gen_mask.filenames))
     random.seed(0)
     train_gen.filenames = random.sample(train_gen.filenames, n_train)
     val_gen_mask.filenames = random.sample(val_gen_mask.filenames, n_val)
