@@ -191,6 +191,7 @@ class VnetComplex(Model):
             dealiasing_nc=False,
             im_size=None,
             dcomp=None,
+            grad_traj=False,
             **kwargs,
         ):
         super(VnetComplex, self).__init__(**kwargs)
@@ -207,6 +208,7 @@ class VnetComplex(Model):
                 im_size=im_size,
                 multicoil=False,
                 density_compensation=dcomp,
+                grad_traj=grad_traj,
             )
         self.vnet = Vnet(
             n_output_channels=2 * self.n_output_channels,
