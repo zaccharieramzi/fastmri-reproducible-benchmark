@@ -18,7 +18,7 @@ def _get_subject_from_filename(filename):
     return subject_id
 
 
-class NIFTY2DSequence(Sequence):
+class NIFTI2DSequence(Sequence):
     """The base class for using the OASIS data in keras.
     You need to specify the path to the type of data you want, the mode of
     the sequence, its acceleration rate and the validation split.
