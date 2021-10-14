@@ -3,6 +3,7 @@ import os.path as op
 import time
 
 import click
+import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 from fastmri_recon.config import *
@@ -119,6 +120,12 @@ def train_pdnet(subclassed, af, contrast, cuda_visible_devices, n_samples, n_epo
         model = PDNet(**run_params)
         default_model_compile(model, lr=1e-3)
     else:
+        def adapt_dataset_tensors_to_functional_model(model_input, model_output):
+            mask = model_input[1]
+            new_mask = tf.tile(mask, [1, 640, 1])
+            return (model_input[0], new_mask), model_output
+        train_set = train_set.map(adapt_dataset_tensors_to_functional_model, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        val_set = val_set.map(adapt_dataset_tensors_to_functional_model, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         model = pdnet(lr=1e-3, **run_params)
     print(run_id)
     model.fit(
