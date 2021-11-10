@@ -23,6 +23,7 @@ def save_figure(
     ):
     if three_d:
         p = psnr(img_batch[0].numpy().squeeze(), im_recos[0].squeeze())
+        s = ssim(img_batch.numpy().squeeze(), im_recos.squeeze())
         im_reco = im_recos[0, slice_index]
         im_gt = img_batch[0, slice_index]
     else:
@@ -52,8 +53,7 @@ def save_figure(
     ax.imshow(im_reco, aspect='auto')
     if zoom is None:
         text = f'PSNR: {p:.2f}'
-        if not three_d:
-            text += f'/ SSIM: {s:.4f}'
+        text += f'/ SSIM: {s:.4f}'
         ax.text(
             1.0, 1.0,
             text,
