@@ -103,10 +103,7 @@ def evaluate_nc(
         af = acq_kwargs['af']
         if af != 4:
             res_name += f'_af{af}'
-    if three_d:
-        m = Metrics({'PSNR': METRIC_FUNCS['PSNR']}, res_name)
-    else:
-        m = Metrics(METRIC_FUNCS, res_name)
+    m = Metrics(METRIC_FUNCS, res_name)
     for x, y_true in tqdm(val_set.as_numpy_iterator(), total=199 if n_samples is None else n_samples):
         y_pred = model.predict(x, batch_size=1)
         m.push(y_true[..., 0], y_pred[..., 0])
