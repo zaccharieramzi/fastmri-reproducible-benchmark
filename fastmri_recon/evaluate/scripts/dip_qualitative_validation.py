@@ -1,9 +1,10 @@
 from pathlib import Path
 import time
 
+import numpy as np
 import tensorflow as tf
 
-from fastmri_recon.config import FASTMRI_DATA_DIR, OASIS_DATA_DIR, CHECKPOINTS_DIR
+from fastmri_recon.config import FASTMRI_DATA_DIR, OASIS_DATA_DIR, CHECKPOINTS_DIR, LOGS_DIR
 from fastmri_recon.data.datasets.fastmri_pyfunc_non_cartesian import train_nc_kspace_dataset_from_indexable as singlecoil_dataset
 from fastmri_recon.data.datasets.oasis_tf_records import train_nc_kspace_dataset_from_tfrecords as three_d_dataset
 from fastmri_recon.data.datasets.multicoil.non_cartesian_tf_records import train_nc_kspace_dataset_from_tfrecords as multicoil_dataset
@@ -124,5 +125,8 @@ def dip_qualitative_validation(
             zoom=zoom,
             draw_zoom=draw_zoom,
         )
+        ## save also the reconstructions for offline figure building
+        np.save(f'{LOGS_DIR}figures/{name}_{acq_type}_af{af}.npy', im_recos.numpy())
+        np.save(f'{LOGS_DIR}figures/{name}_{acq_type}_af{af}_gt.npy', img_batch.numpy())
     if timing:
         return duration
