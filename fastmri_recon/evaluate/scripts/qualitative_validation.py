@@ -126,7 +126,7 @@ def ncnet_qualitative_validation(
             brain=brain,
         )
         ## save also the reconstructions for offline figure building
-        np.save(f'{LOGS_DIR}figures/{name}_{acq_type}_af{af}.npy', im_recos.numpy())
+        np.save(f'{LOGS_DIR}figures/{name}_{acq_type}_af{af}.npy', im_recos)
         np.save(f'{LOGS_DIR}figures/{name}_{acq_type}_af{af}_gt.npy', img_batch.numpy())
     if timing:
         return duration
