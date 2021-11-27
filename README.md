@@ -75,7 +75,9 @@ The package currently supports public single coil and multi coil knee data.
 
 The OASIS data must be located in a directory whose path is stored in the `OASIS_DATA_DIR` environment variable.
 It can be downloaded on [the XNAT store](https://central.xnat.org/app/template/Index.vm) after creating an account.
+You can for example use the ZIP download available on [this page](https://central.xnat.org/app/action/ProjectDownloadAction/project/OASIS3).
 The project is OASIS3.
+The whole list of sessions that need to be downloaded is available in [OASIS_list.csv](OASIS_list.csv).
 
 
 # Citation
