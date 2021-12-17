@@ -175,6 +175,7 @@ class MWCNN(Model):
                 n_filters=self.n_filters_for_conv_for_scale(i_scale, i_conv),
                 kernel_size=self.kernel_size,
                 bn=self.bn,
+                use_bias=self.use_bias,
             ) for i_conv in range(self.n_convs_per_scale[i_scale] * 2)]
             for i_scale in range(self.n_scales)
         ]
