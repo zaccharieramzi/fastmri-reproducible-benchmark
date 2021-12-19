@@ -1,6 +1,9 @@
 # fastmri data
 fastmri_recon/tests/fastmri_data/
 
+# checkpoints
+checkpoints/
+
 # Job queues and container stuff
 *.sif
 dask-worker-space/

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from fastmri_recon.config import OASIS_DATA_DIR
+from fastmri_recon.config import OASIS_DATA_DIR, CHECKPOINTS_DIR
 from fastmri_recon.data.sequences.oasis_sequences import Masked2DSequence, ZeroFilled2DSequence
 from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.zero_filled_reconstruction import reco_and_gt_zfilled_from_val_file
@@ -71,7 +71,7 @@ def evaluate_paper_oasis(n_samples=200):
                 'layers_n_non_lins': 2,
             },
             'val_gen': val_gen_zero,
-            'run_id': 'unet_af4_oasis_1570619888',
+            'run_id': 'UNet-OASIS',
         },
         {
             'name': 'pdnet',
@@ -82,7 +82,7 @@ def evaluate_paper_oasis(n_samples=200):
                 'n_iter': 10,
                 'n_filters': 32,
             },
-            'run_id': 'pdnet_af4_oasis_1570722239',
+            'run_id': 'PDNet-OASIS',
         },
         {
             'name': 'cascadenet',
@@ -93,7 +93,7 @@ def evaluate_paper_oasis(n_samples=200):
                 'n_filters': 48,
                 'noiseless': True,
             },
-            'run_id': 'cascadenet_af4_oasis_1569491836',
+            'run_id': 'CascadeNet-OASIS',
         },
         {
             'name': 'kikinet-sep',
@@ -104,18 +104,18 @@ def evaluate_paper_oasis(n_samples=200):
                 'noiseless': True,
                 'activation': lrelu,
             },
-            'run_id': 'kikinet_sep_I2_af4_oasis_1572552792',
+            'run_id': 'KIKI-net-OASIS',
             'epoch': 50,
         },
     ]
 
-    checkpoints_path = Path(__file__).parents[3] / 'checkpoints'
+    checkpoints_path = Path(CHECKPOINTS_DIR) / 'checkpoints'
     def unpack_model(init_function=None, run_params=None, run_id=None, epoch=300, **dummy_kwargs):
         try:
             model = init_function(input_size=(None, None, 1), fastmri=False, **run_params)
         except:
             model = init_function(input_size=(None, None, 1), **run_params)
-        chkpt_path = checkpoints_path / f'{run_id}-{epoch}.hdf5'
+        chkpt_path = checkpoints_path / f'{run_id}.hdf5'
         model.load_weights(str(chkpt_path))
         return model
 
