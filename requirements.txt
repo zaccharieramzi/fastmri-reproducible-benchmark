@@ -11,3 +11,4 @@ click
 tfkbnufft >= 0.1.2
 pandas
 SciencePlots
+huggingface-hub
