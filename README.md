@@ -62,6 +62,13 @@ python fastmri_recon/evaluate/scripts/paper_eval_oasis.py --n-samples 100
 
 Finally to reproduce the figures of the paper, you will need to use the [`qualitative_validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/qualitative_validation_for_net.ipynb) notebook.
 
+### Downloading the model checkpoints
+The model checkpoints are stored in the [HuggingFace Hub](https://huggingface.co/zaccharieramzi).
+You can download them using the following script, which will automatically put them in the correct directory (for example here the fastMRI models):
+```
+python fastmri_recon/evaluate/scripts/download_checkpoints.py
+```
+
 # Data requirements
 
 ## fastMRI
