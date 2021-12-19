@@ -7,33 +7,40 @@ The idea of this repository is to have a way to rapidly benchmark new solutions 
 The reconstruction algorithms implemented or adapted to the fastMRI dataset include to this day:
 - zero filled reconstruction
 - [LORAKS](https://www.ncbi.nlm.nih.gov/pubmed/24595341), using the [LORAKS Matlab toolbox](https://mr.usc.edu/download/LORAKS2/)
-- Wavelet-based reconstruction (i.e. solving an L1-based analysis formulation optimisation problem with greedy FISTA), using [pysap-mri](https://github.com/CEA-COSMIC/pysap-mri)
+- Wavelet-based reconstruction (i.e. solving an L1-based analysis formulation optimization problem with greedy FISTA), using [pysap-mri](https://github.com/CEA-COSMIC/pysap-mri)
 - U-net
 - [DeepCascade net](https://arxiv.org/abs/1704.02422)
 - [KIKI net](https://www.ncbi.nlm.nih.gov/pubmed/29624729)
 - [Learned Primal Dual](https://arxiv.org/abs/1707.06474), adapted to MRI reconstruction
 - [XPDNet](https://arxiv.org/abs/2010.07290), a modular unrolled reconstruction algorithm, in which you can plug your best denoiser.
-- [NCPDNet](https://arxiv.org/abs/2101.01570), an unrolled reconstruction algorithm for non-cartesian acquisitions, with density-compensation.
+- [NCPDNet](https://arxiv.org/abs/2101.01570), an unrolled reconstruction algorithm for non-Cartesian acquisitions, with density-compensation.
 
 All the neural networks are implemented in TensorFlow with the Keras API.
 The older ones (don't judge this was the beginning of my thesis) are coded using the functional API.
 The more recent ones are coded in the subclassed API and are more modular.
 For the LORAKS reconstruction, you will not be able to reconstruct the proper fastMRI data because of the A/D oversampling.
 
+## Examples
+Various examples are available in the `examples` folder.
+- The `pysap_cascade_comparison.ipynb` notebook compares the performance of classical wavelet-based reconstruction (using the [pysap-mri](https://github.com/CEA-COSMIC/pysap-mri) package) and the CascadeNet on a slice from the fastMRI single coil dataset in a 2D Cartesian setting.
+- More to come...
+
+These examples can be run in [binder](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master).
+
 ## Reconstruction settings
 
-The main reconstruction settings are cartesian single-coil and multi-coil 2D reconstruction with random and "periodic sampling".
+The main reconstruction settings are Cartesian single-coil and multi-coil 2D reconstruction with random and "periodic sampling".
 These settings are covered by almost all the networks in this repo, mainly because they are the settings of the fastMRI challenge.
 
 ### Other reconstruction settings
 
-__Non-cartesian__: you can reconstruct non-cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
+__Non-cartesian__: you can reconstruct non-Cartesian data using the [NCPDNet](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/models/subclassed_models/ncpdnet.py).
 It relies on the TensorFlow implementation of the NUFFT, [`tfkbnufft`](https://github.com/zaccharieramzi/tfkbnufft).
 This network will allow you to work on 2D single-coil and multi-coil data, as well as 3D single-coil data.
 
-__Deep Image Prior__: you can also reconstruct non-cartesian data in an untrained fashion using the [DIP model](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/evaluate/reconstruction/dip_reconstrution.py).
+__Deep Image Prior__: you can also reconstruct non-Cartesian data in an untrained fashion using the [DIP model](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/fastmri_recon/evaluate/reconstruction/dip_reconstrution.py).
 This idea originated from the [Deep Image Prior](https://dmitryulyanov.github.io/deep_image_prior) paper, and was later adapted to MRI reconstruction by different works ([Accelerated MRI with untrained Neural networks](https://arxiv.org/abs/2007.02471), [Time-Dependent Deep Image Prior for Dynamic MRI](https://arxiv.org/abs/1910.01684)).
-It currently is only used for 2D non-cartesian data (primarily for computation time reasons), but you can extend it easily to 2D cartesian data and 3D (PRs welcome).
+It currently is only used for 2D non-Cartesian data (primarily for computation time reasons), but you can extend it easily to 2D Cartesian data and 3D (PRs welcome).
 
 
 ## How to train the neural networks
@@ -55,12 +62,12 @@ To reproduce the results of the paper for the fastMRI dataset, run the following
 python fastmri_recon/evaluate/scripts/paper_eval.py --contrast CORPD_FBK
 ```
 
-To reproduce the results of the paper for the OASIS dataset, run the following script (here for less samples):
+To reproduce the results of the paper for the OASIS dataset, run the following script (here for fewer samples):
 ```
 python fastmri_recon/evaluate/scripts/paper_eval_oasis.py --n-samples 100
 ```
 
-Finally to reproduce the figures of the paper, you will need to use the [`qualitative_validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/qualitative_validation_for_net.ipynb) notebook.
+Finally, to reproduce the figures of the paper, you will need to use the [`qualitative_validation_for_net`](https://github.com/zaccharieramzi/fastmri-reproducible-benchmark/blob/master/experiments/qualitative_validation_for_net.ipynb) notebook.
 
 ### Downloading the model checkpoints
 The model checkpoints are stored in the [HuggingFace Hub](https://huggingface.co/zaccharieramzi).
