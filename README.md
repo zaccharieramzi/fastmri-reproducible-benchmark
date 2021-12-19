@@ -27,6 +27,22 @@ Various examples are available in the `examples` folder.
 
 These examples can be run in [binder](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master).
 
+## Pretrained model checkpoints
+Some model checkpoints are available in the [HuggingFace Hub](https://huggingface.co/zaccharieramzi).
+You can either download them manually, clone the model repository, or use the `huggingface-hub` package like:
+```python
+from huggingface_hub import hf_hub_download
+
+REPO_ID_BASE = 'zaccharieramzi/{model_name}'
+repo_id = REPO_ID_BASE.format(model_name='... the model name')
+model_weights_path = hf_hub_download(
+    repo_id=repo_id,
+    filename='model_weights.h5',
+)
+```
+
+Use cases for each model are explained in the respective model cards on the HuggingFace Hub under the "How to use" section.
+
 ## Reconstruction settings
 
 The main reconstruction settings are Cartesian single-coil and multi-coil 2D reconstruction with random and "periodic sampling".
