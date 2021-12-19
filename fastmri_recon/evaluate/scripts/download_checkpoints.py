@@ -26,10 +26,10 @@ def download_checkpoints(dataset=None):
         for model_name in MODEL_NAMES:
             repo_id = REPO_ID_BASE.format(model_name=model_name, dataset=dataset)
             hf_hub_download(
-                repo_id=repo_id, 
+                repo_id=repo_id,
                 filename='model_weights.h5',
                 cache_dir=Path(CHECKPOINTS_DIR) / 'checkpoints',
-                force_filename='{model_name}-{dataset}.hdf5',
+                force_filename=f'{model_name}-{dataset}.hdf5',
             )
 
 @click.command()
