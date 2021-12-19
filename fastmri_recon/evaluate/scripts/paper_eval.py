@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from fastmri_recon.config import FASTMRI_DATA_DIR
+from fastmri_recon.config import FASTMRI_DATA_DIR, CHECKPOINTS_DIR
 from fastmri_recon.data.sequences.fastmri_sequences import ZeroFilled2DSequence, Masked2DSequence
 from fastmri_recon.evaluate.metrics.np_metrics import METRIC_FUNCS, Metrics
 from fastmri_recon.evaluate.reconstruction.zero_filled_reconstruction import reco_and_gt_zfilled_from_val_file
@@ -57,7 +57,7 @@ def evaluate_paper(contrast=None, n_samples=None):
                 'input_size': (320, 320, 1),
             },
             'val_gen': val_gen_zero,
-            'run_id': 'unet_af4_1569210349',
+            'run_id': 'UNet-fastmri',
             'reco_function': reco_and_gt_unet_from_val_file,
         },
         {
@@ -70,7 +70,7 @@ def evaluate_paper(contrast=None, n_samples=None):
                 'n_filters': 32,
             },
             'val_gen': val_gen_scaled,
-            'run_id': 'pdnet_af4_1568384763',
+            'run_id': 'PDNet-fastmri',
             'reco_function': reco_and_gt_net_from_val_file,
         },
         {
@@ -83,7 +83,7 @@ def evaluate_paper(contrast=None, n_samples=None):
                 'noiseless': True,
             },
             'val_gen': val_gen_scaled,
-            'run_id': 'cascadenet_af4_1568926824',
+            'run_id': 'CascadeNet',
             'reco_function': reco_and_gt_net_from_val_file,
         },
         {
@@ -96,12 +96,12 @@ def evaluate_paper(contrast=None, n_samples=None):
                 'activation': lrelu,
             },
             'val_gen': val_gen_scaled,
-            'run_id': 'kikinet_sep_I2_af4_1570049560',
+            'run_id': 'KIKI-net-fastmri',
             'reco_function': reco_and_gt_net_from_val_file,
             'epoch': 50,
         },
     ]
-    checkpoints_path = Path(__file__).parents[3] / 'checkpoints'
+    checkpoints_path = Path(CHECKPOINTS_DIR) / 'checkpoints'
     def unpack_model(
             init_function=None,
             run_params=None,
@@ -110,7 +110,7 @@ def evaluate_paper(contrast=None, n_samples=None):
             **dummy_kwargs,
         ):
         model = init_function(**run_params)
-        chkpt_path = checkpoints_path / f'{run_id}-{epoch}.hdf5'
+        chkpt_path = checkpoints_path / f'{run_id}.hdf5'
         model.load_weights(str(chkpt_path))
         return model
 
