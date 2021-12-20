@@ -1,6 +1,6 @@
 numpy >= 1.18
 h5py<2.11.0,>=2.10.0
-scikit-image
+scikit-image >= 0.16
 tqdm >= 4.36.1
 runstats
 nibabel
