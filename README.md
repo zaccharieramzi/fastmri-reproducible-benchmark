@@ -22,8 +22,8 @@ For the LORAKS reconstruction, you will not be able to reconstruct the proper fa
 
 ## Examples
 Various examples are available in the `examples` folder.
-- The `pysap_cascade_comparison.ipynb` notebook compares the performance of classical wavelet-based reconstruction (using the [pysap-mri](https://github.com/CEA-COSMIC/pysap-mri) package) and the CascadeNet on a slice from the fastMRI single coil dataset in a 2D Cartesian setting.
-- More to come...
+- The [`mri_reconstruction_intro.ipynb`](examples/mri_reconstruction_intro.ipynb) notebook compares the performance of classical wavelet-based reconstruction (using the [pysap-mri](https://github.com/CEA-COSMIC/pysap-mri) package) and deep learning based approaches like the CascadeNet and the UPDNet on a slice from the fastMRI single coil dataset in a 2D Cartesian setting.
+- The [`non_cartesian_reconstruction.ipynb`](examples/non_cartesian_reconstruction.ipynb) notebook showcases the use of the NCPDNet.
 
 These examples can be run in [binder](https://mybinder.org/v2/gh/zaccharieramzi/fastmri-reproducible-benchmark/master).
 
