@@ -1,9 +1,15 @@
+import warnings
+
 import tensorflow as tf
 from tensorflow.keras.layers import  Layer
 from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftshift
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.kbnufft import KbNufftModule
-import tensorflow_nufft as tfft
+try:
+    import tensorflow_nufft as tfft
+    ext_nufft = True
+except:
+    ext_nufft = False
 from .masking import _mask_tf
 
 
@@ -211,6 +217,12 @@ class NFFTBase(Layer):
         self.grad_traj = grad_traj
         if implementation not in ['tfkbnufft', 'tensorflow-nufft']:
             raise ValueError(f'Implementation {implementation} not supported')
+        if implementation == 'tensorflow-nufft' and not ext_nufft:
+            warnings.warn(
+                'Tensorflow-nufft implementation not available\n'
+                'Falling back to tfkbnufft implementation'
+            )
+            implementation = 'tfkbnufft'
         self.implementation = implementation
         if self.implementation == 'tfkbnufft':
             self.nufft_ob = KbNufftModule(
