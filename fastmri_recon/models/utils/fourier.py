@@ -6,7 +6,7 @@ from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftsh
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.kbnufft import KbNufftModule
 try:
-    import tensorflow_nufft as tfft
+    import tensorflow_nufft as tfnufft
     ext_nufft = True
 except:
     ext_nufft = False
@@ -234,14 +234,14 @@ class NFFTBase(Layer):
             self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
             self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
         elif self.implementation == 'tensorflow-nufft':
-            self.forward_op = lambda image, ktraj: tfft.nufft(
+            self.forward_op = lambda image, ktraj: tfnufft.nufft(
                 image,
                 tf.transpose(ktraj),
                 transform_type='type_2',
                 fft_direction='forward',
                 tol=1e-4,
             )
-            self.backward_op = lambda kspace, ktraj: tfft.nufft(
+            self.backward_op = lambda kspace, ktraj: tfnufft.nufft(
                 kspace,
                 tf.transpose(ktraj),
                 grid_shape=im_size,
