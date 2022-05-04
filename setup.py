@@ -9,7 +9,7 @@ with open('requirements.txt') as open_file:
 
 setuptools.setup(
     name="fastmri-recon",
-    version="0.0.1",
+    version="0.1.0",
     author="Zaccharie Ramzi",
     author_email="zaccharie.ramzi@gmail.com",
     description="Tools to benchmark different reconstruction neural nets on the fastMRI dataset",

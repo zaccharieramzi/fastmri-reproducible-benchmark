@@ -188,6 +188,7 @@ def train_ncpdnet(
         n_primal=5,
         non_linearity='relu',
         refine_smaps=True,
+        nufft_implementation='tfkbnufft',
         **train_kwargs,
     ):
     if three_d:
@@ -206,6 +207,7 @@ def train_ncpdnet(
         'normalize_image': normalize_image,
         'refine_smaps': refine_smaps,
         'fastmri': not three_d,
+        'nufft_implementation': nufft_implementation,
     }
 
     if multicoil:
@@ -278,6 +280,7 @@ def train_unet_nc(
         n_layers=4,
         base_n_filters=16,
         non_linearity='relu',
+        nufft_implementation='tfkbnufft',
         **train_kwargs,
     ):
     run_params = {
@@ -290,6 +293,7 @@ def train_unet_nc(
         'dcomp': dcomp,
         'dealiasing_nc_fastmri': True,
         'multicoil': multicoil,
+        'nufft_implementation': nufft_implementation,
     }
 
     if multicoil:

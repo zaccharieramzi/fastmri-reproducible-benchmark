@@ -1,9 +1,15 @@
+import warnings
+
 import tensorflow as tf
 from tensorflow.keras.layers import  Layer
 from tensorflow.python.ops.signal.fft_ops import fft2d, ifft2d, ifftshift, fftshift
 from tfkbnufft import kbnufft_forward, kbnufft_adjoint
 from tfkbnufft.kbnufft import KbNufftModule
-
+try:
+    import tensorflow_nufft as tfnufft
+    ext_nufft = True
+except:
+    ext_nufft = False
 from .masking import _mask_tf
 
 
@@ -203,20 +209,47 @@ def nufft(nufft_ob, image, ktraj, image_size=None, multiprocessing=False):
 
 
 class NFFTBase(Layer):
-    def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, grad_traj=False, **kwargs):
+    def __init__(self, multicoil=False, im_size=(640, 472), density_compensation=False, grad_traj=False, 
+                implementation='tfkbnufft', **kwargs):
         super(NFFTBase, self).__init__(**kwargs)
         self.multicoil = multicoil
         self.im_size = im_size
         self.grad_traj = grad_traj
-        self.nufft_ob = KbNufftModule(
-            im_size=self.im_size,
-            grid_size=None,
-            norm='ortho',
-            grad_traj=self.grad_traj,
-        )
+        if implementation not in ['tfkbnufft', 'tensorflow-nufft']:
+            raise ValueError(f'Implementation {implementation} not supported')
+        if implementation == 'tensorflow-nufft' and not ext_nufft:
+            warnings.warn(
+                'Tensorflow-nufft implementation not available\n'
+                'Falling back to tfkbnufft implementation'
+            )
+            implementation = 'tfkbnufft'
+        self.implementation = implementation
+        if self.implementation == 'tfkbnufft':
+            self.nufft_ob = KbNufftModule(
+                im_size=self.im_size,
+                grid_size=None,
+                norm='ortho',
+                grad_traj=self.grad_traj,
+            )
+            self.forward_op = lambda image, ktraj: nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
+            self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
+        elif self.implementation == 'tensorflow-nufft':
+            self.forward_op = lambda image, ktraj: tfnufft.nufft(
+                image,
+                tf.transpose(ktraj),
+                transform_type='type_2',
+                fft_direction='forward',
+                tol=1e-4,
+            )
+            self.backward_op = lambda kspace, ktraj: tfnufft.nufft(
+                kspace,
+                tf.transpose(ktraj),
+                grid_shape=im_size,
+                transform_type='type_1',
+                fft_direction='backward',
+                tol=1e-4,
+            )
         self.density_compensation = density_compensation
-        self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
-        self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
 
     def pad_for_nufft(self, image):
         return _pad_for_nufft(image, self.im_size)
@@ -237,7 +270,7 @@ class NFFTBase(Layer):
         if self.multicoil:
             image = image * smaps
 
-        kspace = nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
+        kspace = self.forward_op(image, ktraj)
         # TODO: get rid of shape return as not needed in the end.
         # shape is computed once in the preprocessing and passed on as is.
         shape = tf.ones([tf.shape(image)[0]], dtype=tf.int32) * tf.shape(image)[-1]

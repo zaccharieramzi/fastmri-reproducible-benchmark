@@ -25,6 +25,7 @@ class UnetComplex(Model):
             dcomp=None,
             multicoil=False,
             grad_traj=False,
+            nufft_implementation='tfkbnufft',
             **kwargs,
         ):
         super(UnetComplex, self).__init__(**kwargs)
@@ -48,6 +49,7 @@ class UnetComplex(Model):
                 multicoil=self.multicoil,
                 density_compensation=dcomp,
                 grad_traj=grad_traj,
+                implementation=nufft_implementation,
             )
         self.unet = unet(
             input_size=(None, None, 2 * self.n_input_channels),  # 2 for real and imag

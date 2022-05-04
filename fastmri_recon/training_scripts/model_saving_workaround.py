@@ -18,12 +18,12 @@ class ModelCheckpointWorkAround(ModelCheckpoint):
         # is skipped, so that self.save_weights_only remains False.
         self.model = model
 
-    def _save_model(self, epoch, logs):
+    def _save_model(self, epoch, batch, logs):
         # Save the model with super
-        super(ModelCheckpointWorkAround, self)._save_model(epoch, logs)
+        super(ModelCheckpointWorkAround, self)._save_model(epoch, batch, logs)
         if self.save_optimizer:
             # Save the optimizer
-            folder = os.path.dirname(self._get_file_path(epoch, logs))
+            folder = os.path.dirname(self._get_file_path(epoch, batch, logs))
             symbolic_weights = getattr(self.model.optimizer, 'weights')
             weight_values = K.batch_get_value(symbolic_weights)
             with open(os.path.join(folder, 'optimizer.pkl'), 'wb') as f:
