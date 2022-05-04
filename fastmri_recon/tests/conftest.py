@@ -1,9 +1,9 @@
 import h5py
+import os
 import numpy as np
 import pytest
 import tensorflow as tf
 from tqdm import tqdm
-
 
 K_shape_single_coil = (2, 640, 322)
 K_shape_multi_coil = (2, 15, 640, 322)
@@ -26,6 +26,12 @@ fake_xml = b"""<?xml version="1.0" encoding="utf-8"?>\n<ismrmrdHeader xmlns="htt
 <name>MaxwellCoefficient_7</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_8</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_9</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_10</name>\n         <value>0</value>\n      </userParameterDouble>\n\
 <userParameterDouble>\n         <name>MaxwellCoefficient_11</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_12</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_13</name>\n         <value>0</value>\n      </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_14</name>\n         <value>0</value>\n\
 </userParameterDouble>\n      <userParameterDouble>\n         <name>MaxwellCoefficient_15</name>\n         <value>0</value>\n      </userParameterDouble>\n   </userParameters>\n</ismrmrdHeader>"""
+
+CI = os.environ.get('CONTINUOUS_INTEGRATION', False) == 'true'
+CI = CI or os.environ.get('CI', False) == 'true'
+CI = CI or os.environ.get('TRAVIS', False) == 'true'
+
+os.environ['CI'] = str(int(CI))
 
 def create_data(filename, multicoil=False, train=True):
     k_shape = K_shape_single_coil
