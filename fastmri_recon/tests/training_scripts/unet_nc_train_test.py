@@ -10,7 +10,7 @@ from fastmri_recon.training_scripts.nc_train import train_unet_nc
 ])
 @pytest.mark.parametrize('nufft_implementation',['tfkbnufft', 'tensorflow-nufft'])
 def test_train_unet_nc(create_full_fastmri_test_tmp_dataset, kwargs, nufft_implementation):
-    if nufft_implementation == 'tensorflow-nufft' and os.environ.get('CI', False) == True:
+    if nufft_implementation == 'tensorflow-nufft' and os.environ.get('CI', False) == "True":
         pytest.skip('Tensorflow-nufft needs GPU on CI.')
     nc_train.FASTMRI_DATA_DIR = create_full_fastmri_test_tmp_dataset['fastmri_tmp_data_dir']
     nc_train.LOGS_DIR = create_full_fastmri_test_tmp_dataset['logs_tmp_dir']

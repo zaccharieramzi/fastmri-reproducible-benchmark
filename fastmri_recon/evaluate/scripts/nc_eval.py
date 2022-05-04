@@ -129,6 +129,7 @@ def evaluate_ncpdnet(
         non_linearity='relu',
         refine_smaps=True,
         brain=False,
+        nufft_implementation='tfkbnufft',
         **eval_kwargs
     ):
     if three_d:
@@ -148,6 +149,7 @@ def evaluate_ncpdnet(
         'refine_smaps': refine_smaps,
         'output_shape_spec': brain,
         'fastmri': not three_d,
+        'nufft_implementation': nufft_implementation,
     }
 
     model = NCPDNet(**run_params)
@@ -212,6 +214,7 @@ def evaluate_unet(
         dcomp=False,
         base_n_filters=16,
         non_linearity='relu',
+        nufft_implementation='tfkbnufft',
         **eval_kwargs
     ):
     run_params = {
@@ -224,6 +227,7 @@ def evaluate_unet(
         'dcomp': dcomp,
         'dealiasing_nc_fastmri': True,
         'multicoil': multicoil,
+        'nufft_implementation': nufft_implementation,
     }
 
     model = UnetComplex(**run_params)

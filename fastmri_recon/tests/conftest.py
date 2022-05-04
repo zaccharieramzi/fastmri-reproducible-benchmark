@@ -1,5 +1,6 @@
-import h5py
 import os
+
+import h5py
 import numpy as np
 import pytest
 import tensorflow as tf
@@ -31,7 +32,7 @@ CI = os.environ.get('CONTINUOUS_INTEGRATION', False) == 'true'
 CI = CI or os.environ.get('CI', False) == 'true'
 CI = CI or os.environ.get('TRAVIS', False) == 'true'
 
-os.environ['CI'] = str(int(CI))
+os.environ['CI'] = str(CI)
 
 def create_data(filename, multicoil=False, train=True):
     k_shape = K_shape_single_coil
