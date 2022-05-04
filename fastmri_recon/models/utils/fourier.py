@@ -231,7 +231,7 @@ class NFFTBase(Layer):
                 norm='ortho',
                 grad_traj=self.grad_traj,
             )
-            self.forward_op = kbnufft_forward(self.nufft_ob._extract_nufft_interpob())
+            self.forward_op = lambda image, ktraj: nufft(self.nufft_ob, image, ktraj, image_size=self.im_size)
             self.backward_op = kbnufft_adjoint(self.nufft_ob._extract_nufft_interpob())
         elif self.implementation == 'tensorflow-nufft':
             self.forward_op = lambda image, ktraj: tfnufft.nufft(
