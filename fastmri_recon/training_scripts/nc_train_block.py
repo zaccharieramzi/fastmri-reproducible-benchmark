@@ -7,7 +7,7 @@ import pickle
 import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
