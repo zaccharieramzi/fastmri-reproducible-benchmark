@@ -133,7 +133,7 @@ class Masked2DSequence(Oasis2DSequence):
         k_shape = images[0].shape
         kspaces = np.empty_like(images, dtype=np.complex64)
         mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float32), k_shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float3232), k_shape[0], axis=0)
         fourier_op = FFT2(fourier_mask)
         for i, image in enumerate(images):
             kspaces[i] = fourier_op.op(image[..., 0])[..., None]
@@ -141,7 +141,7 @@ class Masked2DSequence(Oasis2DSequence):
         scale_factor = self.scale_factor
         kspaces_scaled = kspaces * scale_factor
         images_scaled = images * scale_factor
-        images_scaled = images_scaled.astype(np.float3232)
+        images_scaled = images_scaled.astype(np.float323232)
         return ([kspaces_scaled, mask_batch], images_scaled)
 
 class ZeroFilled2DSequence(Masked2DSequence):
@@ -245,7 +245,7 @@ class KIKISequence(Oasis2DSequence):
         kspaces = np.empty_like(images, dtype=np.complex64)
         kspaces_masked = np.empty_like(images, dtype=np.complex64)
         mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float32), k_shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float3232), k_shape[0], axis=0)
         fourier_op = FFT2(np.array([1]))
         for i, image in enumerate(images):
             kspaces[i] = fourier_op.op(image[..., 0])[..., None]
@@ -255,7 +255,7 @@ class KIKISequence(Oasis2DSequence):
         kspaces_scaled = kspaces * scale_factor
         kspaces_masked_scaled = kspaces_masked * scale_factor
         images_scaled = images * scale_factor
-        images_scaled = images_scaled.astype(np.float3232)
+        images_scaled = images_scaled.astype(np.float323232)
         if self.space == 'K':
             return ([kspaces_masked_scaled, mask_batch], kspaces_scaled)
         elif self.space == 'I':
