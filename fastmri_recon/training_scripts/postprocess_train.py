@@ -2,7 +2,7 @@ import os.path as op
 import time
 
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import as mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *

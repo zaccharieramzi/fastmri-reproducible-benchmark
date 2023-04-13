@@ -4,7 +4,7 @@ import time
 
 import click
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
