@@ -17,7 +17,7 @@ def test_xpdnet(primal_only, n_dual, use_mixed_precision):
     else:
         policy_type = 'float32'
     policy = mixed_precision.Policy(policy_type)
-    mixed_precision.set_policy(policy)
+    mixed_precision.set_global_policy(policy)
     n_primal = 2
     n_scales = 3
     submodel_kwargs = dict(

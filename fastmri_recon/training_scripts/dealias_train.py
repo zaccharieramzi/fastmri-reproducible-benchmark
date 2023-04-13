@@ -49,7 +49,7 @@ def train_dealiaser(
     else:
         policy_type = 'float32'
     policy = mixed_precision.Policy(policy_type)
-    mixed_precision.set_policy(policy)
+    mixed_precision.set_global_policy(policy)
     # generators
     if multicoil:
         dataset = multicoil_dataset
