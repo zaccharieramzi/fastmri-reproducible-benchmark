@@ -32,7 +32,7 @@ class RandomShapeGenerator:
                 images[i, ..., 0] = image
                 kspaces[i, ..., 0] = kspace
             mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-            fourier_mask = np.repeat(mask.astype(np.float), self.size, axis=0)
+            fourier_mask = np.repeat(mask.astype(np.float32), self.size, axis=0)
             mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
             kspaces *= mask_batch
             mask_batch = mask_batch[..., 0]
