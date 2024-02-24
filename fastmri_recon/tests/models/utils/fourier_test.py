@@ -15,7 +15,7 @@ class TestFFTLayers(tf.test.TestCase):
         self.image = ifft(self.kspace)
         self.smaps = np.random.normal(size=(n_coils,) + kspace_shape) + 1j * np.random.normal(size=(n_coils,) +kspace_shape)
         mask = gen_mask(self.kspace)
-        self.mask = np.repeat(mask.astype(np.float), kspace_shape[0], axis=0)
+        self.mask = np.repeat(mask.astype(np.float32), kspace_shape[0], axis=0)
         fourier_op = FFT2(self.mask)
         self.masked_kspace = fourier_op.op(self.image)
         self.masked_kspace_multi_coil = fourier_op.op(self.image[None, ...] * self.smaps)

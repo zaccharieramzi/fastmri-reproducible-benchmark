@@ -6,7 +6,7 @@ from fastmri_recon.data.utils.masking.gen_mask_tf import gen_mask_tf
 
 def _rotation(ps, nstacks, nspokes):
     angle = np.pi / (nstacks * nspokes)
-    n_rot = np.array((-np.pi - ps[-1]) * nstacks).astype(np.int)
+    n_rot = np.array((-np.pi - ps[-1]) * nstacks).astype(np.int64)
     p0 = np.cos(angle * n_rot) * ps[0] - np.sin(angle * n_rot) * ps[1]
     p1 = np.sin(angle * n_rot) * ps[0] + np.cos(angle * n_rot) * ps[1]
     return np.vstack([p0, p1, ps[-1]])

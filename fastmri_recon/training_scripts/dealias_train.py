@@ -3,7 +3,7 @@ import os.path as op
 import time
 
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import mixed_precision
 from tensorflow_addons.callbacks import TQDMProgressBar
 
 from fastmri_recon.config import *
@@ -49,7 +49,7 @@ def train_dealiaser(
     else:
         policy_type = 'float32'
     policy = mixed_precision.Policy(policy_type)
-    mixed_precision.set_policy(policy)
+    mixed_precision.set_global_policy(policy)
     # generators
     if multicoil:
         dataset = multicoil_dataset

@@ -182,7 +182,7 @@ class Masked2DSequence(Untouched2DSequence):
         images, kspaces = super(Masked2DSequence, self).get_item_train(filename)
         k_shape = kspaces[0].shape
         mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af, seed=self.mask_seed)
-        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float32), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
         kspaces *= mask_batch
         mask_batch = mask_batch[..., 0]
@@ -215,7 +215,7 @@ class Masked2DSequence(Untouched2DSequence):
         """
         mask, kspaces = from_test_file_to_mask_and_kspace(filename)
         k_shape = kspaces[0].shape
-        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float32), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)
         kspaces_scaled = kspaces * self.scale_factor
         return kspaces_scaled, mask_batch
@@ -257,7 +257,7 @@ class ZeroFilled2DSequence(fastMRI2DSequence):
         """
         images, kspaces = from_train_file_to_image_and_kspace(filename)
         mask = gen_mask(kspaces[0], accel_factor=self.af, seed=self.mask_seed)
-        fourier_mask = np.repeat(mask.astype(np.float), kspaces[0].shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float32), kspaces[0].shape[0], axis=0)
         img_batch = list()
         zero_img_batch = list()
         if self.norm and self.mode == 'validation':
@@ -361,7 +361,7 @@ class KIKISequence(Untouched2DSequence):
         _, kspaces = super(KIKISequence, self).get_item_train(filename)
         k_shape = kspaces[0].shape
         mask = gen_mask(kspaces[0, ..., 0], accel_factor=self.af)
-        fourier_mask = np.repeat(mask.astype(np.float), k_shape[0], axis=0)
+        fourier_mask = np.repeat(mask.astype(np.float32), k_shape[0], axis=0)
         mask_batch = np.repeat(fourier_mask[None, ...], len(kspaces), axis=0)[..., None]
         kspaces_masked = kspaces * mask_batch
         mask_batch = mask_batch[..., 0]

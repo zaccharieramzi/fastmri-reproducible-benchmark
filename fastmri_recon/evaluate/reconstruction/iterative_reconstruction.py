@@ -10,7 +10,7 @@ def reco_iterative_from_test_file(filename, rec_type='wav', **kwargs):
     mask, kspaces = from_test_file_to_mask_and_kspace(filename)
     # mask handling
     fake_kspace = np.zeros_like(kspaces[0])
-    fourier_mask = np.repeat(mask.astype(np.float)[None, :], fake_kspace.shape[0], axis=0)
+    fourier_mask = np.repeat(mask.astype(np.float32)[None, :], fake_kspace.shape[0], axis=0)
     # op creation
     fourier_op_masked = FFT2(mask=fourier_mask)
     if rec_type == 'wav':

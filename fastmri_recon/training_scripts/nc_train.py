@@ -8,7 +8,7 @@ import pickle
 import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import mixed_precision
 from tensorflow.keras.models import load_model
 from tensorflow_addons.callbacks import TQDMProgressBar
 
@@ -74,7 +74,7 @@ def train_ncnet(
     else:
         policy_type = 'float32'
     policy = mixed_precision.Policy(policy_type)
-    mixed_precision.set_policy(policy)
+    mixed_precision.set_global_policy(policy)
     # generators
     if multicoil:
         dataset = multicoil_dataset

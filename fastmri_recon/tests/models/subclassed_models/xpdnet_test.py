@@ -1,6 +1,6 @@
 import pytest
 import tensorflow as tf
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras import mixed_precision
 
 from fastmri_recon.models.subclassed_models.denoisers.mwcnn import MWCNN
 from fastmri_recon.models.subclassed_models.xpdnet import XPDNet
@@ -17,7 +17,7 @@ def test_xpdnet(primal_only, n_dual, use_mixed_precision):
     else:
         policy_type = 'float32'
     policy = mixed_precision.Policy(policy_type)
-    mixed_precision.set_policy(policy)
+    mixed_precision.set_global_policy(policy)
     n_primal = 2
     n_scales = 3
     submodel_kwargs = dict(
